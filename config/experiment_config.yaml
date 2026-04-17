@@ -1,0 +1,170 @@
+# ============================================================
+# experiment_config.yaml — Experiment Configuration
+# Architecture-Aware Domain Model Configuration Pipeline
+# ============================================================
+# This file documents all experimental parameters for
+# full reproducibility as specified in the Execution Protocol.
+# ============================================================
+
+# ──────────────────────────────────────────────────────────────
+# Random Seed for Instance Selection
+# ──────────────────────────────────────────────────────────────
+random_seed: 42
+instances_per_domain: 15
+total_available_instances: 20
+
+# ──────────────────────────────────────────────────────────────
+# Domains (from Domain Selection Methodology — Draft 2)
+# ──────────────────────────────────────────────────────────────
+domains:
+  - name: visitall
+    ipc_year: 2014
+    full_name: "VisitAll (IPC 2014)"
+    description: "Minimal baseline — pure graph-reachability"
+
+  - name: snake
+    ipc_year: 2018
+    full_name: "Snake (IPC 2018)"
+    description: "Untyped, negative-precondition challenge with dead-end states"
+
+  - name: ricochet-robots
+    ipc_year: 2023
+    full_name: "Ricochet Robots (IPC 2023)"
+    description: "State-of-the-art mid-range — phased movement, action-costs"
+
+  - name: depots
+    ipc_year: 2002
+    full_name: "Depots (IPC 2002)"
+    description: "Typed logistics mid-range — 3-level type hierarchy"
+
+  - name: barman
+    ipc_year: 2014
+    full_name: "Barman (IPC 2014)"
+    description: "Maximal complexity anchor — highest action count and type depth"
+
+# ──────────────────────────────────────────────────────────────
+# LLM Models (from LLM Selection Methodology — 3rd Draft)
+# ──────────────────────────────────────────────────────────────
+llms:
+  # Category A: Deep-Reasoning Architectures
+  - name: gpt-5.4
+    provider: openai
+    model_id: "gpt-5.4-2026-03-05"
+    category: "deep-reasoning"
+    env_key: OPENAI_API_KEY
+
+  - name: deepseek-r1
+    provider: deepseek
+    model_id: "deepseek-reasoner"
+    category: "deep-reasoning"
+    env_key: DEEPSEEK_API_KEY
+    base_url: "https://api.deepseek.com"
+
+  # Category B: Coding Heavyweight Architectures
+  - name: claude-opus-4.6
+    provider: anthropic
+    model_id: "claude-opus-4-6"
+    category: "coding-heavyweight"
+    env_key: ANTHROPIC_API_KEY
+
+  - name: gemini-3.1-pro
+    provider: google
+    model_id: "gemini-3.1-pro-preview-customtools"
+    category: "coding-heavyweight"
+    env_key: GEMINI_API_KEY
+
+# ──────────────────────────────────────────────────────────────
+# LLM Hyperparameters (from Execution Protocol §5)
+# ──────────────────────────────────────────────────────────────
+llm_hyperparameters:
+  temperature: 0.0
+  top_p: 1.0
+  max_completion_tokens: 4096
+  context_memory: "stateless"
+
+# ──────────────────────────────────────────────────────────────
+# AI Planners (from AI Planners Selection — Draft 4)
+# ──────────────────────────────────────────────────────────────
+planners:
+  - name: lama
+    full_name: "Fast Downward (LAMA-first)"
+    architecture: "heuristic-forward-search"
+    docker_image: "lama_planner"
+    description: "Gold-standard heuristic search baseline"
+
+  - name: madagascar
+    full_name: "Madagascar"
+    architecture: "sat-based"
+    docker_image: "madagascar_planner"
+    description: "Constraint-programming / SAT-based planning"
+
+  - name: bfws
+    full_name: "LAPKT-BFWS-Preference"
+    architecture: "width-based-search"
+    docker_image: "bfws_planner"
+    description: "IPC 2018 Agile winner — novelty-based exploration"
+
+  - name: decstar
+    full_name: "DecStar"
+    architecture: "decoupled-search"
+    docker_image: "decstar_planner"
+    description: "IPC 2023 Agile winner — star-topology decomposition"
+
+# ──────────────────────────────────────────────────────────────
+# Prompt Strategies (from Execution Protocol §1.2)
+# ──────────────────────────────────────────────────────────────
+prompt_strategies:
+  stage_1: "general_prompt"
+  stage_2: "arch_aware_prompt"
+
+# ──────────────────────────────────────────────────────────────
+# Docker Resource Constraints (from Execution Protocol §6.2)
+# ──────────────────────────────────────────────────────────────
+docker:
+  cpus: 1.0
+  memory: "8g"
+  memory_swap: "8g"
+  oom_kill_disable: false
+  timeout_seconds: 300
+
+# ──────────────────────────────────────────────────────────────
+# Parallel Execution (from Execution Protocol §8)
+# ──────────────────────────────────────────────────────────────
+parallel:
+  max_workers: 4                    # Run all 4 planners concurrently
+  cross_test_max_workers: 1         # Sequential for cross-testing
+
+# ──────────────────────────────────────────────────────────────
+# Improvement Detection (from Execution Protocol §3)
+# ──────────────────────────────────────────────────────────────
+improvement_detection:
+  alpha: 0.05                       # Significance level
+  min_mean_gain: 0.05               # Practical significance threshold
+  test: "wilcoxon_signed_rank"
+  alternative: "greater"
+
+# ──────────────────────────────────────────────────────────────
+# Error Handling (from Execution Protocol §6.3)
+# ──────────────────────────────────────────────────────────────
+retry_policy:
+  rate_limit_429:
+    max_retries: 5
+    backoff_base_seconds: 2
+  server_error_5xx:
+    max_retries: 3
+    wait_seconds: 30
+  network_timeout:
+    max_retries: 2
+    initial_timeout_seconds: 120
+  empty_response:
+    max_retries: 0
+  auth_error:
+    max_retries: 0
+    action: "HALT"
+
+# ──────────────────────────────────────────────────────────────
+# Heartbeat Logging (from Execution Protocol §6.4)
+# ──────────────────────────────────────────────────────────────
+heartbeat:
+  interval_seconds: 60
+  log_file: "logs/pipeline_heartbeat.log"

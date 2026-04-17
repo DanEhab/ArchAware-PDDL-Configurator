@@ -1,0 +1,56 @@
+# ============================================================
+# requirements.txt — ArchAware-PDDL-Configurator
+# Architecture-Aware Domain Model Configuration Pipeline
+# ============================================================
+# Install: pip install -r requirements.txt
+# Python:  >= 3.10
+# ============================================================
+
+# ──────────────────────────────────────────────────────────────
+# LLM Provider SDKs
+# ──────────────────────────────────────────────────────────────
+openai>=1.75.0               # GPT-5.4 + DeepSeek (OpenAI-compatible API)
+anthropic>=0.52.0             # Claude Opus 4.6
+google-generativeai>=0.8.5    # Gemini 3.1 Pro
+
+# ──────────────────────────────────────────────────────────────
+# Environment & Configuration
+# ──────────────────────────────────────────────────────────────
+python-dotenv>=1.1.0          # Load .env API keys
+PyYAML>=6.0                   # experiment_config.yaml parsing
+
+# ──────────────────────────────────────────────────────────────
+# Data Processing & Analysis
+# ──────────────────────────────────────────────────────────────
+pandas>=2.2.0                 # CSV result processing & data wrangling
+numpy>=2.0.0                  # Numerical computations
+
+# ──────────────────────────────────────────────────────────────
+# Statistical Testing
+# ──────────────────────────────────────────────────────────────
+scipy>=1.15.0                 # Wilcoxon signed-rank test, normality tests
+statsmodels>=0.14.0           # Additional statistical analysis
+scikit-posthocs>=0.11.0       # Post-hoc pairwise comparisons (Friedman)
+
+# ──────────────────────────────────────────────────────────────
+# Visualization
+# ──────────────────────────────────────────────────────────────
+matplotlib>=3.10.0            # Plotting: heatmaps, KDE, bar charts
+seaborn>=0.13.0               # Statistical visualization layer
+
+# ──────────────────────────────────────────────────────────────
+# HTTP / Networking (for robust LLM API calls)
+# ──────────────────────────────────────────────────────────────
+requests>=2.32.0              # HTTP client (fallback / health checks)
+tenacity>=9.0.0               # Retry logic with exponential backoff
+
+# ──────────────────────────────────────────────────────────────
+# Progress & Logging
+# ──────────────────────────────────────────────────────────────
+tqdm>=4.67.0                  # Progress bars for batch execution
+
+# ──────────────────────────────────────────────────────────────
+# Jupyter (for evaluation notebooks)
+# ──────────────────────────────────────────────────────────────
+ipykernel>=6.30.0             # Jupyter kernel registration
+nbformat>=5.10.0              # Notebook format support
