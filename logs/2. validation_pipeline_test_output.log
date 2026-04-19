@@ -1,0 +1,95 @@
+﻿python : 12:29:50 [INFO] V1: Extracting PDDL from LLM response...
+At line:1 char:41
++ ... _evaluation\scripts"; python test_validation_pipeline.py 2>&1 | Out-F ...
++                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (12:29:50 [INFO]...LLM response...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+12:29:50 [INFO] V1: PASSED - extracted 5487 chars
+12:29:50 [INFO] V2: SKIPPED (--skip-docker flag)
+12:29:50 [INFO] V3: Checking for identity (no transformation)...
+12:29:50 [INFO] V3: PASSED - domain differs from original
+12:29:50 [INFO] V4: Checking semantic equivalence...
+12:29:50 [INFO] V4: PASSED - semantic equivalence confirmed
+12:29:50 [INFO] V1: Extracting PDDL from LLM response...
+12:29:50 [WARNING] V1: REJECTED - extraction_failed
+12:29:50 [INFO] V1: Extracting PDDL from LLM response...
+12:29:50 [INFO] V1: PASSED - extracted 5487 chars
+12:29:50 [INFO] V2: SKIPPED (--skip-docker flag)
+12:29:50 [INFO] V3: Checking for identity (no transformation)...
+12:29:50 [WARNING] V3: REJECTED - no_transformation
+12:29:50 [INFO] V1: Extracting PDDL from LLM response...
+12:29:50 [INFO] V1: PASSED - extracted 5520 chars
+12:29:50 [INFO] V2: SKIPPED (--skip-docker flag)
+12:29:50 [INFO] V3: Checking for identity (no transformation)...
+12:29:50 [INFO] V3: PASSED - domain differs from original
+12:29:50 [INFO] V4: Checking semantic equivalence...
+12:29:50 [WARNING] V4: INVALID - semantic_change_detected
+============================================================
+VALIDATION PIPELINE TEST SUITE
+Project root: D:\Daniel\GUC\Bachelor Abroad Documents\The most Important Documents (Organized)\Thesis\Code Implementation\ArchAware-PDDL-Configurator
+Docker tests: DISABLED (use --with-docker)
+============================================================
+
+============================================================
+STAGE V1: PDDL Extraction
+============================================================
+  [PASS] Clean PDDL input
+  [PASS] Markdown-wrapped PDDL
+  [PASS] JSON-encoded PDDL
+  [PASS] Empty response -> empty
+  [PASS] Garbage response -> empty
+  [PASS] Unbalanced parens -> empty
+  [PASS] PDDL with surrounding text
+  [PASS] Extracted PDDL is complete (balanced)
+
+============================================================
+STAGE V2: Syntactic Validation (VAL)
+============================================================
+  [SKIP] All V2 tests -- Docker not requested (use --with-docker)
+
+============================================================
+STAGE V3: Identity Check
+============================================================
+  [PASS] Identical domain -> is_identical=True
+  [PASS] Same + extra comments -> is_identical=True
+  [PASS] Same + extra whitespace -> is_identical=True
+  [PASS] Case difference -> is_identical=True
+  [PASS] Different domain -> is_identical=False
+  [PASS] Reordered predicates -> is_identical=False
+
+============================================================
+STAGE V4: Semantic Equivalence
+============================================================
+  [PASS] Parse Barman domain
+  [PASS] Barman has 12 actions
+  [PASS] Barman has predicates
+  [PASS] Same domain -> is_equivalent=True
+  [PASS] Same domain -> no semantic change
+  [PASS] Reordered actions -> is_equivalent=True
+  [PASS] Reordered actions -> actions_reordered flag
+  [PASS] Added predicate -> is_equivalent=False
+  [PASS] Added predicate -> has_semantic_change=True
+  [PASS] Added predicate -> pred_semantic_change flag
+  [PASS] Removed action -> is_equivalent=False
+  [PASS] Removed action -> actions_semantic_change flag
+  [PASS] Parse VisitAll domain
+
+============================================================
+FULL PIPELINE: Integration Tests
+============================================================
+  [PASS] Full pipeline: reordered domain -> VALID
+  [PASS] Full pipeline: garbage -> REJECTED (extraction_failed)
+  [PASS] Full pipeline: identical domain -> REJECTED (no_transformation)
+  [PASS] Full pipeline: added predicate -> INVALID (semantic_change_detected)
+
+============================================================
+TEST RESULTS
+============================================================
+  PASSED:  31
+  FAILED:  0
+  SKIPPED: 1
+  TOTAL:   32
+============================================================
+
+All tests PASSED!
