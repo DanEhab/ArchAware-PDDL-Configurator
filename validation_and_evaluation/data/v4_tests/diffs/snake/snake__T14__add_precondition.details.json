@@ -1,0 +1,41 @@
+{
+  "domain": "snake",
+  "test_id": "T14",
+  "test_description": "add_precondition",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pre_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "move-precondition-set",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ],
+        "candidate": [
+          "(injected-pre ?x)",
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ],
+        "added": [
+          "(injected-pre ?x)"
+        ],
+        "removed": []
+      }
+    ]
+  }
+}

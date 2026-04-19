@@ -1,0 +1,15 @@
+{
+  "domain": "visitall",
+  "test_id": "T07",
+  "test_description": "reorder_del_effects",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": []
+  }
+}

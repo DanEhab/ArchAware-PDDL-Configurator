@@ -1,0 +1,30 @@
+{
+  "domain": "visitall",
+  "test_id": "T02",
+  "test_description": "reorder_predicates",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pred_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)",
+          "(visited ?x - place)"
+        ],
+        "candidate": [
+          "(visited ?x - place)",
+          "(at-robot ?x - place)",
+          "(connected ?x ?y - place)"
+        ]
+      }
+    ]
+  }
+}

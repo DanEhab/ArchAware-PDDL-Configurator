@@ -1,0 +1,33 @@
+{
+  "domain": "barman",
+  "test_id": "T14",
+  "test_description": "add_precondition",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pre_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "grasp-precondition-set",
+        "original": [
+          "(ontable ?c)",
+          "(handempty ?h)"
+        ],
+        "candidate": [
+          "(injected-pre ?x)",
+          "(ontable ?c)",
+          "(handempty ?h)"
+        ],
+        "added": [
+          "(injected-pre ?x)"
+        ],
+        "removed": []
+      }
+    ]
+  }
+}

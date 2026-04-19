@@ -1,0 +1,35 @@
+{
+  "domain": "ricochet-robots",
+  "test_id": "T13",
+  "test_description": "remove_action",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "actions_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "actions-set",
+        "original": [
+          "go",
+          "step",
+          "stop-at-barrier",
+          "stop-at-robot"
+        ],
+        "candidate": [
+          "go",
+          "step",
+          "stop-at-barrier"
+        ],
+        "added": [],
+        "removed": [
+          "stop-at-robot"
+        ]
+      }
+    ],
+    "syntactic": []
+  }
+}

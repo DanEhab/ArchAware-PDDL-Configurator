@@ -1,0 +1,28 @@
+{
+  "domain": "depots",
+  "test_id": "T15",
+  "test_description": "remove_precondition",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pre_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "Drive-precondition-set",
+        "original": [
+          "(at ?x ?y)"
+        ],
+        "candidate": [],
+        "added": [],
+        "removed": [
+          "(at ?x ?y)"
+        ]
+      }
+    ]
+  }
+}

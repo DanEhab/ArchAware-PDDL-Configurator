@@ -1,0 +1,33 @@
+{
+  "domain": "visitall",
+  "test_id": "T22",
+  "test_description": "remove_type",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pred_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "predicates-set",
+        "original": [
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)",
+          "(visited ?x - place)"
+        ],
+        "candidate": [
+          "(connected ?x ?y - place)",
+          "(visited ?x - place)"
+        ],
+        "added": [],
+        "removed": [
+          "(at-robot ?x - place)"
+        ]
+      }
+    ],
+    "syntactic": []
+  }
+}

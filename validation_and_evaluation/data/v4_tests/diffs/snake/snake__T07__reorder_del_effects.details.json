@@ -1,0 +1,32 @@
+{
+  "domain": "snake",
+  "test_id": "T07",
+  "test_description": "reorder_del_effects",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "eff_del_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "move-eff-del-order",
+        "original": [
+          "(not (headsnake ?head))",
+          "(not (blocked ?tail))",
+          "(not (tailsnake ?tail))",
+          "(not (nextsnake ?newtail ?tail))"
+        ],
+        "candidate": [
+          "(not (blocked ?tail))",
+          "(not (headsnake ?head))",
+          "(not (tailsnake ?tail))",
+          "(not (nextsnake ?newtail ?tail))"
+        ]
+      }
+    ]
+  }
+}

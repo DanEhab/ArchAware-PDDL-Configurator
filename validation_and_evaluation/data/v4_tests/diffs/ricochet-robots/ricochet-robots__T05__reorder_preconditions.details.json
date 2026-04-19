@@ -1,0 +1,34 @@
+{
+  "domain": "ricochet-robots",
+  "test_id": "T05",
+  "test_description": "reorder_preconditions",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pre_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "step-precondition-order",
+        "original": [
+          "(is-moving ?r ?dir)",
+          "(at ?r ?cfrom)",
+          "(NEXT ?cfrom ?cto ?dir)",
+          "(free ?cto)",
+          "(not (BLOCKED ?cfrom ?dir))"
+        ],
+        "candidate": [
+          "(not (BLOCKED ?cfrom ?dir))",
+          "(free ?cto)",
+          "(NEXT ?cfrom ?cto ?dir)",
+          "(at ?r ?cfrom)",
+          "(is-moving ?r ?dir)"
+        ]
+      }
+    ]
+  }
+}

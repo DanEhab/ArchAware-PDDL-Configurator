@@ -1,0 +1,36 @@
+{
+  "domain": "snake",
+  "test_id": "T05",
+  "test_description": "reorder_preconditions",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pre_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "move-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ],
+        "candidate": [
+          "(not (ispoint ?newhead))",
+          "(not (blocked ?newhead))",
+          "(nextsnake ?newtail ?tail)",
+          "(tailsnake ?tail)",
+          "(ISADJACENT ?head ?newhead)",
+          "(headsnake ?head)"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "domain": "depots",
+  "test_id": "T25",
+  "test_description": "add_parameter",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "params_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "Drive-params-set",
+        "original": [
+          "?x",
+          "-",
+          "truck",
+          "?y",
+          "-",
+          "place",
+          "?z",
+          "-",
+          "place"
+        ],
+        "candidate": [
+          "?x",
+          "-",
+          "truck",
+          "?y",
+          "-",
+          "place",
+          "?z",
+          "-",
+          "place",
+          "?injected-param"
+        ],
+        "added": [
+          "?injected-param"
+        ],
+        "removed": []
+      }
+    ]
+  }
+}

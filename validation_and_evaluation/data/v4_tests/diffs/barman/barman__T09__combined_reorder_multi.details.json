@@ -1,0 +1,98 @@
+{
+  "domain": "barman",
+  "test_id": "T09",
+  "test_description": "combined_reorder_multi",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "req_reordered": 1,
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "requirements-order",
+        "original": [
+          ":strips",
+          ":typing"
+        ],
+        "candidate": [
+          ":typing",
+          ":strips"
+        ]
+      },
+      {
+        "type": "predicates-order",
+        "original": [
+          "(ontable ?c - container)",
+          "(holding ?h - hand ?c - container)",
+          "(handempty ?h - hand)",
+          "(empty ?c - container)",
+          "(contains ?c - container ?b - beverage)",
+          "(clean ?c - container)",
+          "(used ?c - container ?b - beverage)",
+          "(dispenses ?d - dispenser ?i - ingredient)",
+          "(shaker-empty-level ?s - shaker ?l - level)",
+          "(shaker-level ?s - shaker ?l - level)",
+          "(next ?l1 ?l2 - level)",
+          "(unshaked ?s - shaker)",
+          "(shaked ?s - shaker)",
+          "(cocktail-part1 ?c - cocktail ?i - ingredient)",
+          "(cocktail-part2 ?c - cocktail ?i - ingredient)"
+        ],
+        "candidate": [
+          "(cocktail-part2 ?c - cocktail ?i - ingredient)",
+          "(cocktail-part1 ?c - cocktail ?i - ingredient)",
+          "(shaked ?s - shaker)",
+          "(unshaked ?s - shaker)",
+          "(next ?l1 ?l2 - level)",
+          "(shaker-level ?s - shaker ?l - level)",
+          "(shaker-empty-level ?s - shaker ?l - level)",
+          "(dispenses ?d - dispenser ?i - ingredient)",
+          "(used ?c - container ?b - beverage)",
+          "(clean ?c - container)",
+          "(contains ?c - container ?b - beverage)",
+          "(empty ?c - container)",
+          "(handempty ?h - hand)",
+          "(holding ?h - hand ?c - container)",
+          "(ontable ?c - container)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "grasp",
+          "leave",
+          "fill-shot",
+          "refill-shot",
+          "empty-shot",
+          "clean-shot",
+          "pour-shot-to-clean-shaker",
+          "pour-shot-to-used-shaker",
+          "empty-shaker",
+          "clean-shaker",
+          "shake",
+          "pour-shaker-to-shot"
+        ],
+        "candidate": [
+          "leave",
+          "grasp",
+          "fill-shot",
+          "refill-shot",
+          "empty-shot",
+          "clean-shot",
+          "pour-shot-to-clean-shaker",
+          "pour-shot-to-used-shaker",
+          "empty-shaker",
+          "clean-shaker",
+          "shake",
+          "pour-shaker-to-shot"
+        ]
+      }
+    ]
+  }
+}

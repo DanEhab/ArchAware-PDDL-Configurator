@@ -1,0 +1,41 @@
+{
+  "domain": "ricochet-robots",
+  "test_id": "T10",
+  "test_description": "add_predicate",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pred_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "predicates-set",
+        "original": [
+          "(NEXT ?c - cell ?cnext - cell ?dir - direction)",
+          "(BLOCKED ?c - cell ?dir - direction)",
+          "(at ?r - robot ?c - cell)",
+          "(free ?c - cell)",
+          "(nothing-is-moving)",
+          "(is-moving ?r - robot ?dir - direction)"
+        ],
+        "candidate": [
+          "(injected-fake-predicate ?x)",
+          "(NEXT ?c - cell ?cnext - cell ?dir - direction)",
+          "(BLOCKED ?c - cell ?dir - direction)",
+          "(at ?r - robot ?c - cell)",
+          "(free ?c - cell)",
+          "(nothing-is-moving)",
+          "(is-moving ?r - robot ?dir - direction)"
+        ],
+        "added": [
+          "(injected-fake-predicate ?x)"
+        ],
+        "removed": []
+      }
+    ],
+    "syntactic": []
+  }
+}

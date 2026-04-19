@@ -1,0 +1,34 @@
+{
+  "domain": "depots",
+  "test_id": "T01",
+  "test_description": "reorder_actions",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "actions_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "actions-order",
+        "original": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Load",
+          "Unload"
+        ],
+        "candidate": [
+          "Lift",
+          "Drive",
+          "Drop",
+          "Load",
+          "Unload"
+        ]
+      }
+    ]
+  }
+}

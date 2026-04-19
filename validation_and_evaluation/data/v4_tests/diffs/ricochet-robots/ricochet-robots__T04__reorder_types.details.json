@@ -1,0 +1,30 @@
+{
+  "domain": "ricochet-robots",
+  "test_id": "T04",
+  "test_description": "reorder_types",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "type_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "types-order",
+        "original": [
+          "robot - object",
+          "cell - object",
+          "direction - object"
+        ],
+        "candidate": [
+          "direction - object",
+          "cell - object",
+          "robot - object"
+        ]
+      }
+    ]
+  }
+}

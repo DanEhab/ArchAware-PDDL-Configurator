@@ -1,0 +1,47 @@
+{
+  "domain": "depots",
+  "test_id": "T21",
+  "test_description": "add_type",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "type_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "types-set",
+        "original": [
+          "place - object",
+          "locatable - object",
+          "depot - place",
+          "distributor - place",
+          "truck - locatable",
+          "hoist - locatable",
+          "surface - locatable",
+          "pallet - surface",
+          "crate - surface"
+        ],
+        "candidate": [
+          "injected - type",
+          "place - object",
+          "locatable - object",
+          "depot - place",
+          "distributor - place",
+          "truck - locatable",
+          "hoist - locatable",
+          "surface - locatable",
+          "pallet - surface",
+          "crate - surface"
+        ],
+        "added": [
+          "injected - type"
+        ],
+        "removed": []
+      }
+    ],
+    "syntactic": []
+  }
+}

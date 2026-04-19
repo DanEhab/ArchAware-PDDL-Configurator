@@ -1,0 +1,34 @@
+{
+  "domain": "depots",
+  "test_id": "T05",
+  "test_description": "reorder_preconditions",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pre_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "Lift-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(on ?y ?z)",
+          "(clear ?y)"
+        ],
+        "candidate": [
+          "(clear ?y)",
+          "(on ?y ?z)",
+          "(at ?y ?p)",
+          "(available ?x)",
+          "(at ?x ?p)"
+        ]
+      }
+    ]
+  }
+}

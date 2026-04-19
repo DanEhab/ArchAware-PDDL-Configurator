@@ -1,0 +1,36 @@
+{
+  "domain": "depots",
+  "test_id": "T02",
+  "test_description": "reorder_predicates",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pred_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(at ?x - locatable ?y - place)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)",
+          "(clear ?x - surface)"
+        ],
+        "candidate": [
+          "(clear ?x - surface)",
+          "(available ?x - hoist)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(in ?x - crate ?y - truck)",
+          "(on ?x - crate ?y - surface)",
+          "(at ?x - locatable ?y - place)"
+        ]
+      }
+    ]
+  }
+}

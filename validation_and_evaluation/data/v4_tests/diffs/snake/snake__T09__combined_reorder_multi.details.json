@@ -1,0 +1,68 @@
+{
+  "domain": "snake",
+  "test_id": "T09",
+  "test_description": "combined_reorder_multi",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "req_reordered": 1,
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "requirements-order",
+        "original": [
+          ":strips",
+          ":negative-preconditions",
+          ":equality"
+        ],
+        "candidate": [
+          ":equality",
+          ":negative-preconditions",
+          ":strips"
+        ]
+      },
+      {
+        "type": "predicates-order",
+        "original": [
+          "(ISADJACENT ?x ?y)",
+          "(tailsnake ?x)",
+          "(headsnake ?x)",
+          "(nextsnake ?x ?y)",
+          "(blocked ?x)",
+          "(spawn ?x)",
+          "(NEXTSPAWN ?x ?y)",
+          "(ispoint ?x)"
+        ],
+        "candidate": [
+          "(ispoint ?x)",
+          "(NEXTSPAWN ?x ?y)",
+          "(spawn ?x)",
+          "(blocked ?x)",
+          "(nextsnake ?x ?y)",
+          "(headsnake ?x)",
+          "(tailsnake ?x)",
+          "(ISADJACENT ?x ?y)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "move",
+          "move-and-eat-spawn",
+          "move-and-eat-no-spawn"
+        ],
+        "candidate": [
+          "move-and-eat-spawn",
+          "move",
+          "move-and-eat-no-spawn"
+        ]
+      }
+    ]
+  }
+}

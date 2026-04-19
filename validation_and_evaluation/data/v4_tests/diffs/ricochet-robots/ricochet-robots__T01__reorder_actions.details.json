@@ -1,0 +1,32 @@
+{
+  "domain": "ricochet-robots",
+  "test_id": "T01",
+  "test_description": "reorder_actions",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "actions_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "actions-order",
+        "original": [
+          "go",
+          "step",
+          "stop-at-barrier",
+          "stop-at-robot"
+        ],
+        "candidate": [
+          "step",
+          "go",
+          "stop-at-barrier",
+          "stop-at-robot"
+        ]
+      }
+    ]
+  }
+}

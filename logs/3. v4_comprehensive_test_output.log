@@ -1,0 +1,184 @@
+﻿======================================================================
+COMPREHENSIVE V4 SEMANTIC EQUIVALENCE TEST SUITE
+Domains: 5
+Test cases per domain: 26
+Total tests: 130
+======================================================================
+
+Output CSV:  validation_and_evaluation\data\v4_tests\pddl_diff_metrics.csv
+Output JSON: validation_and_evaluation\data\v4_tests\diffs/<domain>/
+
+
+======================================================================
+DOMAIN: barman
+======================================================================
+  [PASS] T01 reorder_actions                     expected=VALID   actual=VALID   sem_change=0
+  [PASS] T02 reorder_predicates                  expected=VALID   actual=VALID   sem_change=0
+  [PASS] T03 reorder_requirements                expected=VALID   actual=VALID   sem_change=0
+  [PASS] T04 reorder_types                       expected=VALID   actual=VALID   sem_change=0
+  [PASS] T05 reorder_preconditions               expected=VALID   actual=VALID   sem_change=0
+  [PASS] T06 reorder_add_effects                 expected=VALID   actual=VALID   sem_change=0
+  [PASS] T07 reorder_del_effects                 expected=VALID   actual=VALID   sem_change=0
+  [PASS] T08 reorder_parameters                  expected=VALID   actual=VALID   sem_change=0
+  [PASS] T09 combined_reorder_multi              expected=VALID   actual=VALID   sem_change=0
+  [PASS] T10 add_predicate                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T11 remove_predicate                    expected=INVALID actual=INVALID sem_change=1
+  [PASS] T12 add_action                          expected=INVALID actual=INVALID sem_change=1
+  [PASS] T13 remove_action                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T14 add_precondition                    expected=INVALID actual=INVALID sem_change=1
+  [PASS] T15 remove_precondition                 expected=INVALID actual=INVALID sem_change=1
+  [PASS] T16 add_add_effect                      expected=INVALID actual=INVALID sem_change=1
+  [PASS] T17 remove_add_effect                   expected=INVALID actual=INVALID sem_change=1
+  [PASS] T18 add_del_effect                      expected=INVALID actual=INVALID sem_change=1
+  [PASS] T19 remove_del_effect                   expected=INVALID actual=INVALID sem_change=1
+  [PASS] T20 change_requirement                  expected=INVALID actual=INVALID sem_change=1
+  [PASS] T21 add_type                            expected=INVALID actual=INVALID sem_change=1
+  [PASS] T22 remove_type                         expected=INVALID actual=INVALID sem_change=1
+  [PASS] T23 rename_action                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T24 modify_precondition_text            expected=INVALID actual=INVALID sem_change=1
+  [PASS] T25 add_parameter                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T26 remove_parameter                    expected=INVALID actual=INVALID sem_change=1
+
+======================================================================
+DOMAIN: depots
+======================================================================
+  [PASS] T01 reorder_actions                     expected=VALID   actual=VALID   sem_change=0
+  [PASS] T02 reorder_predicates                  expected=VALID   actual=VALID   sem_change=0
+  [PASS] T03 reorder_requirements                expected=VALID   actual=VALID   sem_change=0
+  [PASS] T04 reorder_types                       expected=VALID   actual=VALID   sem_change=0
+  [PASS] T05 reorder_preconditions               expected=VALID   actual=VALID   sem_change=0
+  [PASS] T06 reorder_add_effects                 expected=VALID   actual=VALID   sem_change=0
+  [PASS] T07 reorder_del_effects                 expected=VALID   actual=VALID   sem_change=0
+  [PASS] T08 reorder_parameters                  expected=VALID   actual=VALID   sem_change=0
+  [PASS] T09 combined_reorder_multi              expected=VALID   actual=VALID   sem_change=0
+  [PASS] T10 add_predicate                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T11 remove_predicate                    expected=INVALID actual=INVALID sem_change=1
+  [PASS] T12 add_action                          expected=INVALID actual=INVALID sem_change=1
+  [PASS] T13 remove_action                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T14 add_precondition                    expected=INVALID actual=INVALID sem_change=1
+  [PASS] T15 remove_precondition                 expected=INVALID actual=INVALID sem_change=1
+  [PASS] T16 add_add_effect                      expected=INVALID actual=INVALID sem_change=1
+  [PASS] T17 remove_add_effect                   expected=INVALID actual=INVALID sem_change=1
+  [PASS] T18 add_del_effect                      expected=INVALID actual=INVALID sem_change=1
+  [PASS] T19 remove_del_effect                   expected=INVALID actual=INVALID sem_change=1
+  [PASS] T20 change_requirement                  expected=INVALID actual=INVALID sem_change=1
+  [PASS] T21 add_type                            expected=INVALID actual=INVALID sem_change=1
+  [PASS] T22 remove_type                         expected=INVALID actual=INVALID sem_change=1
+  [PASS] T23 rename_action                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T24 modify_precondition_text            expected=INVALID actual=INVALID sem_change=1
+  [PASS] T25 add_parameter                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T26 remove_parameter                    expected=INVALID actual=INVALID sem_change=1
+
+======================================================================
+DOMAIN: ricochet-robots
+======================================================================
+  [PASS] T01 reorder_actions                     expected=VALID   actual=VALID   sem_change=0
+  [PASS] T02 reorder_predicates                  expected=VALID   actual=VALID   sem_change=0
+  [PASS] T03 reorder_requirements                expected=VALID   actual=VALID   sem_change=0
+  [PASS] T04 reorder_types                       expected=VALID   actual=VALID   sem_change=0
+  [PASS] T05 reorder_preconditions               expected=VALID   actual=VALID   sem_change=0
+  [PASS] T06 reorder_add_effects                 expected=VALID   actual=VALID   sem_change=0
+  [PASS] T07 reorder_del_effects                 expected=VALID   actual=VALID   sem_change=0
+  [PASS] T08 reorder_parameters                  expected=VALID   actual=VALID   sem_change=0
+  [PASS] T09 combined_reorder_multi              expected=VALID   actual=VALID   sem_change=0
+  [PASS] T10 add_predicate                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T11 remove_predicate                    expected=INVALID actual=INVALID sem_change=1
+  [PASS] T12 add_action                          expected=INVALID actual=INVALID sem_change=1
+  [PASS] T13 remove_action                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T14 add_precondition                    expected=INVALID actual=INVALID sem_change=1
+  [PASS] T15 remove_precondition                 expected=INVALID actual=INVALID sem_change=1
+  [PASS] T16 add_add_effect                      expected=INVALID actual=INVALID sem_change=1
+  [PASS] T17 remove_add_effect                   expected=INVALID actual=INVALID sem_change=1
+  [PASS] T18 add_del_effect                      expected=INVALID actual=INVALID sem_change=1
+  [PASS] T19 remove_del_effect                   expected=INVALID actual=INVALID sem_change=1
+  [PASS] T20 change_requirement                  expected=INVALID actual=INVALID sem_change=1
+  [PASS] T21 add_type                            expected=INVALID actual=INVALID sem_change=1
+  [PASS] T22 remove_type                         expected=INVALID actual=INVALID sem_change=1
+  [PASS] T23 rename_action                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T24 modify_precondition_text            expected=INVALID actual=INVALID sem_change=1
+  [PASS] T25 add_parameter                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T26 remove_parameter                    expected=INVALID actual=INVALID sem_change=1
+
+======================================================================
+DOMAIN: snake
+======================================================================
+  [PASS] T01 reorder_actions                     expected=VALID   actual=VALID   sem_change=0
+  [PASS] T02 reorder_predicates                  expected=VALID   actual=VALID   sem_change=0
+  [PASS] T03 reorder_requirements                expected=VALID   actual=VALID   sem_change=0
+  [PASS] T04 reorder_types                       expected=VALID   actual=VALID   sem_change=0
+  [PASS] T05 reorder_preconditions               expected=VALID   actual=VALID   sem_change=0
+  [PASS] T06 reorder_add_effects                 expected=VALID   actual=VALID   sem_change=0
+  [PASS] T07 reorder_del_effects                 expected=VALID   actual=VALID   sem_change=0
+  [PASS] T08 reorder_parameters                  expected=VALID   actual=VALID   sem_change=0
+  [PASS] T09 combined_reorder_multi              expected=VALID   actual=VALID   sem_change=0
+  [PASS] T10 add_predicate                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T11 remove_predicate                    expected=INVALID actual=INVALID sem_change=1
+  [PASS] T12 add_action                          expected=INVALID actual=INVALID sem_change=1
+  [PASS] T13 remove_action                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T14 add_precondition                    expected=INVALID actual=INVALID sem_change=1
+  [PASS] T15 remove_precondition                 expected=INVALID actual=INVALID sem_change=1
+  [PASS] T16 add_add_effect                      expected=INVALID actual=INVALID sem_change=1
+  [PASS] T17 remove_add_effect                   expected=INVALID actual=INVALID sem_change=1
+  [PASS] T18 add_del_effect                      expected=INVALID actual=INVALID sem_change=1
+  [PASS] T19 remove_del_effect                   expected=INVALID actual=INVALID sem_change=1
+  [PASS] T20 change_requirement                  expected=INVALID actual=INVALID sem_change=1
+  [SKIP] T21 add_type -- alteration not applicable to snake
+  [SKIP] T22 remove_type -- alteration not applicable to snake
+  [PASS] T23 rename_action                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T24 modify_precondition_text            expected=INVALID actual=INVALID sem_change=1
+  [PASS] T25 add_parameter                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T26 remove_parameter                    expected=INVALID actual=INVALID sem_change=1
+
+======================================================================
+DOMAIN: visitall
+======================================================================
+  [PASS] T01 reorder_actions                     expected=VALID   actual=VALID   sem_change=0
+  [PASS] T02 reorder_predicates                  expected=VALID   actual=VALID   sem_change=0
+  [PASS] T03 reorder_requirements                expected=VALID   actual=VALID   sem_change=0
+  [PASS] T04 reorder_types                       expected=VALID   actual=VALID   sem_change=0
+  [PASS] T05 reorder_preconditions               expected=VALID   actual=VALID   sem_change=0
+  [PASS] T06 reorder_add_effects                 expected=VALID   actual=VALID   sem_change=0
+  [PASS] T07 reorder_del_effects                 expected=VALID   actual=VALID   sem_change=0
+  [PASS] T08 reorder_parameters                  expected=VALID   actual=VALID   sem_change=0
+  [PASS] T09 combined_reorder_multi              expected=VALID   actual=VALID   sem_change=0
+  [PASS] T10 add_predicate                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T11 remove_predicate                    expected=INVALID actual=INVALID sem_change=1
+  [PASS] T12 add_action                          expected=INVALID actual=INVALID sem_change=1
+  [PASS] T13 remove_action                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T14 add_precondition                    expected=INVALID actual=INVALID sem_change=1
+  [PASS] T15 remove_precondition                 expected=INVALID actual=INVALID sem_change=1
+  [PASS] T16 add_add_effect                      expected=INVALID actual=INVALID sem_change=1
+  [PASS] T17 remove_add_effect                   expected=INVALID actual=INVALID sem_change=1
+  [PASS] T18 add_del_effect                      expected=INVALID actual=INVALID sem_change=1
+  [PASS] T19 remove_del_effect                   expected=INVALID actual=INVALID sem_change=1
+  [PASS] T20 change_requirement                  expected=INVALID actual=INVALID sem_change=1
+  [PASS] T21 add_type                            expected=INVALID actual=INVALID sem_change=1
+  [PASS] T22 remove_type                         expected=INVALID actual=INVALID sem_change=1
+  [PASS] T23 rename_action                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T24 modify_precondition_text            expected=INVALID actual=INVALID sem_change=1
+  [PASS] T25 add_parameter                       expected=INVALID actual=INVALID sem_change=1
+  [PASS] T26 remove_parameter                    expected=INVALID actual=INVALID sem_change=1
+
+======================================================================
+TEST RESULTS SUMMARY
+======================================================================
+  PASSED:  128
+  FAILED:  0
+  TOTAL:   128
+
+  CSV:  validation_and_evaluation\data\v4_tests\pddl_diff_metrics.csv
+  JSON: validation_and_evaluation\data\v4_tests\diffs/<domain>/
+
+======================================================================
+OUTPUT FILE ORGANIZATION
+======================================================================
+  validation_and_evaluation\data\v4_tests\diffs\barman/  (26 JSON reports)
+  validation_and_evaluation\data\v4_tests\diffs\depots/  (26 JSON reports)
+  validation_and_evaluation\data\v4_tests\diffs\ricochet-robots/  (26 JSON reports)
+  validation_and_evaluation\data\v4_tests\diffs\snake/  (24 JSON reports)
+  validation_and_evaluation\data\v4_tests\diffs\visitall/  (26 JSON reports)
+
+  validation_and_evaluation\data\v4_tests\pddl_diff_metrics.csv (128 rows)
+======================================================================
+
+All tests PASSED!

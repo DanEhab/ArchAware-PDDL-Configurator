@@ -1,0 +1,33 @@
+{
+  "domain": "visitall",
+  "test_id": "T11",
+  "test_description": "remove_predicate",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pred_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "predicates-set",
+        "original": [
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)",
+          "(visited ?x - place)"
+        ],
+        "candidate": [
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)"
+        ],
+        "added": [],
+        "removed": [
+          "(visited ?x - place)"
+        ]
+      }
+    ],
+    "syntactic": []
+  }
+}

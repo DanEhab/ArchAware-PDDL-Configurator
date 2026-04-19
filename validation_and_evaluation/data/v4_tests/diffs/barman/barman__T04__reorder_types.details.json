@@ -1,0 +1,42 @@
+{
+  "domain": "barman",
+  "test_id": "T04",
+  "test_description": "reorder_types",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "type_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "types-order",
+        "original": [
+          "hand - object",
+          "level - object",
+          "beverage - object",
+          "dispenser - object",
+          "container - object",
+          "ingredient - beverage",
+          "cocktail - beverage",
+          "shot - container",
+          "shaker - container"
+        ],
+        "candidate": [
+          "shot - container",
+          "shaker - container",
+          "ingredient - beverage",
+          "cocktail - beverage",
+          "hand - object",
+          "level - object",
+          "beverage - object",
+          "dispenser - object",
+          "container - object"
+        ]
+      }
+    ]
+  }
+}

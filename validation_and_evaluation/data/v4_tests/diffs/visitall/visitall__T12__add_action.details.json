@@ -1,0 +1,31 @@
+{
+  "domain": "visitall",
+  "test_id": "T12",
+  "test_description": "add_action",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "actions_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "actions-set",
+        "original": [
+          "move"
+        ],
+        "candidate": [
+          "move",
+          "fake-injected-action"
+        ],
+        "added": [
+          "fake-injected-action"
+        ],
+        "removed": []
+      }
+    ],
+    "syntactic": []
+  }
+}

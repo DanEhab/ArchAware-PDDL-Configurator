@@ -1,0 +1,39 @@
+{
+  "domain": "depots",
+  "test_id": "T12",
+  "test_description": "add_action",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "actions_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "actions-set",
+        "original": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Load",
+          "Unload"
+        ],
+        "candidate": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Load",
+          "Unload",
+          "fake-injected-action"
+        ],
+        "added": [
+          "fake-injected-action"
+        ],
+        "removed": []
+      }
+    ],
+    "syntactic": []
+  }
+}

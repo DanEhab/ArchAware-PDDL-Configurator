@@ -1,0 +1,37 @@
+{
+  "domain": "depots",
+  "test_id": "T11",
+  "test_description": "remove_predicate",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "actions_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "actions-set",
+        "original": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Load",
+          "Unload"
+        ],
+        "candidate": [
+          "Drive",
+          "Lift"
+        ],
+        "added": [],
+        "removed": [
+          "Drop",
+          "Load",
+          "Unload"
+        ]
+      }
+    ],
+    "syntactic": []
+  }
+}

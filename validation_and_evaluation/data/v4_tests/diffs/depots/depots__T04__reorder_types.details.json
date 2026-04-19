@@ -1,0 +1,42 @@
+{
+  "domain": "depots",
+  "test_id": "T04",
+  "test_description": "reorder_types",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "type_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "types-order",
+        "original": [
+          "place - object",
+          "locatable - object",
+          "depot - place",
+          "distributor - place",
+          "truck - locatable",
+          "hoist - locatable",
+          "surface - locatable",
+          "pallet - surface",
+          "crate - surface"
+        ],
+        "candidate": [
+          "pallet - surface",
+          "crate - surface",
+          "truck - locatable",
+          "hoist - locatable",
+          "surface - locatable",
+          "depot - place",
+          "distributor - place",
+          "place - object",
+          "locatable - object"
+        ]
+      }
+    ]
+  }
+}

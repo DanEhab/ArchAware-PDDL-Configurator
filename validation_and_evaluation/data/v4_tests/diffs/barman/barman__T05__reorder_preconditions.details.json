@@ -1,0 +1,28 @@
+{
+  "domain": "barman",
+  "test_id": "T05",
+  "test_description": "reorder_preconditions",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pre_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "grasp-precondition-order",
+        "original": [
+          "(ontable ?c)",
+          "(handempty ?h)"
+        ],
+        "candidate": [
+          "(handempty ?h)",
+          "(ontable ?c)"
+        ]
+      }
+    ]
+  }
+}

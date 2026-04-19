@@ -1,0 +1,40 @@
+{
+  "domain": "snake",
+  "test_id": "T02",
+  "test_description": "reorder_predicates",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pred_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(ISADJACENT ?x ?y)",
+          "(tailsnake ?x)",
+          "(headsnake ?x)",
+          "(nextsnake ?x ?y)",
+          "(blocked ?x)",
+          "(spawn ?x)",
+          "(NEXTSPAWN ?x ?y)",
+          "(ispoint ?x)"
+        ],
+        "candidate": [
+          "(ispoint ?x)",
+          "(NEXTSPAWN ?x ?y)",
+          "(spawn ?x)",
+          "(blocked ?x)",
+          "(nextsnake ?x ?y)",
+          "(headsnake ?x)",
+          "(tailsnake ?x)",
+          "(ISADJACENT ?x ?y)"
+        ]
+      }
+    ]
+  }
+}

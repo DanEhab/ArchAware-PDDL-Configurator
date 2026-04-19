@@ -1,0 +1,45 @@
+{
+  "domain": "barman",
+  "test_id": "T22",
+  "test_description": "remove_type",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "type_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "types-set",
+        "original": [
+          "hand - object",
+          "level - object",
+          "beverage - object",
+          "dispenser - object",
+          "container - object",
+          "ingredient - beverage",
+          "cocktail - beverage",
+          "shot - container",
+          "shaker - container"
+        ],
+        "candidate": [
+          "hand - object",
+          "level - object",
+          "beverage - object",
+          "dispenser - object",
+          "container - object",
+          "shot - container",
+          "shaker - container"
+        ],
+        "added": [],
+        "removed": [
+          "cocktail - beverage",
+          "ingredient - beverage"
+        ]
+      }
+    ],
+    "syntactic": []
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "domain": "visitall",
+  "test_id": "T14",
+  "test_description": "add_precondition",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pre_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "move-precondition-set",
+        "original": [
+          "(at-robot ?curpos)",
+          "(connected ?curpos ?nextpos)"
+        ],
+        "candidate": [
+          "(injected-pre ?x)",
+          "(at-robot ?curpos)",
+          "(connected ?curpos ?nextpos)"
+        ],
+        "added": [
+          "(injected-pre ?x)"
+        ],
+        "removed": []
+      }
+    ]
+  }
+}

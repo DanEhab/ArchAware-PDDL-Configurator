@@ -1,0 +1,31 @@
+{
+  "domain": "barman",
+  "test_id": "T16",
+  "test_description": "add_add_effect",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "eff_add_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "grasp-eff-add-set",
+        "original": [
+          "(holding ?h ?c)"
+        ],
+        "candidate": [
+          "(injected-add-effect ?x)",
+          "(holding ?h ?c)"
+        ],
+        "added": [
+          "(injected-add-effect ?x)"
+        ],
+        "removed": []
+      }
+    ],
+    "syntactic": []
+  }
+}

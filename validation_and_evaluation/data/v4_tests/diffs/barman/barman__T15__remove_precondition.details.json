@@ -1,0 +1,31 @@
+{
+  "domain": "barman",
+  "test_id": "T15",
+  "test_description": "remove_precondition",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pre_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "grasp-precondition-set",
+        "original": [
+          "(ontable ?c)",
+          "(handempty ?h)"
+        ],
+        "candidate": [
+          "(handempty ?h)"
+        ],
+        "added": [],
+        "removed": [
+          "(ontable ?c)"
+        ]
+      }
+    ]
+  }
+}

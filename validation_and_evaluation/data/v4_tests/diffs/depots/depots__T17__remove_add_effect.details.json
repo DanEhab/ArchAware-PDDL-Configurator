@@ -1,0 +1,28 @@
+{
+  "domain": "depots",
+  "test_id": "T17",
+  "test_description": "remove_add_effect",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "eff_add_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "Drive-eff-add-set",
+        "original": [
+          "(at ?x ?z)"
+        ],
+        "candidate": [],
+        "added": [],
+        "removed": [
+          "(at ?x ?z)"
+        ]
+      }
+    ],
+    "syntactic": []
+  }
+}

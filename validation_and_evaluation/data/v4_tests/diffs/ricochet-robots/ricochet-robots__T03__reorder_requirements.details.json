@@ -1,0 +1,30 @@
+{
+  "domain": "ricochet-robots",
+  "test_id": "T03",
+  "test_description": "reorder_requirements",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "req_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "requirements-order",
+        "original": [
+          ":strips",
+          ":typing",
+          ":negative-preconditions"
+        ],
+        "candidate": [
+          ":negative-preconditions",
+          ":typing",
+          ":strips"
+        ]
+      }
+    ]
+  }
+}

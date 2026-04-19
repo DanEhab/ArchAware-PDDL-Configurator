@@ -1,0 +1,54 @@
+{
+  "domain": "barman",
+  "test_id": "T02",
+  "test_description": "reorder_predicates",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pred_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(ontable ?c - container)",
+          "(holding ?h - hand ?c - container)",
+          "(handempty ?h - hand)",
+          "(empty ?c - container)",
+          "(contains ?c - container ?b - beverage)",
+          "(clean ?c - container)",
+          "(used ?c - container ?b - beverage)",
+          "(dispenses ?d - dispenser ?i - ingredient)",
+          "(shaker-empty-level ?s - shaker ?l - level)",
+          "(shaker-level ?s - shaker ?l - level)",
+          "(next ?l1 ?l2 - level)",
+          "(unshaked ?s - shaker)",
+          "(shaked ?s - shaker)",
+          "(cocktail-part1 ?c - cocktail ?i - ingredient)",
+          "(cocktail-part2 ?c - cocktail ?i - ingredient)"
+        ],
+        "candidate": [
+          "(cocktail-part2 ?c - cocktail ?i - ingredient)",
+          "(cocktail-part1 ?c - cocktail ?i - ingredient)",
+          "(shaked ?s - shaker)",
+          "(unshaked ?s - shaker)",
+          "(next ?l1 ?l2 - level)",
+          "(shaker-level ?s - shaker ?l - level)",
+          "(shaker-empty-level ?s - shaker ?l - level)",
+          "(dispenses ?d - dispenser ?i - ingredient)",
+          "(used ?c - container ?b - beverage)",
+          "(clean ?c - container)",
+          "(contains ?c - container ?b - beverage)",
+          "(empty ?c - container)",
+          "(handempty ?h - hand)",
+          "(holding ?h - hand ?c - container)",
+          "(ontable ?c - container)"
+        ]
+      }
+    ]
+  }
+}

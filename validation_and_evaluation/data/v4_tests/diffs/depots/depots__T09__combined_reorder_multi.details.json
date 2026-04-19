@@ -1,0 +1,66 @@
+{
+  "domain": "depots",
+  "test_id": "T09",
+  "test_description": "combined_reorder_multi",
+  "expected_verdict": "VALID",
+  "actual_verdict": "VALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "req_reordered": 1,
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "requirements-order",
+        "original": [
+          ":strips",
+          ":typing"
+        ],
+        "candidate": [
+          ":typing",
+          ":strips"
+        ]
+      },
+      {
+        "type": "predicates-order",
+        "original": [
+          "(at ?x - locatable ?y - place)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)",
+          "(clear ?x - surface)"
+        ],
+        "candidate": [
+          "(clear ?x - surface)",
+          "(available ?x - hoist)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(in ?x - crate ?y - truck)",
+          "(on ?x - crate ?y - surface)",
+          "(at ?x - locatable ?y - place)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Load",
+          "Unload"
+        ],
+        "candidate": [
+          "Lift",
+          "Drive",
+          "Drop",
+          "Load",
+          "Unload"
+        ]
+      }
+    ]
+  }
+}

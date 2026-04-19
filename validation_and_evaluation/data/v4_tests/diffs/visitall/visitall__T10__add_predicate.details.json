@@ -1,0 +1,35 @@
+{
+  "domain": "visitall",
+  "test_id": "T10",
+  "test_description": "add_predicate",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pred_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "predicates-set",
+        "original": [
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)",
+          "(visited ?x - place)"
+        ],
+        "candidate": [
+          "(injected-fake-predicate ?x)",
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)",
+          "(visited ?x - place)"
+        ],
+        "added": [
+          "(injected-fake-predicate ?x)"
+        ],
+        "removed": []
+      }
+    ],
+    "syntactic": []
+  }
+}

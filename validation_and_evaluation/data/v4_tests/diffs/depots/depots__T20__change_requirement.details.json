@@ -1,0 +1,33 @@
+{
+  "domain": "depots",
+  "test_id": "T20",
+  "test_description": "change_requirement",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "req_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [
+      {
+        "type": "requirements-set",
+        "original": [
+          ":strips",
+          ":typing"
+        ],
+        "candidate": [
+          ":strips",
+          ":typing",
+          ":fake-requirement"
+        ],
+        "added": [
+          ":fake-requirement"
+        ],
+        "removed": []
+      }
+    ],
+    "syntactic": []
+  }
+}

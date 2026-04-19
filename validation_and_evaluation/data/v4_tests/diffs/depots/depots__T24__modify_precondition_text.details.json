@@ -1,0 +1,32 @@
+{
+  "domain": "depots",
+  "test_id": "T24",
+  "test_description": "modify_precondition_text",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "pre_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "Drive-precondition-set",
+        "original": [
+          "(at ?x ?y)"
+        ],
+        "candidate": [
+          "(at-MODIFIED ?x ?y)"
+        ],
+        "added": [
+          "(at-MODIFIED ?x ?y)"
+        ],
+        "removed": [
+          "(at ?x ?y)"
+        ]
+      }
+    ]
+  }
+}

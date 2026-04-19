@@ -1,0 +1,38 @@
+{
+  "domain": "ricochet-robots",
+  "test_id": "T26",
+  "test_description": "remove_parameter",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "params_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "go-params-set",
+        "original": [
+          "?r",
+          "-",
+          "robot",
+          "?dir",
+          "-",
+          "direction"
+        ],
+        "candidate": [
+          "?r",
+          "-",
+          "robot"
+        ],
+        "added": [],
+        "removed": [
+          "?dir",
+          "direction"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "domain": "snake",
+  "test_id": "T25",
+  "test_description": "add_parameter",
+  "expected_verdict": "INVALID",
+  "actual_verdict": "INVALID",
+  "pass_fail": "PASS",
+  "diff_features": {
+    "params_semantic_change": 1,
+    "has_semantic_change": 1
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "move-params-set",
+        "original": [
+          "?head",
+          "?newhead",
+          "?tail",
+          "?newtail"
+        ],
+        "candidate": [
+          "?head",
+          "?newhead",
+          "?tail",
+          "?newtail",
+          "?injected-param"
+        ],
+        "added": [
+          "?injected-param"
+        ],
+        "removed": []
+      }
+    ]
+  }
+}
