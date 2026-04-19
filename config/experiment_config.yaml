@@ -7,11 +7,16 @@
 # ============================================================
 
 # ──────────────────────────────────────────────────────────────
-# Random Seed for Instance Selection
+# Random Seed for Instance Selection (Execution Protocol Section 1.3)
 # ──────────────────────────────────────────────────────────────
 random_seed: 42
 instances_per_domain: 15
 total_available_instances: 20
+
+# Result of: random.seed(42); sorted(random.sample(range(1,21), 15))
+# These SAME 15 indices are used for ALL 5 domains.
+selected_instance_indices: [1, 2, 3, 4, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19]
+excluded_instance_indices: [5, 6, 10, 15, 20]
 
 # ──────────────────────────────────────────────────────────────
 # Domains (from Domain Selection Methodology — Draft 2)

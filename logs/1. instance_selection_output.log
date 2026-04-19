@@ -1,0 +1,139 @@
+﻿============================================================
+INSTANCE SELECTION -- Seed: 42
+============================================================
+All 20 indices:       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+Selected 15 indices: [1, 2, 3, 4, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19]
+Excluded 5 indices:  [5, 6, 10, 15, 20]
+============================================================
+
+------------------------------------------------------------
+Processing: Barman -> benchmarks/barman/
+------------------------------------------------------------
+  [OK] Domain: Barman_Original_Domain.pddl -> domain.pddl
+  Found 20 instances in Barman_Instances_20/
+  Copying all 20 -> all_instances/ (unified names)
+  Copying selected 15 -> instances/
+    [OK] instance-1.pddl           -> instances/instance-01.pddl
+    [OK] instance-2.pddl           -> instances/instance-02.pddl
+    [OK] instance-3.pddl           -> instances/instance-03.pddl
+    [OK] instance-4.pddl           -> instances/instance-04.pddl
+    [OK] instance-7.pddl           -> instances/instance-07.pddl
+    [OK] instance-8.pddl           -> instances/instance-08.pddl
+    [OK] instance-9.pddl           -> instances/instance-09.pddl
+    [OK] instance-11.pddl          -> instances/instance-11.pddl
+    [OK] instance-12.pddl          -> instances/instance-12.pddl
+    [OK] instance-13.pddl          -> instances/instance-13.pddl
+    [OK] instance-14.pddl          -> instances/instance-14.pddl
+    [OK] instance-16.pddl          -> instances/instance-16.pddl
+    [OK] instance-17.pddl          -> instances/instance-17.pddl
+    [OK] instance-18.pddl          -> instances/instance-18.pddl
+    [OK] instance-19.pddl          -> instances/instance-19.pddl
+
+------------------------------------------------------------
+Processing: Depots -> benchmarks/depots/
+------------------------------------------------------------
+  [OK] Domain: Depots_Original_Domain.pddl -> domain.pddl
+  Found 20 instances in Depots_Instances_20/
+  Copying all 20 -> all_instances/ (unified names)
+  Copying selected 15 -> instances/
+    [OK] instance-1.pddl           -> instances/instance-01.pddl
+    [OK] instance-2.pddl           -> instances/instance-02.pddl
+    [OK] instance-3.pddl           -> instances/instance-03.pddl
+    [OK] instance-4.pddl           -> instances/instance-04.pddl
+    [OK] instance-7.pddl           -> instances/instance-07.pddl
+    [OK] instance-8.pddl           -> instances/instance-08.pddl
+    [OK] instance-9.pddl           -> instances/instance-09.pddl
+    [OK] instance-11.pddl          -> instances/instance-11.pddl
+    [OK] instance-12.pddl          -> instances/instance-12.pddl
+    [OK] instance-13.pddl          -> instances/instance-13.pddl
+    [OK] instance-14.pddl          -> instances/instance-14.pddl
+    [OK] instance-16.pddl          -> instances/instance-16.pddl
+    [OK] instance-17.pddl          -> instances/instance-17.pddl
+    [OK] instance-18.pddl          -> instances/instance-18.pddl
+    [OK] instance-19.pddl          -> instances/instance-19.pddl
+
+------------------------------------------------------------
+Processing: Ricochet Robots -> benchmarks/ricochet-robots/
+------------------------------------------------------------
+  [OK] Domain: Ricochet Robots_Original_Domain.pddl -> domain.pddl
+  Found 20 instances in Ricochet Robots_Instances_20/
+  Copying all 20 -> all_instances/ (unified names)
+  Copying selected 15 -> instances/
+    [OK] p01.pddl                  -> instances/instance-01.pddl
+    [OK] p02.pddl                  -> instances/instance-02.pddl
+    [OK] p03.pddl                  -> instances/instance-03.pddl
+    [OK] p04.pddl                  -> instances/instance-04.pddl
+    [OK] p07.pddl                  -> instances/instance-07.pddl
+    [OK] p08.pddl                  -> instances/instance-08.pddl
+    [OK] p09.pddl                  -> instances/instance-09.pddl
+    [OK] p11.pddl                  -> instances/instance-11.pddl
+    [OK] p12.pddl                  -> instances/instance-12.pddl
+    [OK] p13.pddl                  -> instances/instance-13.pddl
+    [OK] p14.pddl                  -> instances/instance-14.pddl
+    [OK] p16.pddl                  -> instances/instance-16.pddl
+    [OK] p17.pddl                  -> instances/instance-17.pddl
+    [OK] p18.pddl                  -> instances/instance-18.pddl
+    [OK] p19.pddl                  -> instances/instance-19.pddl
+
+------------------------------------------------------------
+Processing: Snake -> benchmarks/snake/
+------------------------------------------------------------
+  [OK] Domain: Snake_Original_Domain.pddl -> domain.pddl
+  Found 20 instances in Snake_Instances_20/
+  Copying all 20 -> all_instances/ (unified names)
+  Copying selected 15 -> instances/
+    [OK] p01.pddl                  -> instances/instance-01.pddl
+    [OK] p02.pddl                  -> instances/instance-02.pddl
+    [OK] p03.pddl                  -> instances/instance-03.pddl
+    [OK] p04.pddl                  -> instances/instance-04.pddl
+    [OK] p07.pddl                  -> instances/instance-07.pddl
+    [OK] p08.pddl                  -> instances/instance-08.pddl
+    [OK] p09.pddl                  -> instances/instance-09.pddl
+    [OK] p11.pddl                  -> instances/instance-11.pddl
+    [OK] p12.pddl                  -> instances/instance-12.pddl
+    [OK] p13.pddl                  -> instances/instance-13.pddl
+    [OK] p14.pddl                  -> instances/instance-14.pddl
+    [OK] p16.pddl                  -> instances/instance-16.pddl
+    [OK] p17.pddl                  -> instances/instance-17.pddl
+    [OK] p18.pddl                  -> instances/instance-18.pddl
+    [OK] p19.pddl                  -> instances/instance-19.pddl
+
+------------------------------------------------------------
+Processing: VisitAll -> benchmarks/visitall/
+------------------------------------------------------------
+  [OK] Domain: VisitAll_Original_Domain.pddl -> domain.pddl
+  Found 20 instances in VisitAll_Instances_20/
+  Copying all 20 -> all_instances/ (unified names)
+  Copying selected 15 -> instances/
+    [OK] instance-1.pddl           -> instances/instance-01.pddl
+    [OK] instance-2.pddl           -> instances/instance-02.pddl
+    [OK] instance-3.pddl           -> instances/instance-03.pddl
+    [OK] instance-4.pddl           -> instances/instance-04.pddl
+    [OK] instance-7.pddl           -> instances/instance-07.pddl
+    [OK] instance-8.pddl           -> instances/instance-08.pddl
+    [OK] instance-9.pddl           -> instances/instance-09.pddl
+    [OK] instance-11.pddl          -> instances/instance-11.pddl
+    [OK] instance-12.pddl          -> instances/instance-12.pddl
+    [OK] instance-13.pddl          -> instances/instance-13.pddl
+    [OK] instance-14.pddl          -> instances/instance-14.pddl
+    [OK] instance-16.pddl          -> instances/instance-16.pddl
+    [OK] instance-17.pddl          -> instances/instance-17.pddl
+    [OK] instance-18.pddl          -> instances/instance-18.pddl
+    [OK] instance-19.pddl          -> instances/instance-19.pddl
+
+============================================================
+SUMMARY
+============================================================
+Seed:             42
+Selected indices: [1, 2, 3, 4, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19]
+Excluded indices: [5, 6, 10, 15, 20]
+
+  barman               | domain.pddl: OK | all_instances: 20 | instances (selected): 15
+  depots               | domain.pddl: OK | all_instances: 20 | instances (selected): 15
+  ricochet-robots      | domain.pddl: OK | all_instances: 20 | instances (selected): 15
+  snake                | domain.pddl: OK | all_instances: 20 | instances (selected): 15
+  visitall             | domain.pddl: OK | all_instances: 20 | instances (selected): 15
+
+============================================================
+Done! All domains and instances are in place.
+============================================================

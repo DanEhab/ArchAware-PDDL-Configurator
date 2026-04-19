@@ -38,9 +38,19 @@ PDFs/
 Markdowns/
 
 # ──────────────────────────────────────────────────────────────
+# 5. Walkthroughs — Personal reference notes per commit
+# ──────────────────────────────────────────────────────────────
+Walkthroughs/
+
+# ──────────────────────────────────────────────────────────────
 # 5. Daniel Eli's Legacy Source Code (reference only)
 # ──────────────────────────────────────────────────────────────
 Elis Code/
+
+# ──────────────────────────────────────────────────────────────
+# 6. Raw Domain Staging Folder (already placed in benchmarks/)
+# ──────────────────────────────────────────────────────────────
+DOMAINS TO BE PLACED/
 
 # ──────────────────────────────────────────────────────────────
 # 6. Planner Docker Build Artifacts (heavy cloned repos)
