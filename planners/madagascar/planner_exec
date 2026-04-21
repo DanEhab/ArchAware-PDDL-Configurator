@@ -1,0 +1,31 @@
+#!/bin/sh
+DOMAIN_FILE=$1
+PROBLEM_FILE=$2
+
+echo "[INFO] Running Madagascar (MpC configuration):"
+echo "[INFO]   Domain: $DOMAIN_FILE"
+echo "[INFO]   Problem: $PROBLEM_FILE"
+
+# Start Planner and Wall-Clock
+START_TIME=$(date +%s.%N)
+OUTPUT=$(/usr/local/bin/madagascar "$DOMAIN_FILE" "$PROBLEM_FILE")
+END_TIME=$(date +%s.%N)
+
+RUNTIME_WALL=$(python3 -c "print(round($END_TIME - $START_TIME, 6))")
+
+echo "$OUTPUT"
+
+# Extract metrics using standard parsing
+PLAN_COST=$(echo "$OUTPUT" | grep -Po '^\d+(?= actions in the plan\.)')
+RUNTIME_INTERNAL=$(echo "$OUTPUT" | grep "total time" | awk '{print $3}')
+
+if echo "$OUTPUT" | grep -q "PLAN FOUND"; then
+    echo "[RESULT] STATUS: SUCCESS"
+    echo "[METRIC] PlanCost: $PLAN_COST"
+else
+    echo "[RESULT] STATUS: FAILURE"
+    echo "[METRIC] PlanCost: N/A"
+fi
+
+echo "[METRIC] Runtime_wall_s: $RUNTIME_WALL"
+echo "[METRIC] Runtime_internal_s: $RUNTIME_INTERNAL"
