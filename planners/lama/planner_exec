@@ -1,0 +1,42 @@
+#!/bin/sh
+DOMAIN_FILE=$1
+PROBLEM_FILE=$2
+
+echo "[INFO] Running Fast Downward (lama-first configuration):"
+echo "[INFO]   Domain: $DOMAIN_FILE"
+echo "[INFO]   Problem: $PROBLEM_FILE"
+
+# Start Wall Clock Time
+START_TIME=$(date +%s.%N)
+
+# Execute LAMA (using true lama-first alias instead of manual lazy greedy)
+OUTPUT=$(/opt/downward/fast-downward.py \
+    --alias lama-first \
+    "$DOMAIN_FILE" "$PROBLEM_FILE")
+
+# Stop Wall Clock Time
+END_TIME=$(date +%s.%N)
+RUNTIME_WALL=$(python3 -c "print(round($END_TIME - $START_TIME, 6))")
+
+# Output
+echo "$OUTPUT"
+
+# Extract Metrics
+PLAN_COST=$(echo "$OUTPUT" | grep "Plan cost:" | awk '{print $NF}')
+RUNTIME_INTERNAL=$(echo "$OUTPUT" | grep "Total time:" | sed -E 's/.*Total time: ([0-9.]+)s.*/\1/')
+
+if [ -n "$PLAN_COST" ]; then
+    echo "[RESULT] STATUS: SUCCESS"
+    echo "[METRIC] PlanCost: $PLAN_COST"
+else
+    echo "[RESULT] STATUS: FAILURE"
+    echo "[METRIC] PlanCost: N/A"
+fi
+
+echo "[METRIC] Runtime_wall_s: $RUNTIME_WALL"
+
+# Handle case where metric is empty if parser missed it 
+if [ -z "$RUNTIME_INTERNAL" ]; then
+    RUNTIME_INTERNAL="0.00"
+fi
+echo "[METRIC] Runtime_internal_s: $RUNTIME_INTERNAL"
