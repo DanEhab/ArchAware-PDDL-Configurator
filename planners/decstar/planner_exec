@@ -1,0 +1,56 @@
+#!/bin/sh
+DOMAIN_FILE=$1
+PROBLEM_FILE=$2
+PLAN_OUT="sas_plan"  # Fast downward uses this by default
+
+echo "[INFO] Running DecStar (IPC 2023 Agile Track Config):"
+echo "[INFO]   Domain: $DOMAIN_FILE"
+echo "[INFO]   Problem: $PROBLEM_FILE"
+
+# Start Wall Clock Time
+START_TIME=$(date +%s.%N)
+
+# Execute DecStar Fast-Downward wrapper
+OUTPUT=$(pypy3 /planner/fast-downward.py \
+    --plan-file "$PLAN_OUT" \
+    --build release64 \
+    --alias "seq-agl-decstar" \
+    --overall-memory-limit 8000M \
+    --overall-time-limit 5m \
+    "$DOMAIN_FILE" "$PROBLEM_FILE" 2>&1)
+
+# Stop Wall Clock Time
+END_TIME=$(date +%s.%N)
+RUNTIME_WALL=$(pypy3 -c "print(round($END_TIME - $START_TIME, 6))")
+# Fallback to awk for math
+if [ -z "$RUNTIME_WALL" ]; then
+    RUNTIME_WALL=$(awk "BEGIN {print $END_TIME - $START_TIME}")
+fi
+
+# Output
+echo "$OUTPUT"
+
+# Extract Metrics (Matches standard Fast Downward outputs like LAMA)
+PLAN_COST=$(echo "$OUTPUT" | grep -iE "Plan cost:" | head -n 1 | awk '{print $NF}')
+RUNTIME_INTERNAL=$(echo "$OUTPUT" | grep -iE "Total time:" | head -n 1 | sed -E 's/.*Total time: ([0-9.]+)s.*/\1/')
+
+if [ -n "$PLAN_COST" ]; then
+    echo "[RESULT] STATUS: SUCCESS"
+    echo "[METRIC] PlanCost: $PLAN_COST"
+elif echo "$OUTPUT" | grep -iqE "(Solution found|search exit code: 0)"; then
+    echo "[RESULT] STATUS: SUCCESS"
+    echo "[METRIC] PlanCost: N/A"
+else
+    echo "[RESULT] STATUS: FAILURE"
+    echo "[METRIC] PlanCost: N/A"
+fi
+
+if [ -z "$RUNTIME_WALL" ]; then
+    RUNTIME_WALL="0.00"
+fi
+echo "[METRIC] Runtime_wall_s: $RUNTIME_WALL"
+
+if [ -z "$RUNTIME_INTERNAL" ]; then
+    RUNTIME_INTERNAL="0.00"
+fi
+echo "[METRIC] Runtime_internal_s: $RUNTIME_INTERNAL"
