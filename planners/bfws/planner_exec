@@ -1,0 +1,45 @@
+#!/bin/sh
+DOMAIN_FILE=$1
+PROBLEM_FILE=$2
+PLAN_OUT="plan_output.txt"
+
+echo "[INFO] Running LAPKT-BFWS-Preference (IPC-2018 Agile Track Config):"
+echo "[INFO]   Domain: $DOMAIN_FILE"
+echo "[INFO]   Problem: $PROBLEM_FILE"
+
+# Start Wall Clock Time
+START_TIME=$(date +%s.%N)
+
+# Execute BFWS
+OUTPUT=$(python /planner/BFWS/fd-version/bfws.py "$DOMAIN_FILE" "$PROBLEM_FILE" "$PLAN_OUT")
+
+# Stop Wall Clock Time
+END_TIME=$(date +%s.%N)
+RUNTIME_WALL=$(python -c "print(round($END_TIME - $START_TIME, 6))")
+
+# Output
+echo "$OUTPUT"
+
+# Extract Metrics
+PLAN_COST=$(echo "$OUTPUT" | grep -ioE "(Plan cost:|Plan found with cost:?)[[:space:]]*[0-9]+" | head -n 1 | awk '{print $NF}')
+RUNTIME_INTERNAL=$(echo "$OUTPUT" | grep -iE "(Total time:|search completed in)[[:space:]]*[0-9.eE+-]+" | head -n 1 | sed -E 's/.*(time:|in)[[:space:]]*([0-9.eE+-]+).*/\2/')
+
+if [ -f "$PLAN_OUT" ] || echo "$OUTPUT" | grep -iq "Solution found"; then
+    echo "[RESULT] STATUS: SUCCESS"
+    if [ -n "$PLAN_COST" ]; then
+        echo "[METRIC] PlanCost: $PLAN_COST"
+    else
+        # Fallback if we have plan but couldn't parse cost properly from stdout, default to simply counting lines or grabbing default cost 1
+        echo "[METRIC] PlanCost: N/A"
+    fi
+else
+    echo "[RESULT] STATUS: FAILURE"
+    echo "[METRIC] PlanCost: N/A"
+fi
+
+echo "[METRIC] Runtime_wall_s: $RUNTIME_WALL"
+
+if [ -z "$RUNTIME_INTERNAL" ]; then
+    RUNTIME_INTERNAL="0.00"
+fi
+echo "[METRIC] Runtime_internal_s: $RUNTIME_INTERNAL"
