@@ -17,7 +17,7 @@ from pathlib import Path
 
 # Paths
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent.parent
+PROJECT_ROOT = SCRIPT_DIR.parent.parent.parent
 DOMAIN_FILE = PROJECT_ROOT / "benchmarks" / "ricochet-robots" / "domain.pddl"
 PROBLEM_FILE = PROJECT_ROOT / "benchmarks" / "ricochet-robots" / "instances" / "instance-01.pddl"
 

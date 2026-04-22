@@ -21,8 +21,8 @@ RUNTIME_WALL=$(python -c "print(round($END_TIME - $START_TIME, 6))")
 echo "$OUTPUT"
 
 # Extract Metrics
-PLAN_COST=$(echo "$OUTPUT" | grep -ioE "(Plan cost:|Plan found with cost:?)[[:space:]]*[0-9]+" | head -n 1 | awk '{print $NF}')
-RUNTIME_INTERNAL=$(echo "$OUTPUT" | grep -iE "(Total time:|search completed in)[[:space:]]*[0-9.eE+-]+" | head -n 1 | sed -E 's/.*(time:|in)[[:space:]]*([0-9.eE+-]+).*/\2/')
+PLAN_COST=$(echo "$OUTPUT" | grep -ioE "(Plan cost:|Plan found with cost:?)[[:space:]]*[0-9]+" | tail -n 1 | awk '{print $NF}')
+RUNTIME_INTERNAL=$(echo "$OUTPUT" | grep -iE "(Total time:|search completed in)[[:space:]]*[0-9.eE+-]+" | tail -n 1 | sed -E 's/.*(time:|in)[[:space:]]*([0-9.eE+-]+).*/\2/')
 
 if [ -f "$PLAN_OUT" ] || echo "$OUTPUT" | grep -iq "Solution found"; then
     echo "[RESULT] STATUS: SUCCESS"

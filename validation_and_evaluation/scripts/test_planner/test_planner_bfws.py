@@ -1,7 +1,7 @@
 """
 Execution Tester for LAPKT-BFWS-Preference
 ==========================================
-Tests the BFWS Docker container against the tiny-test VisitAll domain.
+Tests the BFWS Docker container against the tiny-test barman domain.
 
 Usage:
   1. Ensure Docker Desktop is running
@@ -17,9 +17,9 @@ from pathlib import Path
 
 # Paths
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent.parent
-DOMAIN_FILE = PROJECT_ROOT / "benchmarks" / "visitall" / "domain.pddl"
-PROBLEM_FILE = PROJECT_ROOT / "benchmarks" / "visitall" / "instances" / "tiny-test.pddl"
+PROJECT_ROOT = SCRIPT_DIR.parent.parent.parent
+DOMAIN_FILE = PROJECT_ROOT / "benchmarks" / "barman" / "domain.pddl"
+PROBLEM_FILE = PROJECT_ROOT / "benchmarks" / "barman" / "instances" / "instance-01.pddl"
 
 def run_bfws(domain_path: Path, problem_path: Path):
     benchmark_dir = domain_path.parent.parent.resolve()
