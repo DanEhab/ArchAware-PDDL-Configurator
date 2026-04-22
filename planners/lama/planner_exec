@@ -12,7 +12,8 @@ START_TIME=$(date +%s.%N)
 # Execute LAMA (using true lama-first alias instead of manual lazy greedy)
 OUTPUT=$(/opt/downward/fast-downward.py \
     --alias lama-first \
-    "$DOMAIN_FILE" "$PROBLEM_FILE")
+    "$DOMAIN_FILE" "$PROBLEM_FILE" 2>&1)
+EXIT_CODE=$?
 
 # Stop Wall Clock Time
 END_TIME=$(date +%s.%N)
@@ -25,7 +26,10 @@ echo "$OUTPUT"
 PLAN_COST=$(echo "$OUTPUT" | grep "Plan cost:" | awk '{print $NF}')
 RUNTIME_INTERNAL=$(echo "$OUTPUT" | grep "Total time:" | sed -E 's/.*Total time: ([0-9.]+)s.*/\1/')
 
-if [ -n "$PLAN_COST" ]; then
+if [ $EXIT_CODE -eq 137 ] || [ $EXIT_CODE -eq 21 ] || [ $EXIT_CODE -eq 23 ] || echo "$OUTPUT" | grep -iqE "(Killed|std::bad_alloc|out of memory|Memory limit has been reached|SEARCH_OUT_OF_MEMORY)"; then
+    echo "[RESULT] STATUS: MEMOUT"
+    echo "[METRIC] PlanCost: N/A"
+elif [ -n "$PLAN_COST" ]; then
     echo "[RESULT] STATUS: SUCCESS"
     echo "[METRIC] PlanCost: $PLAN_COST"
 else

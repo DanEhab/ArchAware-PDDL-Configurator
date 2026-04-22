@@ -11,7 +11,8 @@ echo "[INFO]   Problem: $PROBLEM_FILE"
 START_TIME=$(date +%s.%N)
 
 # Execute BFWS
-OUTPUT=$(python /planner/BFWS/fd-version/bfws.py "$DOMAIN_FILE" "$PROBLEM_FILE" "$PLAN_OUT")
+OUTPUT=$(python /planner/BFWS/fd-version/bfws.py "$DOMAIN_FILE" "$PROBLEM_FILE" "$PLAN_OUT" 2>&1)
+EXIT_CODE=$?
 
 # Stop Wall Clock Time
 END_TIME=$(date +%s.%N)
@@ -24,7 +25,10 @@ echo "$OUTPUT"
 PLAN_COST=$(echo "$OUTPUT" | grep -ioE "(Plan cost:|Plan found with cost:?)[[:space:]]*[0-9]+" | tail -n 1 | awk '{print $NF}')
 RUNTIME_INTERNAL=$(echo "$OUTPUT" | grep -iE "(Total time:|search completed in)[[:space:]]*[0-9.eE+-]+" | tail -n 1 | sed -E 's/.*(time:|in)[[:space:]]*([0-9.eE+-]+).*/\2/')
 
-if [ -f "$PLAN_OUT" ] || echo "$OUTPUT" | grep -iq "Solution found"; then
+if [ $EXIT_CODE -eq 137 ] || [ $EXIT_CODE -eq 21 ] || echo "$OUTPUT" | grep -iqE "(Killed|std::bad_alloc|out of memory|Memory limit has been reached)"; then
+    echo "[RESULT] STATUS: MEMOUT"
+    echo "[METRIC] PlanCost: N/A"
+elif [ -f "$PLAN_OUT" ] || echo "$OUTPUT" | grep -iq "Solution found"; then
     echo "[RESULT] STATUS: SUCCESS"
     if [ -n "$PLAN_COST" ]; then
         echo "[METRIC] PlanCost: $PLAN_COST"
