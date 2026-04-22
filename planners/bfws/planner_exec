@@ -43,3 +43,12 @@ if [ -z "$RUNTIME_INTERNAL" ]; then
     RUNTIME_INTERNAL="0.00"
 fi
 echo "[METRIC] Runtime_internal_s: $RUNTIME_INTERNAL"
+
+# Extract Additional Advanced Metrics
+STATES_EXPANDED=$(echo "$OUTPUT" | grep -ioE "Nodes expanded during search:[[:space:]]*[0-9]+" | tail -n 1 | grep -oE "[0-9]+")
+STATES_GENERATED=$(echo "$OUTPUT" | grep -ioE "Nodes generated during search:[[:space:]]*[0-9]+" | tail -n 1 | grep -oE "[0-9]+")
+
+echo "[METRIC] StatesExpanded: ${STATES_EXPANDED:-N/A}"
+echo "[METRIC] StatesGenerated: ${STATES_GENERATED:-N/A}"
+echo "[METRIC] StatesEvaluated: N/A"
+echo "[METRIC] PeakMemory_KB: N/A"

@@ -29,3 +29,9 @@ fi
 
 echo "[METRIC] Runtime_wall_s: $RUNTIME_WALL"
 echo "[METRIC] Runtime_internal_s: $RUNTIME_INTERNAL"
+
+# Madagascar is SAT based and operates purely on formulas rather than heuristic search states.
+echo "[METRIC] StatesExpanded: N/A"
+echo "[METRIC] StatesGenerated: N/A"
+echo "[METRIC] StatesEvaluated: N/A"
+echo "[METRIC] PeakMemory_KB: N/A"

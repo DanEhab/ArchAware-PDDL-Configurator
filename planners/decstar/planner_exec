@@ -54,3 +54,14 @@ if [ -z "$RUNTIME_INTERNAL" ]; then
     RUNTIME_INTERNAL="0.00"
 fi
 echo "[METRIC] Runtime_internal_s: $RUNTIME_INTERNAL"
+
+# Extract Additional Advanced Metrics
+STATES_EXPANDED=$(echo "$OUTPUT" | grep -ioE "Expanded [0-9]+ state" | tail -n 1 | grep -oE "[0-9]+")
+STATES_GENERATED=$(echo "$OUTPUT" | grep -ioE "Generated [0-9]+ state" | tail -n 1 | grep -oE "[0-9]+")
+STATES_EVALUATED=$(echo "$OUTPUT" | grep -ioE "Evaluated [0-9]+ state" | tail -n 1 | grep -oE "[0-9]+")
+PEAK_MEMORY=$(echo "$OUTPUT" | grep -ioE "Peak memory: [0-9]+ KB" | tail -n 1 | grep -oE "[0-9]+")
+
+echo "[METRIC] StatesExpanded: ${STATES_EXPANDED:-N/A}"
+echo "[METRIC] StatesGenerated: ${STATES_GENERATED:-N/A}"
+echo "[METRIC] StatesEvaluated: ${STATES_EVALUATED:-N/A}"
+echo "[METRIC] PeakMemory_KB: ${PEAK_MEMORY:-N/A}"
