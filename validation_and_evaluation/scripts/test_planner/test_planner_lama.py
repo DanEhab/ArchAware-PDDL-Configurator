@@ -75,12 +75,15 @@ if __name__ == "__main__":
         sys.exit(1)
         
     # Check if image exists
-    img_chk = subprocess.run(["docker", "image", "inspect", "lama_planner"], capture_output=True)
-    if img_chk.returncode != 0:
-        print("ERROR: Docker image 'lama_planner' not found.")
-        print("Please build it first running this command in the project root:")
-        print("docker build -f planners/lama/Dockerfile -t lama_planner .")
-        sys.exit(1)
+    # img_chk = subprocess.run(["docker", "image", "inspect", "lama_planner"], capture_output=True)
+    # if img_chk.returncode != 0:
+    #     print("ERROR: Docker image 'lama_planner' not found.")
+    #     print("DEBUG OUTPUT FROM DOCKER:")
+    #     print(f"STDOUT: {img_chk.stdout.decode('utf-8', errors='ignore')}")
+    #     print(f"STDERR: {img_chk.stderr.decode('utf-8', errors='ignore')}")
+    #     print("Please build it first running this command in the project root:")
+    #     print("docker build -f planners/lama/Dockerfile -t lama_planner .")
+    #     sys.exit(1)
         
     print(f"Running LAMA (lama-first) against:")
     print(f"  Domain: {DOMAIN_FILE}")

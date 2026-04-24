@@ -74,12 +74,12 @@ if __name__ == "__main__":
         sys.exit(1)
         
     # Check if image exists
-    img_chk = subprocess.run(["docker", "image", "inspect", "bfws_planner"], capture_output=True)
-    if img_chk.returncode != 0:
-        print("ERROR: Docker image 'bfws_planner' not found.")
-        print("Please build it first running this command in the project root:")
-        print("docker build -f planners/bfws/Dockerfile -t bfws_planner .")
-        sys.exit(1)
+    # img_chk = subprocess.run(["docker", "image", "inspect", "bfws_planner"], capture_output=True)
+    # if img_chk.returncode != 0:
+    #     print("ERROR: Docker image 'bfws_planner' not found.")
+    #     print("Please build it first running this command in the project root:")
+    #     print("docker build -f planners/bfws/Dockerfile -t bfws_planner .")
+    #     sys.exit(1)
         
     print(f"Running LAPKT-BFWS-Preference against:")
     print(f"  Domain: {DOMAIN_FILE}")
