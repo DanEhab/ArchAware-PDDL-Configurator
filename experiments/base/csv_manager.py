@@ -99,11 +99,11 @@ class CSVManager:
 
             row_data["Run_ID"] = run_id
 
-            # Ensure every column is present (write None as empty string)
+            # Ensure every column is present (write None as "N/A")
             ordered = []
             for col in CSV_COLUMNS:
                 val = row_data.get(col)
-                ordered.append("" if val is None else val)
+                ordered.append("N/A" if val is None else val)
 
             with open(
                 self.csv_path, "a", newline="", encoding="utf-8"

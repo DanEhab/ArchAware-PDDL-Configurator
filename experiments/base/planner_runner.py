@@ -1,5 +1,5 @@
 """
-Planner Runner — Stage 0 Execution Pipeline
+Planner Runner -- Stage 0 Execution Pipeline
 =============================================
 Executes a single Docker-containerised planner run and returns
 a standardised result dict with all metrics.
@@ -116,7 +116,8 @@ def execute_planner(
 
         if _is_memout(exit_code, result["_stdout"], result["_stderr"]):
             result["Output_Status"] = "MEMOUT"
-            # Wall time is measured; all else stays None
+            # Still try to parse metrics (PeakMemoryKB is often available)
+            _parse_metrics(result, result["_stdout"])
         elif exit_code == 0:
             # Check for valid planner output markers
             if "[RESULT] STATUS: SUCCESS" in result["_stdout"]:
@@ -125,25 +126,38 @@ def execute_planner(
             elif "[RESULT] STATUS: MEMOUT" in result["_stdout"]:
                 # The planner_exec shell script detected OOM internally
                 result["Output_Status"] = "MEMOUT"
+                _parse_metrics(result, result["_stdout"])
+            elif "[RESULT] STATUS: TIMEOUT" in result["_stdout"]:
+                result["Output_Status"] = "TIMEOUT"
+                _parse_metrics(result, result["_stdout"])
             elif "[RESULT] STATUS: FAILURE" in result["_stdout"]:
                 result["Output_Status"] = "FAILURE"
+                _parse_metrics(result, result["_stdout"])
             else:
-                # Invalid planner output — exit 0 but no [RESULT] marker
+                # Invalid planner output -- exit 0 but no [RESULT] marker
                 result["Output_Status"] = "FAILURE"
         else:
             # Non-zero exit that isn't OOM
             if "[RESULT] STATUS: MEMOUT" in result["_stdout"]:
                 result["Output_Status"] = "MEMOUT"
+                _parse_metrics(result, result["_stdout"])
+            elif "[RESULT] STATUS: TIMEOUT" in result["_stdout"]:
+                result["Output_Status"] = "TIMEOUT"
+                _parse_metrics(result, result["_stdout"])
             elif "[RESULT] STATUS: SUCCESS" in result["_stdout"]:
                 # Some planners exit non-zero even on success (e.g. FD exit 12)
                 result["Output_Status"] = "SUCCESS"
                 _parse_metrics(result, result["_stdout"])
+            elif "[RESULT] STATUS: FAILURE" in result["_stdout"]:
+                result["Output_Status"] = "FAILURE"
+                _parse_metrics(result, result["_stdout"])
             else:
                 result["Output_Status"] = "FAILURE"
+                _parse_metrics(result, result["_stdout"])
 
     except subprocess.TimeoutExpired:
         # ----------------------------------------------------------
-        # TIMEOUT — kill the Docker container explicitly
+        # TIMEOUT -- kill the Docker container explicitly
         # ----------------------------------------------------------
         wall_time = float(timeout_s)
         result["Runtime_wall_s"] = wall_time
@@ -162,7 +176,7 @@ def execute_planner(
         # Docker daemon is not running or not found
         result["Output_Status"] = "DOCKER_DAEMON_ERROR"
         result["_stderr"] = str(exc)
-        # Don't try to remove — docker may not be available
+        # Don't try to remove -- docker may not be available
         return result
 
     finally:
@@ -183,15 +197,19 @@ def execute_planner(
 # ======================================================================
 
 def _is_memout(exit_code: int, stdout: str, stderr: str) -> bool:
-    """Detect Out-of-Memory kill from OS signals and text patterns."""
-    if exit_code == 137:  # 128 + SIGKILL(9) — Linux OOM killer
+    """Detect Out-of-Memory kill from OS signals and text patterns.
+
+    NOTE: Exit code 23 is Fast Downward's SEARCH_OUT_OF_TIME (timeout),
+    NOT SEARCH_OUT_OF_MEMORY (which is exit code 22). We intentionally
+    exclude 23 here to avoid misclassification.
+    """
+    if exit_code == 137:  # 128 + SIGKILL(9) -- Linux OOM killer
         return True
-    if exit_code in (21, 23):  # Fast Downward SEARCH_OUT_OF_MEMORY codes
+    if exit_code in (21, 22):  # Fast Downward SEARCH_OUT_OF_MEMORY codes
         return True
 
     combined = (stdout + stderr).lower()
     oom_patterns = [
-        "killed",
         "std::bad_alloc",
         "out of memory",
         "memory limit has been reached",
@@ -231,13 +249,10 @@ def _parse_metrics(result: dict, stdout: str) -> None:
             continue
 
         # Convert to proper type; treat "N/A" / empty as None
-        if raw_value in ("N/A", "", "0.00"):
-            if raw_value == "0.00" and csv_key == "Runtime_internal_s":
-                result[csv_key] = None  # Planner didn't report
-            elif raw_value == "N/A":
-                result[csv_key] = None
-            else:
-                result[csv_key] = _safe_numeric(raw_value)
+        if raw_value in ("N/A", ""):
+            result[csv_key] = None
+        elif raw_value == "0.00" and csv_key == "Runtime_internal_s":
+            result[csv_key] = None  # Planner didn't report internal time
         else:
             result[csv_key] = _safe_numeric(raw_value)
 

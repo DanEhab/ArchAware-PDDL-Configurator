@@ -1,5 +1,5 @@
 """
-Run Stage 0 — Baseline Execution Pipeline
+Run Stage 0 -- Baseline Execution Pipeline
 ==========================================
 Main orchestrator for Stage 0 (original unmodified domains).
 
@@ -7,22 +7,25 @@ Usage:
     python -m experiments.base.run_stage0
 
 Runs 4 planners in parallel (one thread per planner), each
-processing all 5 domains × 15 instances = 75 runs per planner
+processing all 5 domains x 15 instances = 75 runs per planner
 = 300 total runs.
 
 Features:
-  • Thread-safe CSV writes (CSVManager)
-  • O(1) checkpoint-based resume on restart
-  • 60-second heartbeat logging
-  • Graceful Ctrl+C handling with post-run summary
-  • Comprehensive error logging (register + dumps)
-  • HALT on Docker daemon failure or disk full
+  - Thread-safe CSV writes (CSVManager)
+  - O(1) checkpoint-based resume on restart
+  - 60-second heartbeat logging
+  - Graceful Ctrl+C and SIGTERM handling with post-run summary
+  - Comprehensive error logging (register + dumps for TIMEOUT/MEMOUT/FAILURE)
+  - Terminal output mirrored to log file (TeeLogger)
+  - HALT on Docker daemon failure or disk full
 """
 
 import sys
+import os
 import signal
 import time
 import atexit
+import subprocess
 from pathlib import Path
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -31,29 +34,30 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-# ── Load experiment config ──────────────────────────────────────────
+# -- Load experiment config ------------------------------------------------
 import yaml
 
 CONFIG_PATH = PROJECT_ROOT / "config" / "experiment_config.yaml"
 with open(CONFIG_PATH, "r", encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
 
-# ── Import pipeline modules ────────────────────────────────────────
+# -- Import pipeline modules -----------------------------------------------
 from experiments.base.csv_manager import CSVManager
 from experiments.base.error_handler import ErrorHandler
 from experiments.base.heartbeat import HeartbeatThread
 from experiments.base.summary_generator import SummaryGenerator
 from experiments.base.planner_runner import execute_planner
 
-# ── Paths ───────────────────────────────────────────────────────────
+# -- Paths -----------------------------------------------------------------
 CSV_PATH = PROJECT_ROOT / "results" / "planner_execution_data.csv"
 HEARTBEAT_PATH = PROJECT_ROOT / "logs" / "stage0" / "pipeline_heartbeat.log"
 SUMMARIES_DIR = PROJECT_ROOT / "logs" / "stage0" / "run_summaries"
 ERROR_REGISTER = PROJECT_ROOT / "logs" / "stage0" / "error_register.csv"
 ERROR_DUMPS = PROJECT_ROOT / "logs" / "stage0" / "error_dumps"
+TERMINAL_LOG_DIR = PROJECT_ROOT / "logs" / "stage0" / "terminal_output"
 BENCHMARKS_DIR = PROJECT_ROOT / "benchmarks"
 
-# ── Docker config from YAML ────────────────────────────────────────
+# -- Docker config from YAML -----------------------------------------------
 DOCKER_CFG = {
     "cpus": CONFIG["docker"]["cpus"],
     "memory": CONFIG["docker"]["memory"],
@@ -61,18 +65,44 @@ DOCKER_CFG = {
     "timeout_seconds": CONFIG["docker"]["timeout_seconds"],
 }
 
-# ── Build planner list from config ──────────────────────────────────
+# -- Build planner list from config ----------------------------------------
 PLANNERS = [
     {"name": p["name"], "docker_image": p["docker_image"]}
     for p in CONFIG["planners"]
 ]
 
-# ── Build work queue ────────────────────────────────────────────────
+
+# ======================================================================
+# TeeLogger -- mirrors stdout to both terminal and log file
+# ======================================================================
+
+class TeeLogger:
+    """Duplicates all writes to sys.stdout into a log file."""
+
+    def __init__(self, log_path: Path):
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        self._terminal = sys.stdout
+        self._log_file = open(log_path, "a", encoding="utf-8")
+
+    def write(self, message):
+        self._terminal.write(message)
+        self._log_file.write(message)
+        self._log_file.flush()
+
+    def flush(self):
+        self._terminal.flush()
+        self._log_file.flush()
+
+    def close(self):
+        self._log_file.close()
+
+
+# -- Build work queue ------------------------------------------------------
 def build_work_queue() -> list:
     """Build the list of (domain_name, domain_path, problem_path) tuples.
 
     Scans benchmarks/<domain>/instances/ for each domain in the config.
-    Returns a sorted list of 75 entries (5 domains × 15 instances).
+    Returns a sorted list of 75 entries (5 domains x 15 instances).
     """
     queue = []
     for domain_cfg in CONFIG["domains"]:
@@ -94,7 +124,7 @@ def build_work_queue() -> list:
     return queue
 
 
-# ── Worker function (one per planner thread) ─────────────────────────
+# -- Worker function (one per planner thread) ------------------------------
 def run_planner_workload(
     planner_info: dict,
     work_queue: list,
@@ -102,10 +132,10 @@ def run_planner_workload(
     err_handler: ErrorHandler,
     heartbeat: HeartbeatThread,
 ) -> dict:
-    """Process all domain×instance pairs for ONE planner.
+    """Process all domain x instance pairs for ONE planner.
 
     This function runs in its own thread. It is fully independent
-    from the other planner threads — if one planner finishes early,
+    from the other planner threads -- if one planner finishes early,
     it does not affect the others.
 
     Returns a summary dict with counts per status.
@@ -117,7 +147,7 @@ def run_planner_workload(
     for domain_name, domain_path, problem_path in work_queue:
         problem_name = problem_path.name
 
-        # ── Checkpoint: skip if already completed ──
+        # -- Checkpoint: skip if already completed --
         if csv_mgr.is_completed(domain_name, problem_name, planner_name):
             print(
                 f"  [SKIP] {planner_name} | {domain_name}/{problem_name} "
@@ -129,7 +159,7 @@ def run_planner_workload(
             f"  [RUN]  {planner_name} | {domain_name}/{problem_name} ..."
         )
 
-        # ── Execute planner ──
+        # -- Execute planner --
         result = execute_planner(
             planner_name=planner_name,
             docker_image=docker_image,
@@ -140,7 +170,7 @@ def run_planner_workload(
 
         status = result.get("Output_Status", "FAILURE")
 
-        # ── Check for system-level halt conditions ──
+        # -- Check for system-level halt conditions --
         if status == "DOCKER_DAEMON_ERROR":
             err_handler.log_system_error(
                 error_type="DOCKER_DAEMON",
@@ -152,11 +182,11 @@ def run_planner_workload(
             print(
                 "\n[FATAL] Docker daemon is not running or unreachable.\n"
                 "        Pipeline HALTING. Restart Docker and re-run the script.\n"
-                "        Checkpoint is saved — it will resume from where it stopped.\n"
+                "        Checkpoint is saved -- it will resume from where it stopped.\n"
             )
             raise SystemExit(1)
 
-        # ── Build the CSV row ──
+        # -- Build the CSV row --
         row = {
             "Domain_Name": domain_name,
             "Domain_File": "domain.pddl",
@@ -176,7 +206,7 @@ def run_planner_workload(
             "Timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        # ── Write to CSV (thread-safe) ──
+        # -- Write to CSV (thread-safe) --
         try:
             run_id = csv_mgr.append_row(row)
         except (IOError, OSError) as exc:
@@ -193,8 +223,22 @@ def run_planner_workload(
             )
             raise SystemExit(1)
 
-        # ── Log errors ──
-        if status in ("MEMOUT", "FAILURE"):
+        # -- Log errors (TIMEOUT, MEMOUT, FAILURE all logged now) --
+        if status in ("TIMEOUT", "MEMOUT", "FAILURE"):
+            # Build metrics dict for error register extra columns
+            error_metrics = {
+                "PlanCost": result.get("PlanCost"),
+                "StatesExpanded": result.get("StatesExpanded"),
+                "StatesGenerated": result.get("StatesGenerated"),
+                "StatesEvaluated": result.get("StatesEvaluated"),
+                "PeakMemoryKB": result.get("PeakMemoryKB"),
+            }
+            # Convert None values to "N/A" for display
+            error_metrics = {
+                k: (v if v is not None else "N/A")
+                for k, v in error_metrics.items()
+            }
+
             err_handler.log_planner_error(
                 run_id=run_id,
                 domain=domain_name,
@@ -203,18 +247,19 @@ def run_planner_workload(
                 error_type=status,
                 stdout=result.get("_stdout", ""),
                 stderr=result.get("_stderr", ""),
+                metrics=error_metrics,
             )
 
-        # ── Update heartbeat ──
+        # -- Update heartbeat --
         heartbeat.last_completed = f"{domain_name}/{problem_name}/{planner_name}"
 
-        # ── Track status count ──
+        # -- Track status count --
         if status in counts:
             counts[status] += 1
         else:
             counts["FAILURE"] += 1
 
-        # ── Console feedback ──
+        # -- Console feedback --
         wall = result.get("Runtime_wall_s")
         wall_str = f"{wall:.1f}s" if wall is not None else "N/A"
         cost = result.get("PlanCost")
@@ -227,18 +272,33 @@ def run_planner_workload(
     return counts
 
 
-# ════════════════════════════════════════════════════════════════════
+# ========================================================================
 # Main entry point
-# ════════════════════════════════════════════════════════════════════
+# ========================================================================
 
 def main():
+    # -- 0. Set up TeeLogger for terminal output capture --
+    TERMINAL_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    ts_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    terminal_log_path = TERMINAL_LOG_DIR / f"run_{ts_str}.log"
+    tee = TeeLogger(terminal_log_path)
+    sys.stdout = tee
+
     print("=" * 65)
     print("  Stage 0 (BASELINE) Execution Pipeline")
     print("  Architecture-Aware PDDL Configurator")
     print("=" * 65)
     print()
 
-    # ── 1. Build work queue ──
+    # -- 0b. Check for tmux/screen --
+    if not os.environ.get("TMUX") and not os.environ.get("STY"):
+        print("[WARNING] Not running inside tmux or screen.")
+        print("          If the terminal session is killed (e.g. screen lock),")
+        print("          the pipeline will stop. Recommended:")
+        print("          tmux new-session -d -s stage0 'caffeinate -i python3 -m experiments.base.run_stage0'")
+        print()
+
+    # -- 1. Build work queue --
     work_queue = build_work_queue()
     total_runs = len(work_queue) * len(PLANNERS)
     print(f"[INFO] Work queue: {len(work_queue)} domain x instance pairs")
@@ -246,22 +306,22 @@ def main():
     print(f"[INFO] Total runs: {total_runs}")
     print()
 
-    # ── 2. Initialize CSV manager (loads checkpoint) ──
+    # -- 2. Initialize CSV manager (loads checkpoint) --
     csv_mgr = CSVManager(CSV_PATH)
     already = csv_mgr.completed_count
     if already > 0:
-        print(f"[CHECKPOINT] Found {already} completed runs in CSV — will skip them.")
+        print(f"[CHECKPOINT] Found {already} completed runs in CSV -- will skip them.")
     print(f"[INFO] CSV output: {CSV_PATH}")
     print()
 
-    # ── 3. Initialize error handler ──
+    # -- 3. Initialize error handler --
     err_handler = ErrorHandler(ERROR_REGISTER, ERROR_DUMPS)
     error_count = 0  # Tracked for summary
 
-    # ── 4. Initialize summary generator ──
+    # -- 4. Initialize summary generator --
     summary_gen = SummaryGenerator(SUMMARIES_DIR, CSV_PATH, total_runs)
 
-    # ── 5. Start heartbeat daemon ──
+    # -- 5. Start heartbeat daemon --
     heartbeat = HeartbeatThread(
         log_path=HEARTBEAT_PATH,
         total_runs=total_runs,
@@ -270,9 +330,10 @@ def main():
     )
     heartbeat.start()
     print(f"[INFO] Heartbeat started (every {heartbeat.interval}s) -> {HEARTBEAT_PATH}")
+    print(f"[INFO] Terminal output logged to: {terminal_log_path}")
     print()
 
-    # ── 6. Register signal handlers ──
+    # -- 6. Register signal handlers --
     pipeline_start = time.time()
     summary_generated = False
 
@@ -292,16 +353,18 @@ def main():
         except Exception as e:
             print(f"\n[WARNING] Could not write summary: {e}")
 
-    def _sigint_handler(signum, frame):
-        print("\n\n[INTERRUPT] Ctrl+C received — shutting down gracefully...")
+    def _signal_handler(signum, frame):
+        sig_name = "SIGINT" if signum == signal.SIGINT else "SIGTERM"
+        print(f"\n\n[INTERRUPT] {sig_name} received -- shutting down gracefully...")
         heartbeat.stop()
-        _generate_summary("SIGINT")
+        _generate_summary(sig_name)
         sys.exit(0)
 
-    signal.signal(signal.SIGINT, _sigint_handler)
+    signal.signal(signal.SIGINT, _signal_handler)
+    signal.signal(signal.SIGTERM, _signal_handler)
     atexit.register(lambda: _generate_summary("CLEAN_EXIT"))
 
-    # ── 7. Check Docker is running ──
+    # -- 7. Check Docker is running --
     try:
         chk = subprocess.run(
             ["docker", "info"], capture_output=True, timeout=15,
@@ -315,13 +378,13 @@ def main():
         _generate_summary("SYSTEM_ERROR")
         sys.exit(1)
 
-    # ── 8. Check Docker images exist ──
+    # -- 8. Check Docker images exist --
     # Bypassed: macOS Docker CLI sometimes returns false negatives here.
     # We trust that the images are built based on your `docker images` output.
     print("[INFO] Docker images assumed to be built and ready [OK]")
     print()
 
-    # ── 9. Execute: 4 planner threads ──
+    # -- 9. Execute: 4 planner threads --
     print("-" * 65)
     print("  Starting parallel execution (4 planner threads)")
     print("-" * 65)
@@ -365,7 +428,7 @@ def main():
                     planner=planner_name,
                 )
 
-    # ── 10. Finalize ──
+    # -- 10. Finalize --
     heartbeat.stop()
     elapsed = time.time() - pipeline_start
     hrs = int(elapsed // 3600)
@@ -373,13 +436,10 @@ def main():
 
     print()
     print("=" * 65)
-    print(f"  Stage 0 complete — {csv_mgr.completed_count}/{total_runs} runs")
+    print(f"  Stage 0 complete -- {csv_mgr.completed_count}/{total_runs} runs")
     print(f"  Total time: {hrs}h {mins}m")
     print("=" * 65)
 
-
-# Need subprocess for docker checks in main()
-import subprocess
 
 if __name__ == "__main__":
     main()
