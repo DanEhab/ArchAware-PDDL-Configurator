@@ -61,7 +61,8 @@ RUN cd /planner/h2-fd-preprocessor && \
     make -j4
 
 # Setup Execution Environment
-WORKDIR /workspace
+# bust cache 2
+ARG CACHEBUST=1
 COPY planners/bfws/planner_exec /planner_exec
 RUN chmod +x /planner_exec
 

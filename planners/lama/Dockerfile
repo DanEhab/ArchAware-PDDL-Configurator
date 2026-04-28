@@ -15,7 +15,8 @@ RUN git clone https://github.com/aibasel/downward.git && \
 # Workspace for input & output
 WORKDIR /workspace
 
-# planner_exec copy and make exec
+# bust cache 2
+ARG CACHEBUST=1
 COPY planners/lama/planner_exec /planner_exec
 RUN chmod +x /planner_exec
 

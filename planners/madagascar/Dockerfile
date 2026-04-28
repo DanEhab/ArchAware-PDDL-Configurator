@@ -11,7 +11,8 @@ RUN chmod +x /usr/local/bin/madagascar
 
 WORKDIR /workspace
 
-# Copy the execution script that handles the execution and metric extraction
+# bust cache 2
+ARG CACHEBUST=1
 COPY planners/madagascar/planner_exec /planner_exec
 RUN chmod +x /planner_exec
 

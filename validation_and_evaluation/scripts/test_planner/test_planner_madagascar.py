@@ -18,8 +18,8 @@ from pathlib import Path
 # Paths
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent.parent
-DOMAIN_FILE = PROJECT_ROOT / "benchmarks" / "ricochet-robots" / "domain.pddl"
-PROBLEM_FILE = PROJECT_ROOT / "benchmarks" / "ricochet-robots" / "instances" / "instance-01.pddl"
+DOMAIN_FILE = PROJECT_ROOT / "benchmarks" / "visitall" / "domain.pddl"
+PROBLEM_FILE = PROJECT_ROOT / "benchmarks" / "visitall" / "instances" / "instance-12.pddl"
 
 def run_madagascar(domain_path: Path, problem_path: Path):
     benchmark_dir = domain_path.parent.parent.resolve()
@@ -51,7 +51,7 @@ def run_madagascar(domain_path: Path, problem_path: Path):
             capture_output=True,
             text=True,
             check=False,
-            timeout=300 
+            timeout=315 
         )
         print("\n--- STDOUT ---")
         print(result.stdout)

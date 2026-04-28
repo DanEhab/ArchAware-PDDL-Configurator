@@ -1,7 +1,7 @@
 """
 Execution Tester for LAPKT-BFWS-Preference
 ==========================================
-Tests the BFWS Docker container against the tiny-test ricochet-robots domain.
+Tests the BFWS Docker container against the tiny-test snake domain.
 
 Usage:
   1. Ensure Docker Desktop is running
@@ -19,7 +19,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent.parent
 DOMAIN_FILE = PROJECT_ROOT / "benchmarks" / "snake" / "domain.pddl"
-PROBLEM_FILE = PROJECT_ROOT / "benchmarks" / "snake" / "instances" / "instance-11.pddl"
+PROBLEM_FILE = PROJECT_ROOT / "benchmarks" / "snake" / "instances" / "instance-19.pddl"
 
 def run_bfws(domain_path: Path, problem_path: Path):
     benchmark_dir = domain_path.parent.parent.resolve()
@@ -50,7 +50,7 @@ def run_bfws(domain_path: Path, problem_path: Path):
             capture_output=True,
             text=True,
             check=False,
-            timeout=300 
+            timeout=315 
         )
         print("\n--- STDOUT ---")
         print(result.stdout)

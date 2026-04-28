@@ -46,6 +46,8 @@ RUN cd third-party/Osi-0.108.6 && \
 RUN pypy3 build.py release64
 
 WORKDIR /workspace
+# bust cache 2
+ARG CACHEBUST=1
 COPY planners/decstar/planner_exec /planner_exec
 RUN chmod +x /planner_exec
 
