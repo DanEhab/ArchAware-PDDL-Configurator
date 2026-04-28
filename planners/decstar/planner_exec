@@ -35,7 +35,10 @@ echo "$OUTPUT"
 PLAN_COST=$(echo "$OUTPUT" | grep -iE "Plan cost:" | head -n 1 | awk '{print $NF}')
 RUNTIME_INTERNAL=$(echo "$OUTPUT" | grep -iE "Total time:" | head -n 1 | sed -E 's/.*Total time: ([0-9.]+)s.*/\1/')
 
-if [ $EXIT_CODE -eq 137 ] || [ $EXIT_CODE -eq 21 ] || [ $EXIT_CODE -eq 23 ] || echo "$OUTPUT" | grep -iqE "(Killed|std::bad_alloc|out of memory|Memory limit has been reached|SEARCH_OUT_OF_MEMORY)"; then
+if [ $EXIT_CODE -eq 23 ] || echo "$OUTPUT" | grep -iqE "(Time limit has been reached)"; then
+    echo "[RESULT] STATUS: TIMEOUT"
+    echo "[METRIC] PlanCost: N/A"
+elif [ $EXIT_CODE -eq 137 ] || [ $EXIT_CODE -eq 21 ] || echo "$OUTPUT" | grep -iqE "(Killed|std::bad_alloc|out of memory|Memory limit has been reached|SEARCH_OUT_OF_MEMORY)"; then
     echo "[RESULT] STATUS: MEMOUT"
     echo "[METRIC] PlanCost: N/A"
 elif [ -n "$PLAN_COST" ]; then
