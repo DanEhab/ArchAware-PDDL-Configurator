@@ -8,7 +8,7 @@ echo "[INFO]   Problem: $PROBLEM_FILE"
 
 # Start Planner and Wall-Clock
 START_TIME=$(date +%s.%N)
-OUTPUT=$(/usr/local/bin/madagascar "$DOMAIN_FILE" "$PROBLEM_FILE" 2>&1)
+OUTPUT=$(timeout 300s /usr/local/bin/madagascar "$DOMAIN_FILE" "$PROBLEM_FILE" 2>&1)
 EXIT_CODE=$?
 END_TIME=$(date +%s.%N)
 
@@ -20,7 +20,10 @@ echo "$OUTPUT"
 PLAN_COST=$(echo "$OUTPUT" | grep -Po '^\d+(?= actions in the plan\.)')
 RUNTIME_INTERNAL=$(echo "$OUTPUT" | grep "total time" | awk '{print $3}')
 
-if [ $EXIT_CODE -eq 137 ] || [ $EXIT_CODE -eq 21 ] || echo "$OUTPUT" | grep -iqE "(Killed|std::bad_alloc|out of memory|Memory limit has been reached)"; then
+if [ $EXIT_CODE -eq 124 ]; then
+    echo "[RESULT] STATUS: TIMEOUT"
+    echo "[METRIC] PlanCost: N/A"
+elif [ $EXIT_CODE -eq 137 ] || [ $EXIT_CODE -eq 21 ] || echo "$OUTPUT" | grep -iqE "(Killed|std::bad_alloc|out of memory|Memory limit has been reached)"; then
     echo "[RESULT] STATUS: MEMOUT"
     echo "[METRIC] PlanCost: N/A"
 elif echo "$OUTPUT" | grep -q "PLAN FOUND"; then
