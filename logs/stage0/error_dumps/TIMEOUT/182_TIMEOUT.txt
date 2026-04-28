@@ -1,0 +1,12 @@
+=== ERROR DUMP -- Run ID 182 ===
+Error Type: TIMEOUT
+Timestamp: 2026-04-27T15:20:02.527624+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl/ricochet-robots/domain.pddl
+[INFO]   Problem: /pddl/ricochet-robots/instances/instance-02.pddl
+
+
+=== STDERR ===
+(empty)

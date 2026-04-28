@@ -1,0 +1,12 @@
+=== ERROR DUMP -- Run ID 115 ===
+Error Type: TIMEOUT
+Timestamp: 2026-04-27T14:27:38.620457+00:00
+
+=== STDOUT ===
+[INFO] Running LAPKT-BFWS-Preference (IPC-2018 Agile Track Config):
+[INFO]   Domain: /pddl/ricochet-robots/domain.pddl
+[INFO]   Problem: /pddl/ricochet-robots/instances/instance-14.pddl
+
+
+=== STDERR ===
+(empty)

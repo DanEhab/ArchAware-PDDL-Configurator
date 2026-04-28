@@ -1,0 +1,12 @@
+=== ERROR DUMP -- Run ID 275 ===
+Error Type: TIMEOUT
+Timestamp: 2026-04-27T16:33:44.768997+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl/barman/domain.pddl
+[INFO]   Problem: /pddl/barman/instances/instance-01.pddl
+
+
+=== STDERR ===
+(empty)

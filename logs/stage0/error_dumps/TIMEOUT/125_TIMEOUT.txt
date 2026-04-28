@@ -1,0 +1,12 @@
+=== ERROR DUMP -- Run ID 125 ===
+Error Type: TIMEOUT
+Timestamp: 2026-04-27T14:38:27.463924+00:00
+
+=== STDOUT ===
+[INFO] Running Fast Downward (lama-first configuration):
+[INFO]   Domain: /pddl/ricochet-robots/domain.pddl
+[INFO]   Problem: /pddl/ricochet-robots/instances/instance-08.pddl
+
+
+=== STDERR ===
+(empty)

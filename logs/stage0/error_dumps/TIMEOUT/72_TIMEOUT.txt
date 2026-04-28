@@ -1,0 +1,12 @@
+=== ERROR DUMP -- Run ID 72 ===
+Error Type: TIMEOUT
+Timestamp: 2026-04-27T13:47:40.670015+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl/visitall/domain.pddl
+[INFO]   Problem: /pddl/visitall/instances/instance-13.pddl
+
+
+=== STDERR ===
+(empty)

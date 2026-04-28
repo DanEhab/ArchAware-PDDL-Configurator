@@ -1,0 +1,12 @@
+=== ERROR DUMP -- Run ID 65 ===
+Error Type: TIMEOUT
+Timestamp: 2026-04-27T13:39:01.990551+00:00
+
+=== STDOUT ===
+[INFO] Running LAPKT-BFWS-Preference (IPC-2018 Agile Track Config):
+[INFO]   Domain: /pddl/snake/domain.pddl
+[INFO]   Problem: /pddl/snake/instances/instance-16.pddl
+
+
+=== STDERR ===
+(empty)

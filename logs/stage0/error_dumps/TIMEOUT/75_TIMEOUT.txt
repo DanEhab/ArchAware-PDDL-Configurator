@@ -1,0 +1,12 @@
+=== ERROR DUMP -- Run ID 75 ===
+Error Type: TIMEOUT
+Timestamp: 2026-04-27T13:50:21.050345+00:00
+
+=== STDOUT ===
+[INFO] Running Fast Downward (lama-first configuration):
+[INFO]   Domain: /pddl/snake/domain.pddl
+[INFO]   Problem: /pddl/snake/instances/instance-13.pddl
+
+
+=== STDERR ===
+(empty)
