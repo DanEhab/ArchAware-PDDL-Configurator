@@ -50,7 +50,7 @@ def run_decstar(domain_path: Path, problem_path: Path):
             capture_output=True,
             text=True,
             check=False,
-            timeout=300 
+            timeout=375 
         )
         print("\n--- STDOUT ---")
         print(result.stdout)

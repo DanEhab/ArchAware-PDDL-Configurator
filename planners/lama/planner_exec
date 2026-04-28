@@ -11,7 +11,7 @@ START_TIME=$(date +%s.%N)
 
 # Execute LAMA (using true lama-first alias instead of manual lazy greedy)
 OUTPUT=$(/opt/downward/fast-downward.py \
-    --overall-time-limit 5m \
+    --overall-time-limit 6m \
     --alias lama-first \
     "$DOMAIN_FILE" "$PROBLEM_FILE" 2>&1)
 EXIT_CODE=$?

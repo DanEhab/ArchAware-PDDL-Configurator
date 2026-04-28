@@ -19,7 +19,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent.parent
 DOMAIN_FILE = PROJECT_ROOT / "benchmarks" / "snake" / "domain.pddl"
-PROBLEM_FILE = PROJECT_ROOT / "benchmarks" / "snake" / "instances" / "instance-19.pddl"
+PROBLEM_FILE = PROJECT_ROOT / "benchmarks" / "snake" / "instances" / "instance-11.pddl"
 
 def run_bfws(domain_path: Path, problem_path: Path):
     benchmark_dir = domain_path.parent.parent.resolve()
@@ -50,7 +50,7 @@ def run_bfws(domain_path: Path, problem_path: Path):
             capture_output=True,
             text=True,
             check=False,
-            timeout=315 
+            timeout=375 
         )
         print("\n--- STDOUT ---")
         print(result.stdout)

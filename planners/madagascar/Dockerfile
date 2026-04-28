@@ -12,7 +12,7 @@ RUN chmod +x /usr/local/bin/madagascar
 WORKDIR /workspace
 
 # bust cache 2
-ARG CACHEBUST=1
+ARG CACHEBUST=4
 COPY planners/madagascar/planner_exec /planner_exec
 RUN chmod +x /planner_exec
 

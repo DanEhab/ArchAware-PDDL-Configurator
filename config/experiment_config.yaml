@@ -130,7 +130,7 @@ docker:
   memory: "8g"
   memory_swap: "8g"
   oom_kill_disable: false
-  timeout_seconds: 300
+  timeout_seconds: 360
 
 # ──────────────────────────────────────────────────────────────
 # Parallel Execution (from Execution Protocol §8)

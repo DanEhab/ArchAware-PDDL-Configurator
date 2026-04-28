@@ -8,7 +8,7 @@ echo "[INFO]   Problem: $PROBLEM_FILE"
 
 # Start Planner and Wall-Clock
 START_TIME=$(date +%s.%N)
-OUTPUT=$(timeout 300s /usr/local/bin/madagascar "$DOMAIN_FILE" "$PROBLEM_FILE" 2>&1)
+OUTPUT=$(timeout 360s /usr/local/bin/madagascar "$DOMAIN_FILE" "$PROBLEM_FILE" 2>&1)
 EXIT_CODE=$?
 END_TIME=$(date +%s.%N)
 

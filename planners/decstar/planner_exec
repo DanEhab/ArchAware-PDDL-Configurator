@@ -16,7 +16,7 @@ OUTPUT=$(pypy3 /planner/fast-downward.py \
     --build release64 \
     --alias "seq-agl-decstar" \
     --overall-memory-limit 8000M \
-    --overall-time-limit 5m \
+    --overall-time-limit 6m \
     "$DOMAIN_FILE" "$PROBLEM_FILE" 2>&1)
 EXIT_CODE=$?
 

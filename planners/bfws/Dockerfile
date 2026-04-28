@@ -62,7 +62,7 @@ RUN cd /planner/h2-fd-preprocessor && \
 
 # Setup Execution Environment
 # bust cache 2
-ARG CACHEBUST=1
+ARG CACHEBUST=4
 COPY planners/bfws/planner_exec /planner_exec
 RUN chmod +x /planner_exec
 

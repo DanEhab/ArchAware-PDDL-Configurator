@@ -11,7 +11,7 @@ echo "[INFO]   Problem: $PROBLEM_FILE"
 START_TIME=$(date +%s.%N)
 
 # Execute BFWS
-OUTPUT=$(timeout 300s python /planner/BFWS/fd-version/bfws.py "$DOMAIN_FILE" "$PROBLEM_FILE" "$PLAN_OUT" 2>&1)
+OUTPUT=$(timeout 360s python /planner/BFWS/fd-version/bfws.py "$DOMAIN_FILE" "$PROBLEM_FILE" "$PLAN_OUT" 2>&1)
 EXIT_CODE=$?
 
 # Stop Wall Clock Time
