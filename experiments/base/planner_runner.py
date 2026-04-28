@@ -7,6 +7,14 @@ a standardised result dict with all metrics.
 Handles: SUCCESS, TIMEOUT, MEMOUT, FAILURE, INVALID_OUTPUT
 Docker containers use named instances (no --rm) so we can
 explicitly kill + remove on timeout.
+
+TIMEOUT STRATEGY:
+  The planner has its own internal timeout at `timeout_s` seconds
+  (300s by default). Python's subprocess timeout is set to
+  `timeout_s + 15` to give the planner time to finish its internal
+  timeout handling, print its [RESULT] and [METRIC] lines, and exit
+  cleanly. The Python timeout is a safety net for the rare case
+  where the planner hangs beyond its own timeout.
 """
 
 import subprocess
@@ -28,6 +36,11 @@ METRIC_KEYS = [
     "StatesEvaluated",
     "PeakMemory_KB",
 ]
+
+# Extra seconds beyond timeout_s for the Python subprocess.
+# This buffer allows the planner to complete its internal timeout
+# handling and print [RESULT] + [METRIC] lines before Python kills it.
+TIMEOUT_BUFFER_SECONDS = 15
 
 
 def execute_planner(
@@ -63,6 +76,10 @@ def execute_planner(
     cpus = docker_cfg.get("cpus", "1.0")
     memory = docker_cfg.get("memory", "8g")
     memory_swap = docker_cfg.get("memory_swap", "8g")
+
+    # Python waits longer than the planner's internal timeout so
+    # the planner can print its results before Python kills it.
+    python_timeout = timeout_s + TIMEOUT_BUFFER_SECONDS
 
     # Unique container name to enable explicit kill on timeout
     container_name = f"run_{planner_name}_{uuid.uuid4().hex[:8]}"
@@ -101,7 +118,7 @@ def execute_planner(
             capture_output=True,
             text=True,
             check=False,
-            timeout=timeout_s,
+            timeout=python_timeout,
         )
         wall_time = round(time.time() - start, 6)
 
@@ -110,58 +127,70 @@ def execute_planner(
         result["Runtime_wall_s"] = wall_time
 
         # ----------------------------------------------------------
-        # Determine status
+        # Determine status from the planner's own [RESULT] output
         # ----------------------------------------------------------
         exit_code = proc.returncode
 
+        # First: check for OOM via exit codes / text patterns
         if _is_memout(exit_code, result["_stdout"], result["_stderr"]):
             result["Output_Status"] = "MEMOUT"
-            # Still try to parse metrics (PeakMemoryKB is often available)
             _parse_metrics(result, result["_stdout"])
-        elif exit_code == 0:
-            # Check for valid planner output markers
-            if "[RESULT] STATUS: SUCCESS" in result["_stdout"]:
-                result["Output_Status"] = "SUCCESS"
-                _parse_metrics(result, result["_stdout"])
-            elif "[RESULT] STATUS: MEMOUT" in result["_stdout"]:
-                # The planner_exec shell script detected OOM internally
-                result["Output_Status"] = "MEMOUT"
-                _parse_metrics(result, result["_stdout"])
-            elif "[RESULT] STATUS: TIMEOUT" in result["_stdout"]:
-                result["Output_Status"] = "TIMEOUT"
-                _parse_metrics(result, result["_stdout"])
-            elif "[RESULT] STATUS: FAILURE" in result["_stdout"]:
-                result["Output_Status"] = "FAILURE"
-                _parse_metrics(result, result["_stdout"])
-            else:
-                # Invalid planner output -- exit 0 but no [RESULT] marker
-                result["Output_Status"] = "FAILURE"
-        else:
-            # Non-zero exit that isn't OOM
-            if "[RESULT] STATUS: MEMOUT" in result["_stdout"]:
-                result["Output_Status"] = "MEMOUT"
-                _parse_metrics(result, result["_stdout"])
-            elif "[RESULT] STATUS: TIMEOUT" in result["_stdout"]:
-                result["Output_Status"] = "TIMEOUT"
-                _parse_metrics(result, result["_stdout"])
-            elif "[RESULT] STATUS: SUCCESS" in result["_stdout"]:
-                # Some planners exit non-zero even on success (e.g. FD exit 12)
-                result["Output_Status"] = "SUCCESS"
-                _parse_metrics(result, result["_stdout"])
-            elif "[RESULT] STATUS: FAILURE" in result["_stdout"]:
-                result["Output_Status"] = "FAILURE"
-                _parse_metrics(result, result["_stdout"])
-            else:
-                result["Output_Status"] = "FAILURE"
-                _parse_metrics(result, result["_stdout"])
 
-    except subprocess.TimeoutExpired:
+        # Second: trust the planner's own [RESULT] classification
+        elif "[RESULT] STATUS: SUCCESS" in result["_stdout"]:
+            result["Output_Status"] = "SUCCESS"
+            _parse_metrics(result, result["_stdout"])
+
+        elif "[RESULT] STATUS: MEMOUT" in result["_stdout"]:
+            result["Output_Status"] = "MEMOUT"
+            _parse_metrics(result, result["_stdout"])
+
+        elif "[RESULT] STATUS: TIMEOUT" in result["_stdout"]:
+            result["Output_Status"] = "TIMEOUT"
+            result["Runtime_wall_s"] = float(timeout_s)
+            _parse_metrics(result, result["_stdout"])
+
+        elif "[RESULT] STATUS: FAILURE" in result["_stdout"]:
+            result["Output_Status"] = "FAILURE"
+            _parse_metrics(result, result["_stdout"])
+
+        else:
+            # No [RESULT] marker at all — container was killed externally
+            # (e.g. Ctrl+C, or Docker OOM with no output)
+            result["Output_Status"] = "FAILURE"
+
+    except subprocess.TimeoutExpired as e:
         # ----------------------------------------------------------
-        # TIMEOUT -- kill the Docker container explicitly
+        # Python safety-net timeout (timeout_s + 15s).
+        # This means the planner hung beyond its own internal timeout.
+        # Classify as TIMEOUT with the configured timeout value.
         # ----------------------------------------------------------
-        wall_time = float(timeout_s)
-        result["Runtime_wall_s"] = wall_time
+        result["Runtime_wall_s"] = float(timeout_s)
         result["Output_Status"] = "TIMEOUT"
+
+        # Capture any partial output (may be bytes or str)
+        try:
+            raw_out = e.stdout
+            if isinstance(raw_out, bytes):
+                raw_out = raw_out.decode("utf-8", errors="replace")
+            result["_stdout"] = raw_out or ""
+        except Exception:
+            result["_stdout"] = ""
+
+        try:
+            raw_err = e.stderr
+            if isinstance(raw_err, bytes):
+                raw_err = raw_err.decode("utf-8", errors="replace")
+            result["_stderr"] = raw_err or ""
+        except Exception:
+            result["_stderr"] = ""
+
+        # Try to parse any metrics from partial output
+        try:
+            if result["_stdout"]:
+                _parse_metrics(result, result["_stdout"])
+        except Exception:
+            pass  # Never crash the thread over parsing
 
         # Kill the still-running container
         try:
@@ -199,11 +228,11 @@ def execute_planner(
 def _is_memout(exit_code: int, stdout: str, stderr: str) -> bool:
     """Detect Out-of-Memory kill from OS signals and text patterns.
 
-    NOTE: Exit code 23 is Fast Downward's SEARCH_OUT_OF_TIME (timeout),
-    NOT SEARCH_OUT_OF_MEMORY (which is exit code 22). We intentionally
-    exclude 23 here to avoid misclassification.
+    This is the FIRST check before looking at [RESULT] lines.
+    It catches cases where Docker's OOM killer terminated the container
+    before the planner could print any output.
     """
-    if exit_code == 137:  # 128 + SIGKILL(9) -- Linux OOM killer
+    if exit_code == 137:  # 128 + SIGKILL(9) -- Linux/Docker OOM killer
         return True
     if exit_code in (21, 22):  # Fast Downward SEARCH_OUT_OF_MEMORY codes
         return True

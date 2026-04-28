@@ -225,20 +225,6 @@ def run_planner_workload(
 
         # -- Log errors (TIMEOUT, MEMOUT, FAILURE all logged now) --
         if status in ("TIMEOUT", "MEMOUT", "FAILURE"):
-            # Build metrics dict for error register extra columns
-            error_metrics = {
-                "PlanCost": result.get("PlanCost"),
-                "StatesExpanded": result.get("StatesExpanded"),
-                "StatesGenerated": result.get("StatesGenerated"),
-                "StatesEvaluated": result.get("StatesEvaluated"),
-                "PeakMemoryKB": result.get("PeakMemoryKB"),
-            }
-            # Convert None values to "N/A" for display
-            error_metrics = {
-                k: (v if v is not None else "N/A")
-                for k, v in error_metrics.items()
-            }
-
             err_handler.log_planner_error(
                 run_id=run_id,
                 domain=domain_name,
@@ -247,7 +233,6 @@ def run_planner_workload(
                 error_type=status,
                 stdout=result.get("_stdout", ""),
                 stderr=result.get("_stderr", ""),
-                metrics=error_metrics,
             )
 
         # -- Update heartbeat --

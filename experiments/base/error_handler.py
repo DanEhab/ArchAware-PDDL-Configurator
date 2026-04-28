@@ -25,12 +25,6 @@ ERROR_REGISTER_COLUMNS = [
     "Problem",
     "Planner",
     "Error_Type",
-    "Error_Message",
-    "PlanCost",
-    "StatesExpanded",
-    "StatesGenerated",
-    "StatesEvaluated",
-    "PeakMemoryKB",
     "Dump_Path",
 ]
 
@@ -70,24 +64,13 @@ class ErrorHandler:
         error_type: str,
         stdout: str,
         stderr: str,
-        metrics: dict = None,
     ) -> None:
         """Log a planner error (TIMEOUT, MEMOUT, FAILURE).
 
         Saves a verbose dump file into the appropriate subfolder
         and appends a row to the register CSV.
-
-        Args:
-            metrics: dict with optional keys PlanCost, StatesExpanded,
-                     StatesGenerated, StatesEvaluated, PeakMemoryKB
         """
-        if metrics is None:
-            metrics = {}
-
         dump_path = self._save_error_dump(run_id, error_type, stdout, stderr)
-
-        # Build a meaningful error message from stdout if stderr is empty
-        error_message = self._extract_error_message(error_type, stdout, stderr)
 
         self._append_register_row(
             component="PLANNER",
@@ -96,12 +79,6 @@ class ErrorHandler:
             problem=problem,
             planner=planner,
             error_type=error_type,
-            error_message=error_message,
-            plan_cost=metrics.get("PlanCost", "N/A"),
-            states_expanded=metrics.get("StatesExpanded", "N/A"),
-            states_generated=metrics.get("StatesGenerated", "N/A"),
-            states_evaluated=metrics.get("StatesEvaluated", "N/A"),
-            peak_memory_kb=metrics.get("PeakMemoryKB", "N/A"),
             dump_path=str(dump_path),
         )
 
@@ -122,34 +99,12 @@ class ErrorHandler:
             problem=problem,
             planner=planner,
             error_type=error_type,
-            error_message=error_message[:500],
-            plan_cost="N/A",
-            states_expanded="N/A",
-            states_generated="N/A",
-            states_evaluated="N/A",
-            peak_memory_kb="N/A",
             dump_path="N/A",
         )
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
-
-    def _extract_error_message(
-        self, error_type: str, stdout: str, stderr: str
-    ) -> str:
-        """Build a meaningful error message string."""
-        # Try stderr first
-        if stderr and stderr.strip():
-            return stderr.strip()[:500]
-
-        # Fall back to the [RESULT] line from stdout
-        for line in (stdout or "").splitlines():
-            if "[RESULT]" in line:
-                return line.strip()[:500]
-
-        # Generic fallback
-        return error_type
 
     def _save_error_dump(
         self, run_id: int, error_type: str, stdout: str, stderr: str
@@ -194,12 +149,6 @@ class ErrorHandler:
             "Problem": kwargs.get("problem", "N/A"),
             "Planner": kwargs.get("planner", "N/A"),
             "Error_Type": kwargs.get("error_type", "UNKNOWN"),
-            "Error_Message": kwargs.get("error_message", "N/A"),
-            "PlanCost": kwargs.get("plan_cost", "N/A"),
-            "StatesExpanded": kwargs.get("states_expanded", "N/A"),
-            "StatesGenerated": kwargs.get("states_generated", "N/A"),
-            "StatesEvaluated": kwargs.get("states_evaluated", "N/A"),
-            "PeakMemoryKB": kwargs.get("peak_memory_kb", "N/A"),
             "Dump_Path": kwargs.get("dump_path", "N/A"),
         }
 

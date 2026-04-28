@@ -80,6 +80,7 @@ desktop.ini
 # 9. Utility / Temporary Scripts
 # ──────────────────────────────────────────────────────────────
 convert_pdfs.py
+text.txt
 
 # Proprietary/Large Binaries
 planners/decstar/cplex_*.bin
