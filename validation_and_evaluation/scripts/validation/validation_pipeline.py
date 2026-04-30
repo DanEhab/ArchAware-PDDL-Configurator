@@ -44,10 +44,10 @@ from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Any
 
-from v1_extraction import extract_pddl_from_response
-from v2_syntactic_validation import validate_with_val, check_docker_available
-from v3_identity_check import is_identical_to_original
-from v4_semantic_equivalence import check_semantic_equivalence
+from .v1_extraction import extract_pddl_from_response
+from .v2_syntactic_validation import validate_with_val, check_docker_available
+from .v3_identity_check import is_identical_to_original
+from .v4_semantic_equivalence import check_semantic_equivalence
 
 # Logger
 logger = logging.getLogger("validation_pipeline")
