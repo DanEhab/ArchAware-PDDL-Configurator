@@ -34,6 +34,7 @@ class HeartbeatThread(threading.Thread):
         # Updated by worker threads after every completed run
         self.last_completed: str = "N/A"
         self._start_time: float = time.time()
+        self.initial_completed: int = self.csv_manager.completed_count
 
         # Ensure parent directory exists
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -77,13 +78,14 @@ class HeartbeatThread(threading.Thread):
             pass
 
     def _estimate_remaining(self, completed: int) -> str:
-        """Estimate remaining time based on average pace so far."""
+        """Estimate remaining time based on average pace in the current session."""
+        session_completed = completed - self.initial_completed
         elapsed = time.time() - self._start_time
-        if completed <= 0 or elapsed <= 0:
+        if session_completed <= 0 or elapsed <= 0:
             return "calculating..."
 
         remaining_runs = self.total_runs - completed
-        avg_per_run = elapsed / completed
+        avg_per_run = elapsed / session_completed
         est_seconds = remaining_runs * avg_per_run
 
         hours = int(est_seconds // 3600)
