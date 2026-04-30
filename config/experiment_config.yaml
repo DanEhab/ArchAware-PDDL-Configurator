@@ -84,7 +84,7 @@ llms:
 llm_hyperparameters:
   temperature: 0.0
   top_p: 1.0
-  max_completion_tokens: 4096
+  max_completion_tokens: 8192
   context_memory: "stateless"
 
 # ──────────────────────────────────────────────────────────────
