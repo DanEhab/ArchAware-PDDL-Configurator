@@ -1,0 +1,144 @@
+{
+  "domain": "snake",
+  "LLM_Model": "gpt-5.4-2026-03-05",
+  "LLM_ID": "4",
+  "stage": "General",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "eff_del_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "move-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ]
+      },
+      {
+        "type": "move-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(tailsnake ?newtail)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(tailsnake ?newtail)",
+          "(blocked ?newhead)"
+        ]
+      },
+      {
+        "type": "move-eff-del-order",
+        "original": [
+          "(not (headsnake ?head))",
+          "(not (blocked ?tail))",
+          "(not (tailsnake ?tail))",
+          "(not (nextsnake ?newtail ?tail))"
+        ],
+        "candidate": [
+          "(not (headsnake ?head))",
+          "(not (tailsnake ?tail))",
+          "(not (nextsnake ?newtail ?tail))",
+          "(not (blocked ?tail))"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn dummypoint)"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(spawn dummypoint)",
+          "(ISADJACENT ?head ?newhead)",
+          "(ispoint ?newhead)",
+          "(not (blocked ?newhead))"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(blocked ?newhead)"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn ?spawnpoint)",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)",
+          "(not (= ?spawnpoint dummypoint))"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(spawn ?spawnpoint)",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)",
+          "(ISADJACENT ?head ?newhead)",
+          "(ispoint ?newhead)",
+          "(not (blocked ?newhead))",
+          "(not (= ?spawnpoint dummypoint))"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(ispoint ?spawnpoint)",
+          "(spawn ?nextspawnpoint)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(blocked ?newhead)",
+          "(ispoint ?spawnpoint)",
+          "(spawn ?nextspawnpoint)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1921,
+  "reordered_elements": [
+    "pre",
+    "eff_add",
+    "eff_del"
+  ],
+  "timestamp": "2026-04-30T17:33:00.905795+00:00"
+}

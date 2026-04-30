@@ -1,0 +1,38 @@
+{
+  "domain": "ricochet-robots",
+  "LLM_Model": "deepseek-reasoner",
+  "LLM_ID": "15",
+  "stage": "General",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "actions_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "actions-order",
+        "original": [
+          "go",
+          "step",
+          "stop-at-barrier",
+          "stop-at-robot"
+        ],
+        "candidate": [
+          "go",
+          "step",
+          "stop-at-robot",
+          "stop-at-barrier"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1756,
+  "reordered_elements": [
+    "actions"
+  ],
+  "timestamp": "2026-04-30T17:33:04.111712+00:00"
+}
