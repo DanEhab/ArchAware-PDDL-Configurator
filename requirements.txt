@@ -28,14 +28,14 @@ numpy>=2.0.0                  # Numerical computations
 # ──────────────────────────────────────────────────────────────
 # Statistical Testing
 # ──────────────────────────────────────────────────────────────
-scipy>=1.15.0                 # Wilcoxon signed-rank test, normality tests
+scipy>=1.13.0                 # Wilcoxon signed-rank test, normality tests
 statsmodels>=0.14.0           # Additional statistical analysis
 scikit-posthocs>=0.11.0       # Post-hoc pairwise comparisons (Friedman)
 
 # ──────────────────────────────────────────────────────────────
 # Visualization
 # ──────────────────────────────────────────────────────────────
-matplotlib>=3.10.0            # Plotting: heatmaps, KDE, bar charts
+matplotlib>=3.9.0            # Plotting: heatmaps, KDE, bar charts
 seaborn>=0.13.0               # Statistical visualization layer
 
 # ──────────────────────────────────────────────────────────────

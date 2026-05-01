@@ -103,6 +103,23 @@ class TeeLogger:
 # ======================================================================
 # Sub-Pipelines
 # ======================================================================
+def run_child_script(script_path: Path):
+    """Run a child script and stream its stdout/stderr through TeeLogger."""
+    process = subprocess.Popen(
+        [sys.executable, str(script_path)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8"
+    )
+    for line in process.stdout:
+        sys.stdout.write(line)
+        sys.stdout.flush()
+    
+    process.wait()
+    if process.returncode != 0:
+        raise subprocess.CalledProcessError(process.returncode, process.args)
+
 def check_llm_pipeline():
     """Run LLM generation if not already 20 rows."""
     print("[INFO] Checking LLM Generation Phase...")
@@ -115,7 +132,7 @@ def check_llm_pipeline():
 
     print("  -> Running LLM Generation Pipeline...")
     script_path = PROJECT_ROOT / "experiments" / "general-prompt" / "llms" / "stage1_general_prompt_pipeline.py"
-    subprocess.run([sys.executable, str(script_path)], check=True)
+    run_child_script(script_path)
     print("  -> LLM Generation Phase Complete.\n")
 
 def check_validation_pipeline():
@@ -137,8 +154,12 @@ def check_validation_pipeline():
         return
 
     print("  -> Running Validation Pipeline...")
-    script_path = PROJECT_ROOT / "experiments" / "general-prompt" / "run_stage1_validation.py"
-    subprocess.run([sys.executable, str(script_path)], check=True)
+    script_path = PROJECT_ROOT / "experiments" / "general-prompt" / "validation" / "run_stage1_validation.py"
+    if not script_path.exists():
+        # Fallback in case it's in the root of general-prompt
+        script_path = PROJECT_ROOT / "experiments" / "general-prompt" / "run_stage1_validation.py"
+        
+    run_child_script(script_path)
     print("  -> Validation Phase Complete.\n")
 
 # ======================================================================
