@@ -330,7 +330,12 @@ def main():
     print(f"[INFO] Local CSV:  {LOCAL_CSV.relative_to(PROJECT_ROOT)}\n")
 
     err_handler = ErrorHandler(ERROR_REGISTER, ERROR_DUMPS)
-    summary_gen = SummaryGenerator(SUMMARIES_DIR, GLOBAL_CSV, total_runs)
+    summary_gen = SummaryGenerator(
+        SUMMARIES_DIR, 
+        LOCAL_CSV, 
+        total_runs, 
+        stage_name="Stage 1 (GENERAL PROMPT)"
+    )
     
     heartbeat = HeartbeatThread(HEARTBEAT_PATH, total_runs, csv_mgr, 60)
     heartbeat.start()

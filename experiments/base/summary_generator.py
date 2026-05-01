@@ -17,10 +17,11 @@ from collections import defaultdict
 class SummaryGenerator:
     """Generates post-run markdown summaries."""
 
-    def __init__(self, summaries_dir: Path, csv_path: Path, total_runs: int):
+    def __init__(self, summaries_dir: Path, csv_path: Path, total_runs: int, stage_name: str = "Stage 0 (BASELINE)"):
         self.summaries_dir = summaries_dir
         self.csv_path = csv_path
         self.total_runs = total_runs
+        self.stage_name = stage_name
         self.summaries_dir.mkdir(parents=True, exist_ok=True)
 
     # ------------------------------------------------------------------
@@ -57,7 +58,7 @@ class SummaryGenerator:
         ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         lines = [
-            f"# Run Summary #{summary_number} — Stage 0 (BASELINE)",
+            f"# Run Summary #{summary_number} — {self.stage_name}",
             f"**Generated**: {ts}",
             f"**Termination Cause**: {cause}",
             "",
