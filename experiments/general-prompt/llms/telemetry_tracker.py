@@ -6,6 +6,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 RESULTS_DIR = PROJECT_ROOT / "results"
 LLM_GEN_FILE = RESULTS_DIR / "llm_generation_data.csv"
+LLM_GEN_FILE_STAGE1 = RESULTS_DIR / "general_prompt" / "LLM Results" / "general_llm_generation_data.csv"
 SUMMARIES_DIR = PROJECT_ROOT / "logs" / "stage1" / "LLM_run" / "run_summaries"
 
 LLM_GEN_HEADERS = [
@@ -18,17 +19,23 @@ LLM_GEN_HEADERS = [
 
 def initialize_telemetry():
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    (RESULTS_DIR / "general_prompt" / "LLM Results").mkdir(parents=True, exist_ok=True)
     SUMMARIES_DIR.mkdir(parents=True, exist_ok=True)
     
     if not LLM_GEN_FILE.exists():
         with open(LLM_GEN_FILE, mode="w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(LLM_GEN_HEADERS)
+            
+    if not LLM_GEN_FILE_STAGE1.exists():
+        with open(LLM_GEN_FILE_STAGE1, mode="w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(LLM_GEN_HEADERS)
 
 def get_next_llm_gen_id() -> int:
-    if not LLM_GEN_FILE.exists():
+    if not LLM_GEN_FILE_STAGE1.exists():
         return 1
-    with open(LLM_GEN_FILE, mode="r", encoding="utf-8") as f:
+    with open(LLM_GEN_FILE_STAGE1, mode="r", encoding="utf-8") as f:
         reader = csv.reader(f)
         lines = list(reader)
         if len(lines) <= 1:
@@ -55,9 +62,10 @@ def log_llm_generation(
         "", "", "", "", "", "", "", timestamp
     ]
     
-    with open(LLM_GEN_FILE, mode="a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(row)
+    for file_path in [LLM_GEN_FILE, LLM_GEN_FILE_STAGE1]:
+        with open(file_path, mode="a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(row)
         
 def generate_run_summary(termination_reason: str, elapsed_time_s: float, llm_stats: dict):
     """

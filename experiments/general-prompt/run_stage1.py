@@ -115,7 +115,7 @@ def check_llm_pipeline():
 
     print("  -> Running LLM Generation Pipeline...")
     script_path = PROJECT_ROOT / "experiments" / "general-prompt" / "llms" / "stage1_general_prompt_pipeline.py"
-    subprocess.run(["python", str(script_path)], check=True)
+    subprocess.run([sys.executable, str(script_path)], check=True)
     print("  -> LLM Generation Phase Complete.\n")
 
 def check_validation_pipeline():
@@ -138,7 +138,7 @@ def check_validation_pipeline():
 
     print("  -> Running Validation Pipeline...")
     script_path = PROJECT_ROOT / "experiments" / "general-prompt" / "run_stage1_validation.py"
-    subprocess.run(["python", str(script_path)], check=True)
+    subprocess.run([sys.executable, str(script_path)], check=True)
     print("  -> Validation Phase Complete.\n")
 
 # ======================================================================
