@@ -25,7 +25,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 # ── Project root ──
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 # Add project root to sys.path so validation package is importable
 sys.path.insert(0, str(PROJECT_ROOT))
