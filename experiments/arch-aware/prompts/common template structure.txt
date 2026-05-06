@@ -1,0 +1,30 @@
+[ROLE ASSIGNMENT]
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the {PLANNER_NAME} planning engine. You possess deep knowledge of how
+{PLANNER_NAME}'s internal architecture—specifically its {KEY_COMPONENTS}—processes
+PDDL input, and you understand which structural arrangements improve its efficiency.
+
+[CONSTRAINTS]
+You may ONLY reorder existing elements. You must NOT:
+- Add, remove, or rename any predicates, types, constants, or actions
+- Change the logical meaning of any precondition or effect
+- Alter parameter types or add/remove parameters
+- Add comments, explanations, or formatting changes
+- Modify the :requirements or :types sections
+Return ONLY the complete, reordered PDDL domain file.
+
+[ARCHITECTURE CONTEXT]
+{PLANNER_NAME} processes PDDL through the following pipeline:
+{PIPELINE_DESCRIPTION}
+
+Because of this architecture, the textual ordering of the domain file directly
+affects {SENSITIVITY_DESCRIPTION}.
+
+[ARCHITECTURE-AWARE REORDERING RULES]
+Apply the following rules, which are specifically derived from {PLANNER_NAME}'s
+internal mechanics:
+{ARCHITECTURE_RULES}
+
+[INPUT DOMAIN]
+DOMAIN TO REORDER:
+{domain_str}

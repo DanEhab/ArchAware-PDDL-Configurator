@@ -1,0 +1,82 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the LAMA-first planning engine (Fast Downward framework). You possess deep
+knowledge of how LAMA's internal architecture—specifically its Translation module
+(grounding + invariant synthesis), Knowledge Compilation module (DTG construction),
+and Search module (multi-heuristic FF/add + Landmark heuristic with 4-queue
+preferred operator system)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve LAMA's planning
+efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+- Return ONLY the complete, valid, reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+LAMA processes PDDL through a three-stage pipeline:
+1. TRANSLATION: Grounds all action schemas, discovers mutex groups (mutually
+exclusive fact groups) via invariant synthesis, and constructs a Finite-Domain
+Representation (SAS+/FDR). Mutex information is critical because it directly
+determines the quality of landmark ordering constraints used later in search.
+2. KNOWLEDGE COMPILATION: Builds Domain Transition Graphs (DTGs) for each state
+variable, constructs fast operator-applicability lookup structures, and prepares
+axiom evaluation mechanisms.
+3. SEARCH: Runs greedy best-first search (for initial plan), then iterated weighted
+A* with restarts. Uses TWO heuristics simultaneously in separate queues:
+- FF/add heuristic (delete-relaxation based, additive cost propagation)
+- Landmark heuristic (counts unachieved mandatory waypoints)
+Each heuristic generates PREFERRED OPERATORS—actions deemed especially promising—
+which receive priority via a +1000 boost mechanism in a 4-queue system.
+
+Because of this architecture, the textual ordering of predicates affects mutex
+discovery and landmark ordering quality. The ordering of actions affects successor
+generation, tie-breaking, and which operators are evaluated first. The ordering of
+preconditions directly affects which "best support" is selected during FF's
+relaxed-plan extraction, determining WHICH actions become preferred operators.
+The ordering of effects affects delete-relaxed forward propagation and landmark
+acceptance tracking.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply these in order of priority):
+
+1. PREDICATE DECLARATIONS: Place goal-relevant predicates (those describing
+positional state, object relationships, or task completion) at the top of the
+:predicates block. Follow with frequently-occurring predicates. Place static
+predicates (those never modified by any :effect) last.
+REASON: Early placement accelerates mutex discovery during invariant synthesis,
+improving landmark ordering constraint quality.
+
+2. ACTION ORDERING: Place actions with fewer preconditions earlier in the domain
+file. Among actions with similar precondition counts, prioritize "enabling"
+actions—those whose effects create preconditions for other actions.
+REASON: LAMA's greedy best-first search evaluates operators in listing order
+during deferred evaluation. Simpler, enabling actions listed first produce
+better initial plans during the speed-first greedy sprint.
+
+3. PRECONDITION ORDERING: Within each action's :precondition block:
+a) Place STATIC predicates (never changed by any effect) first.
+b) Then place the MOST RESTRICTIVE conditions (those satisfied in fewest states).
+c) Then group remaining predicates by relatedness (same predicate name or
+referencing the same object types).
+REASON: Static predicates first enable fast applicability short-circuiting.
+Restrictive conditions first cause earlier failure detection. The ordering
+also affects FF's relaxed-plan backward trace, which selects "best supports"
+and determines preferred operators.
+
+4. EFFECT ORDERING: Within each action's :effect block:
+a) Place ADD-EFFECTS first (positive effects without "not").
+b) Within add-effects, place goal-relevant effects before auxiliary effects.
+c) Place DELETE-EFFECTS (negative effects with "not") last.
+REASON: LAMA's FF/add heuristic operates in a delete-relaxed world where only
+add-effects drive cost propagation. Goal-relevant add-effects first accelerate
+the forward propagation phase and improve landmark acceptance tracking.
+
+5. PARAMETER CONSISTENCY: Maintain consistent parameter ordering across all action
+schemas (e.g., always agent before object before location).
+REASON: Consistent ordering simplifies FDR translation and supports causal graph
+structural consistency.
+
+DOMAIN TO REORDER:
+{domain_str}
