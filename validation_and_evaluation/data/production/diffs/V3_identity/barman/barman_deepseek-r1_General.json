@@ -1,0 +1,11 @@
+{
+  "domain": "barman",
+  "LLM_Model": "deepseek-reasoner",
+  "LLM_ID": "18",
+  "stage": "General",
+  "validation_status": "REJECTED",
+  "failed_stage": "V3: Identity",
+  "rejection_reason": "LLM output identical to original after normalisation",
+  "extracted_pddl_length": 5485,
+  "timestamp": "2026-05-01T15:53:40.404984+00:00"
+}

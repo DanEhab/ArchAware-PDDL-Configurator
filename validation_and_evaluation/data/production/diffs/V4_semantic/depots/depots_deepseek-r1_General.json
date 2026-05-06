@@ -1,0 +1,83 @@
+{
+  "domain": "depots",
+  "LLM_Model": "deepseek-reasoner",
+  "LLM_ID": "17",
+  "stage": "General",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pre_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "Drop-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(clear ?z)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(lifting ?x ?y)",
+          "(clear ?z)",
+          "(at ?x ?p)",
+          "(at ?z ?p)"
+        ]
+      },
+      {
+        "type": "Lift-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(on ?y ?z)",
+          "(clear ?y)"
+        ],
+        "candidate": [
+          "(available ?x)",
+          "(clear ?y)",
+          "(at ?x ?p)",
+          "(at ?y ?p)",
+          "(on ?y ?z)"
+        ]
+      },
+      {
+        "type": "Unload-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(available ?x)",
+          "(in ?y ?z)"
+        ],
+        "candidate": [
+          "(in ?y ?z)",
+          "(available ?x)",
+          "(at ?x ?p)",
+          "(at ?z ?p)"
+        ]
+      },
+      {
+        "type": "Load-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(lifting ?x ?y)",
+          "(at ?x ?p)",
+          "(at ?z ?p)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1493,
+  "reordered_elements": [
+    "pre"
+  ],
+  "timestamp": "2026-05-01T15:53:38.780954+00:00"
+}

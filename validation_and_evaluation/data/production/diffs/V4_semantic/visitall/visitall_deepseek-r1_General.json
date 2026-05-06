@@ -1,0 +1,34 @@
+{
+  "domain": "visitall",
+  "LLM_Model": "deepseek-reasoner",
+  "LLM_ID": "8",
+  "stage": "General",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "eff_add_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "move-eff-add-order",
+        "original": [
+          "(at-robot ?nextpos)",
+          "(visited ?nextpos)"
+        ],
+        "candidate": [
+          "(visited ?nextpos)",
+          "(at-robot ?nextpos)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 388,
+  "reordered_elements": [
+    "eff_add"
+  ],
+  "timestamp": "2026-05-01T15:53:33.917014+00:00"
+}

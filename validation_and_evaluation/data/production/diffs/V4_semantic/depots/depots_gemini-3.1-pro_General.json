@@ -1,0 +1,119 @@
+{
+  "domain": "depots",
+  "LLM_Model": "gemini-3.1-pro-preview-customtools",
+  "LLM_ID": "19",
+  "stage": "General",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "actions-order",
+        "original": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Load",
+          "Unload"
+        ],
+        "candidate": [
+          "Drop",
+          "Load",
+          "Unload",
+          "Lift",
+          "Drive"
+        ]
+      },
+      {
+        "type": "Drop-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(clear ?z)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(lifting ?x ?y)",
+          "(at ?z ?p)",
+          "(clear ?z)"
+        ]
+      },
+      {
+        "type": "Drop-eff-add-order",
+        "original": [
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(clear ?y)",
+          "(on ?y ?z)"
+        ],
+        "candidate": [
+          "(on ?y ?z)",
+          "(at ?y ?p)",
+          "(clear ?y)",
+          "(available ?x)"
+        ]
+      },
+      {
+        "type": "Lift-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(on ?y ?z)",
+          "(clear ?y)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(on ?y ?z)",
+          "(at ?y ?p)",
+          "(clear ?y)",
+          "(available ?x)"
+        ]
+      },
+      {
+        "type": "Unload-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(available ?x)",
+          "(in ?y ?z)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(in ?y ?z)",
+          "(at ?z ?p)",
+          "(available ?x)"
+        ]
+      },
+      {
+        "type": "Load-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(lifting ?x ?y)",
+          "(at ?z ?p)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1493,
+  "reordered_elements": [
+    "actions",
+    "pre",
+    "eff_add"
+  ],
+  "timestamp": "2026-05-01T15:53:39.586895+00:00"
+}

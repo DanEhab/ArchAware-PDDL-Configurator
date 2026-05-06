@@ -1,0 +1,21 @@
+=== ERROR DUMP -- Run ID 419 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-01T17:05:47.697156+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl_domain/visitall_gpt-5.4_General.pddl
+[INFO]   Problem: /pddl_problem/instance-16.pddl
+
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 359.994082
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

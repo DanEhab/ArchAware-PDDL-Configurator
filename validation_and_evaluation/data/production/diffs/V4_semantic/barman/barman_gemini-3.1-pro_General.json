@@ -1,0 +1,235 @@
+{
+  "domain": "barman",
+  "LLM_Model": "gemini-3.1-pro-preview-customtools",
+  "LLM_ID": "20",
+  "stage": "General",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "actions-order",
+        "original": [
+          "grasp",
+          "leave",
+          "fill-shot",
+          "refill-shot",
+          "empty-shot",
+          "clean-shot",
+          "pour-shot-to-clean-shaker",
+          "pour-shot-to-used-shaker",
+          "empty-shaker",
+          "clean-shaker",
+          "shake",
+          "pour-shaker-to-shot"
+        ],
+        "candidate": [
+          "grasp",
+          "fill-shot",
+          "refill-shot",
+          "pour-shot-to-clean-shaker",
+          "pour-shot-to-used-shaker",
+          "shake",
+          "pour-shaker-to-shot",
+          "empty-shot",
+          "empty-shaker",
+          "clean-shot",
+          "clean-shaker",
+          "leave"
+        ]
+      },
+      {
+        "type": "pour-shaker-to-shot-precondition-order",
+        "original": [
+          "(holding ?h ?s)",
+          "(shaked ?s)",
+          "(empty ?d)",
+          "(clean ?d)",
+          "(contains ?s ?b)",
+          "(shaker-level ?s ?l)",
+          "(next ?l1 ?l)"
+        ],
+        "candidate": [
+          "(next ?l1 ?l)",
+          "(clean ?d)",
+          "(empty ?d)",
+          "(shaked ?s)",
+          "(shaker-level ?s ?l)",
+          "(contains ?s ?b)",
+          "(holding ?h ?s)"
+        ]
+      },
+      {
+        "type": "shake-precondition-order",
+        "original": [
+          "(holding ?h1 ?s)",
+          "(handempty ?h2)",
+          "(contains ?s ?d1)",
+          "(contains ?s ?d2)",
+          "(cocktail-part1 ?b ?d1)",
+          "(cocktail-part2 ?b ?d2)",
+          "(unshaked ?s)"
+        ],
+        "candidate": [
+          "(cocktail-part1 ?b ?d1)",
+          "(cocktail-part2 ?b ?d2)",
+          "(unshaked ?s)",
+          "(contains ?s ?d1)",
+          "(contains ?s ?d2)",
+          "(handempty ?h2)",
+          "(holding ?h1 ?s)"
+        ]
+      },
+      {
+        "type": "refill-shot-precondition-order",
+        "original": [
+          "(holding ?h1 ?s)",
+          "(handempty ?h2)",
+          "(dispenses ?d ?i)",
+          "(empty ?s)",
+          "(used ?s ?i)"
+        ],
+        "candidate": [
+          "(dispenses ?d ?i)",
+          "(empty ?s)",
+          "(used ?s ?i)",
+          "(handempty ?h2)",
+          "(holding ?h1 ?s)"
+        ]
+      },
+      {
+        "type": "fill-shot-precondition-order",
+        "original": [
+          "(holding ?h1 ?s)",
+          "(handempty ?h2)",
+          "(dispenses ?d ?i)",
+          "(empty ?s)",
+          "(clean ?s)"
+        ],
+        "candidate": [
+          "(dispenses ?d ?i)",
+          "(clean ?s)",
+          "(empty ?s)",
+          "(handempty ?h2)",
+          "(holding ?h1 ?s)"
+        ]
+      },
+      {
+        "type": "clean-shaker-precondition-order",
+        "original": [
+          "(holding ?h1 ?s)",
+          "(handempty ?h2)",
+          "(empty ?s)"
+        ],
+        "candidate": [
+          "(empty ?s)",
+          "(handempty ?h2)",
+          "(holding ?h1 ?s)"
+        ]
+      },
+      {
+        "type": "empty-shaker-precondition-order",
+        "original": [
+          "(holding ?h ?s)",
+          "(contains ?s ?b)",
+          "(shaked ?s)",
+          "(shaker-level ?s ?l)",
+          "(shaker-empty-level ?s ?l1)"
+        ],
+        "candidate": [
+          "(shaker-empty-level ?s ?l1)",
+          "(shaked ?s)",
+          "(shaker-level ?s ?l)",
+          "(contains ?s ?b)",
+          "(holding ?h ?s)"
+        ]
+      },
+      {
+        "type": "grasp-precondition-order",
+        "original": [
+          "(ontable ?c)",
+          "(handempty ?h)"
+        ],
+        "candidate": [
+          "(handempty ?h)",
+          "(ontable ?c)"
+        ]
+      },
+      {
+        "type": "clean-shot-precondition-order",
+        "original": [
+          "(holding ?h1 ?s)",
+          "(handempty ?h2)",
+          "(empty ?s)",
+          "(used ?s ?b)"
+        ],
+        "candidate": [
+          "(empty ?s)",
+          "(used ?s ?b)",
+          "(handempty ?h2)",
+          "(holding ?h1 ?s)"
+        ]
+      },
+      {
+        "type": "pour-shot-to-used-shaker-precondition-order",
+        "original": [
+          "(holding ?h1 ?s)",
+          "(contains ?s ?i)",
+          "(unshaked ?d)",
+          "(shaker-level ?d ?l)",
+          "(next ?l ?l1)"
+        ],
+        "candidate": [
+          "(next ?l ?l1)",
+          "(unshaked ?d)",
+          "(shaker-level ?d ?l)",
+          "(contains ?s ?i)",
+          "(holding ?h1 ?s)"
+        ]
+      },
+      {
+        "type": "empty-shot-precondition-order",
+        "original": [
+          "(holding ?h ?p)",
+          "(contains ?p ?b)"
+        ],
+        "candidate": [
+          "(contains ?p ?b)",
+          "(holding ?h ?p)"
+        ]
+      },
+      {
+        "type": "pour-shot-to-clean-shaker-precondition-order",
+        "original": [
+          "(holding ?h1 ?s)",
+          "(contains ?s ?i)",
+          "(empty ?d)",
+          "(clean ?d)",
+          "(shaker-level ?d ?l)",
+          "(next ?l ?l1)"
+        ],
+        "candidate": [
+          "(next ?l ?l1)",
+          "(clean ?d)",
+          "(empty ?d)",
+          "(shaker-level ?d ?l)",
+          "(contains ?s ?i)",
+          "(holding ?h1 ?s)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 6414,
+  "reordered_elements": [
+    "actions",
+    "pre"
+  ],
+  "timestamp": "2026-05-01T15:53:41.240851+00:00"
+}

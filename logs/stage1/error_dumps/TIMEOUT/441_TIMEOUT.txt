@@ -1,0 +1,168 @@
+=== ERROR DUMP -- Run ID 441 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-01T17:29:17.529458+00:00
+
+=== STDOUT ===
+[INFO] Running Fast Downward (lama-first configuration):
+[INFO]   Domain: /pddl_domain/snake_gpt-5.4_General.pddl
+[INFO]   Problem: /pddl_problem/instance-18.pddl
+INFO     planner time limit: 360s
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: 359s
+INFO     translator memory limit: None
+INFO     translator command line string: /usr/bin/python3 -m translate /pddl_domain/snake_gpt-5.4_General.pddl /pddl_problem/instance-18.pddl --sas-file output.sas
+Parsing...
+Parsing: [0.000s CPU, 0.016s wall-clock]
+Normalizing task... [0.000s CPU, 0.000s wall-clock]
+Instantiating...
+Generating Datalog program... [0.000s CPU, 0.001s wall-clock]
+Normalizing Datalog program...
+Trivial rules: Converted to facts.
+Normalizing Datalog program: [0.000s CPU, 0.004s wall-clock]
+Preparing model... [0.000s CPU, 0.003s wall-clock]
+Generated 32 rules.
+Computing model... [1.360s CPU, 1.349s wall-clock]
+93581 relevant atoms
+2688 auxiliary atoms
+96269 final queue length
+474541 total queue pushes
+Completing instantiation... [7.650s CPU, 7.662s wall-clock]
+Instantiating: [9.050s CPU, 9.044s wall-clock]
+Computing fact groups...
+Finding invariants...
+13 initial candidates
+Finding invariants: [0.030s CPU, 0.027s wall-clock]
+Checking invariant weight... [0.000s CPU, 0.000s wall-clock]
+Instantiating groups... [0.000s CPU, 0.001s wall-clock]
+Collecting mutex groups... [0.000s CPU, 0.000s wall-clock]
+Choosing groups...
+423 uncovered facts
+Choosing groups: [0.000s CPU, 0.001s wall-clock]
+Building translation key... [0.000s CPU, 0.002s wall-clock]
+Computing fact groups: [0.030s CPU, 0.034s wall-clock]
+Building STRIPS to SAS dictionary... [0.010s CPU, 0.001s wall-clock]
+Building dictionary for full mutex groups... [0.000s CPU, 0.001s wall-clock]
+Building mutex information...
+Building mutex information: [0.000s CPU, 0.000s wall-clock]
+Translating task...
+Processing axioms...
+Simplifying axioms... [0.000s CPU, 0.000s wall-clock]
+Translator axioms removed by simplifying: 0
+Processing axioms: [0.330s CPU, 0.337s wall-clock]
+Translating task: [7.760s CPU, 7.772s wall-clock]
+173874 effect conditions simplified
+0 implied preconditions added
+Detecting unreachable propositions...
+0 operators removed
+0 axioms removed
+3 propositions removed
+Detecting unreachable propositions: [4.600s CPU, 4.590s wall-clock]
+Reordering and filtering variables...
+426 of 426 variables necessary.
+0 of 3 mutex groups necessary.
+92444 of 92444 operators necessary.
+0 of 0 axiom rules necessary.
+Reordering and filtering variables: [2.270s CPU, 2.268s wall-clock]
+Translator variables: 426
+Translator derived variables: 0
+Translator facts: 1058
+Translator goal facts: 54
+Translator mutex groups: 0
+Translator total mutex groups size: 0
+Translator operators: 92444
+Translator axioms: 0
+Translator task size: 1070786
+Translator peak memory: 626556 KB
+Writing output... [1.030s CPU, 1.041s wall-clock]
+Done! [25.070s CPU, 25.091s wall-clock]
+translate exit code: 0
+
+INFO     Running search (release).
+INFO     search stdin: output.sas
+INFO     search time limit: 334s
+INFO     search memory limit: None
+INFO     search command line string: /opt/downward/builds/release/bin/downward --search 'let(hlm,landmark_sum(lm_factory=lm_reasonable_orders_hps(lm_rhw()),transform=adapt_costs(one),pref=false),let(hff,ff(transform=adapt_costs(one)),lazy_greedy([hff,hlm],preferred=[hff,hlm],cost_type=one,reopen_closed=false)))' --internal-plan-file sas_plan < output.sas
+[t=0.000000s, 10028 KB] Search code revision: e0cc05b13
+[t=0.001047s, 10028 KB] reading input...
+[t=0.897954s, 46284 KB] done reading input!
+[t=0.900830s, 46680 KB] Initializing landmark sum heuristic...
+[t=0.901685s, 46680 KB] Generating landmark graph...
+[t=0.909806s, 50256 KB] Building a landmark graph with reasonable orders.
+[t=0.919800s, 53708 KB] Initializing Exploration...
+[t=1.014876s, 91712 KB] Generating landmarks using the RPG/SAS+ approach
+[t=2.914338s, 93752 KB] Landmarks generation time: 2.004532s
+[t=2.914338s, 93752 KB] Discovered 69 landmarks, of which 5 are disjunctive and 0 are conjunctive.
+[t=2.914338s, 93752 KB] There are 15 landmark orderings.
+[t=2.914338s, 93752 KB] approx. reasonable orders
+[t=3.268334s, 93752 KB] Landmarks generation time: 2.366649s
+[t=3.268334s, 93752 KB] Discovered 69 landmarks, of which 5 are disjunctive and 0 are conjunctive.
+[t=3.268334s, 93752 KB] There are 15 landmark orderings.
+[t=3.268334s, 93752 KB] Landmark graph generation time: 2.366649s
+[t=3.268334s, 93752 KB] Landmark graph contains 69 landmarks, of which 5 are disjunctive and 0 are conjunctive.
+[t=3.268334s, 93752 KB] Landmark graph contains 15 orderings.
+[t=3.339366s, 106168 KB] Simplifying 552308 unary operators... done! [552308 unary operators]
+[t=8.114664s, 130456 KB] time to simplify: 4.775298s
+[t=8.124580s, 130456 KB] Initializing additive heuristic...
+[t=8.124580s, 130456 KB] Initializing FF heuristic...
+[t=8.125446s, 130456 KB] Building successor generator... done!
+[t=8.192511s, 130456 KB] peak memory difference for successor generator creation: 0 KB
+[t=8.192511s, 130456 KB] time for successor generation creation: 0.067066s
+[t=8.193610s, 130456 KB] Variables: 426
+[t=8.193610s, 130456 KB] FactPairs: 1058
+[t=8.193610s, 130456 KB] Bytes per state: 56
+[t=8.194415s, 130456 KB] Conducting lazy best first search, (real) bound = 2147483647
+[t=8.202603s, 130456 KB] New best heuristic value for landmark_sum_heuristic: 10
+[t=8.202603s, 130456 KB] New best heuristic value for ff: 22
+[t=8.202603s, 130456 KB] g=0, 1 evaluated, 0 expanded
+[t=8.202603s, 130456 KB] Initial heuristic value for landmark_sum_heuristic: 10
+[t=8.202603s, 130456 KB] Initial heuristic value for ff: 22
+[t=8.210898s, 130456 KB] New best heuristic value for ff: 17
+[t=8.211657s, 130456 KB] g=1, 2 evaluated, 1 expanded
+[t=8.218446s, 130456 KB] New best heuristic value for landmark_sum_heuristic: 9
+[t=8.218446s, 130456 KB] g=2, 3 evaluated, 2 expanded
+[t=8.242753s, 130456 KB] New best heuristic value for landmark_sum_heuristic: 8
+[t=8.242753s, 130456 KB] g=3, 6 evaluated, 5 expanded
+[t=8.306531s, 130456 KB] New best heuristic value for ff: 16
+[t=8.306531s, 130456 KB] g=5, 13 evaluated, 12 expanded
+[t=8.608557s, 130456 KB] New best heuristic value for landmark_sum_heuristic: 7
+[t=8.608557s, 130456 KB] g=8, 47 evaluated, 46 expanded
+[t=10.489498s, 130456 KB] New best heuristic value for landmark_sum_heuristic: 6
+[t=10.489498s, 130456 KB] New best heuristic value for ff: 15
+[t=10.489498s, 130456 KB] g=21, 267 evaluated, 266 expanded
+[t=10.503252s, 130456 KB] New best heuristic value for ff: 12
+[t=10.503252s, 130456 KB] g=22, 269 evaluated, 268 expanded
+[t=13.640726s, 130456 KB] New best heuristic value for landmark_sum_heuristic: 5
+[t=13.640726s, 130456 KB] g=32, 659 evaluated, 654 expanded
+[t=15.889366s, 130456 KB] New best heuristic value for ff: 11
+[t=15.889366s, 130456 KB] g=46, 958 evaluated, 952 expanded
+[t=92.520502s, 130456 KB] New best heuristic value for ff: 10
+[t=92.520502s, 130456 KB] g=70, 10736 evaluated, 10647 expanded
+[t=102.667700s, 130456 KB] New best heuristic value for ff: 9
+[t=102.668747s, 130456 KB] g=92, 11946 evaluated, 11857 expanded
+[t=102.732070s, 130456 KB] New best heuristic value for ff: 8
+[t=102.732843s, 130456 KB] g=95, 11954 evaluated, 11865 expanded
+[t=108.389366s, 130456 KB] New best heuristic value for ff: 7
+[t=108.389366s, 130456 KB] g=106, 12688 evaluated, 12597 expanded
+Peak memory: 130456 KB
+caught signal 24 -- exiting
+Time limit has been reached.
+Remove intermediate file output.sas
+search exit code: 23
+
+Driver aborting after search
+INFO     Planner time: 359.46s
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 359.601648
+[METRIC] Runtime_internal_s: 0.00
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: 130456
+
+
+=== STDERR ===
+(empty)

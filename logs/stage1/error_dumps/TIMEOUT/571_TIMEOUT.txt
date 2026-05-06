@@ -1,0 +1,30 @@
+=== ERROR DUMP -- Run ID 571 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-01T19:50:10.397882+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl_domain/snake_gpt-5.4_General.pddl
+[INFO]   Problem: /pddl_problem/instance-18.pddl
+Madagascar 0.99999 25/02/2015 09:45:59 amd64 1-core (no VSIDS)
+Options: file:/pddl_domain/snake_gpt-5.4_General.pddl file:/pddl_problem/instance-18.pddl
+Domain: snake
+Problem: snake-empty-9x9-1-5-49-22470
+Parser: 1950912 ground actions and 7437 state variables
+Invariants: 0 1 2 3 4 5 6 7 8 9 10 11 12  16.72 secs
+Goal: conjunctive
+Simplified: 88056 ground actions and 635 state variables
+Actions: STRIPS
+Disabling graph %: 10 20 30 40 50 60 70 80 90 100
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 360.129824
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

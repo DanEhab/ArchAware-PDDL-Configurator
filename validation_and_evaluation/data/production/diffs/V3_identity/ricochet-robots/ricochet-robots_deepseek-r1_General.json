@@ -1,0 +1,11 @@
+{
+  "domain": "ricochet-robots",
+  "LLM_Model": "deepseek-reasoner",
+  "LLM_ID": "15",
+  "stage": "General",
+  "validation_status": "REJECTED",
+  "failed_stage": "V3: Identity",
+  "rejection_reason": "LLM output identical to original after normalisation",
+  "extracted_pddl_length": 1756,
+  "timestamp": "2026-05-01T15:53:37.218055+00:00"
+}

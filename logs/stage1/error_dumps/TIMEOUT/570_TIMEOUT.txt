@@ -1,0 +1,94 @@
+=== ERROR DUMP -- Run ID 570 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-01T19:50:10.213390+00:00
+
+=== STDOUT ===
+[INFO] Running LAPKT-BFWS-Preference (IPC-2018 Agile Track Config):
+[INFO]   Domain: /pddl_domain/ricochet-robots_claude-opus-4.6_General.pddl
+[INFO]   Problem: /pddl_problem/instance-14.pddl
+Domain: /pddl_domain/ricochet-robots_claude-opus-4.6_General.pddl Problem: /pddl_problem/instance-14.pddl
+Parsing...
+Parsing: [0.030s CPU, 0.030s wall-clock]
+Generating Datalog program... [0.010s CPU, 0.009s wall-clock]
+Normalizing Datalog program...
+Normalizing Datalog program: [0.000s CPU, 0.004s wall-clock]
+Preparing model... [0.030s CPU, 0.027s wall-clock]
+Generated 27 rules.
+Computing model... [0.360s CPU, 0.363s wall-clock]
+11566 relevant atoms
+13340 auxiliary atoms
+24906 final queue length
+36058 total queue pushes
+Completing instantiation... [0.480s CPU, 0.479s wall-clock]
+goal relaxed reachable: True
+1297 atoms
+Computing fact groups...
+Finding invariants...
+9 initial candidates
+Time limit reached, aborting invariant generation
+Finding invariants: [0.010s CPU, 0.008s wall-clock]
+Checking invariant weight... [0.000s CPU, 0.001s wall-clock]
+Instantiating groups... [0.000s CPU, 0.000s wall-clock]
+Collecting mutex groups... [0.000s CPU, 0.000s wall-clock]
+Choosing groups...
+1297 uncovered facts
+Choosing groups: [0.000s CPU, 0.000s wall-clock]
+Building translation key... [0.040s CPU, 0.047s wall-clock]
+Computing fact groups: [0.070s CPU, 0.076s wall-clock]
+Axioms 0
+Deterministic 7952 actions
+256 negated fluents created
+Invariants 1297
+
+ Match tree built with 7952 nodes.
+
+PDDL problem description loaded: 
+	Domain: ricochet-robots
+	Problem: ricochet-robots-16x16-22-662951
+	#Actions: 7952
+	#Fluents: 1553
+Goals found: 2
+Goals_Edges found: 2
+Starting search with 1-BFWS...
+--[1 / 0]--
+--[1 / 1]--
+--[1 / 2]--
+--[1 / 4]--
+--[1 / 7]--
+--[1 / 10]--
+--[1 / 13]--
+--[1 / 16]--
+--[1 / 19]--
+Total time: 0.023951
+Nodes generated during search: 108
+Nodes expanded during search: 106
+Plan found with cost: NOTFOUND
+Fast-BFS search completed in 0.023951 secs
+Starting search with BFWS(novel,land,h_ff)...
+Landmarks found: 2
+Landmarks_Edges found: 2
+--[1 / 4294967295]--
+--[1 / 18]--
+--[1 / 17]--
+--[1 / 16]--
+--[1 / 15]--
+--[1 / 14]--
+--[1 / 13]--
+--[1 / 12]--
+--[1 / 8]--
+--[1 / 6]--
+--[1 / 4]--
+--[1 / 3]--
+--[1 / 2]--
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 360.021704
+[METRIC] Runtime_internal_s: 0.023951
+[METRIC] StatesExpanded: 106
+[METRIC] StatesGenerated: 108
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

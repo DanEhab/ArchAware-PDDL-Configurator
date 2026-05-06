@@ -1,0 +1,95 @@
+{
+  "domain": "snake",
+  "LLM_Model": "gemini-3.1-pro-preview-customtools",
+  "LLM_ID": "14",
+  "stage": "General",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "actions-order",
+        "original": [
+          "move",
+          "move-and-eat-spawn",
+          "move-and-eat-no-spawn"
+        ],
+        "candidate": [
+          "move-and-eat-spawn",
+          "move-and-eat-no-spawn",
+          "move"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn ?spawnpoint)",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)",
+          "(not (= ?spawnpoint dummypoint))"
+        ],
+        "candidate": [
+          "(spawn ?spawnpoint)",
+          "(not (= ?spawnpoint dummypoint))",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)",
+          "(headsnake ?head)",
+          "(ispoint ?newhead)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))"
+        ]
+      },
+      {
+        "type": "move-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn dummypoint)"
+        ],
+        "candidate": [
+          "(spawn dummypoint)",
+          "(headsnake ?head)",
+          "(ispoint ?newhead)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1924,
+  "reordered_elements": [
+    "actions",
+    "pre"
+  ],
+  "timestamp": "2026-05-01T15:53:36.409590+00:00"
+}

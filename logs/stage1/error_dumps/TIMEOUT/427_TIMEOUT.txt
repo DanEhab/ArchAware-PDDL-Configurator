@@ -1,0 +1,163 @@
+=== ERROR DUMP -- Run ID 427 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-01T17:11:16.742442+00:00
+
+=== STDOUT ===
+[INFO] Running Fast Downward (lama-first configuration):
+[INFO]   Domain: /pddl_domain/snake_gpt-5.4_General.pddl
+[INFO]   Problem: /pddl_problem/instance-14.pddl
+INFO     planner time limit: 360s
+INFO     planner memory limit: None
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: 359s
+INFO     translator memory limit: None
+INFO     translator command line string: /usr/bin/python3 -m translate /pddl_domain/snake_gpt-5.4_General.pddl /pddl_problem/instance-14.pddl --sas-file output.sas
+Parsing...
+Parsing: [0.010s CPU, 0.009s wall-clock]
+Normalizing task... [0.000s CPU, 0.000s wall-clock]
+Instantiating...
+Generating Datalog program... [0.000s CPU, 0.001s wall-clock]
+Normalizing Datalog program...
+Trivial rules: Converted to facts.
+Normalizing Datalog program: [0.000s CPU, 0.004s wall-clock]
+Preparing model... [0.010s CPU, 0.003s wall-clock]
+Generated 32 rules.
+Computing model... [0.860s CPU, 0.864s wall-clock]
+59830 relevant atoms
+2210 auxiliary atoms
+62040 final queue length
+305555 total queue pushes
+Completing instantiation... [5.030s CPU, 5.030s wall-clock]
+Instantiating: [5.920s CPU, 5.915s wall-clock]
+Computing fact groups...
+Finding invariants...
+13 initial candidates
+Finding invariants: [0.010s CPU, 0.015s wall-clock]
+Checking invariant weight... [0.000s CPU, 0.000s wall-clock]
+Instantiating groups... [0.000s CPU, 0.000s wall-clock]
+Collecting mutex groups... [0.000s CPU, 0.000s wall-clock]
+Choosing groups...
+340 uncovered facts
+Choosing groups: [0.000s CPU, 0.000s wall-clock]
+Building translation key... [0.000s CPU, 0.001s wall-clock]
+Computing fact groups: [0.010s CPU, 0.020s wall-clock]
+Building STRIPS to SAS dictionary... [0.000s CPU, 0.000s wall-clock]
+Building dictionary for full mutex groups... [0.000s CPU, 0.000s wall-clock]
+Building mutex information...
+Building mutex information: [0.000s CPU, 0.000s wall-clock]
+Translating task...
+Processing axioms...
+Simplifying axioms... [0.000s CPU, 0.000s wall-clock]
+Translator axioms removed by simplifying: 0
+Processing axioms: [0.210s CPU, 0.213s wall-clock]
+Translating task: [4.920s CPU, 4.931s wall-clock]
+107892 effect conditions simplified
+0 implied preconditions added
+Detecting unreachable propositions...
+0 operators removed
+0 axioms removed
+3 propositions removed
+Detecting unreachable propositions: [3.520s CPU, 3.515s wall-clock]
+Reordering and filtering variables...
+343 of 343 variables necessary.
+0 of 3 mutex groups necessary.
+58912 of 58912 operators necessary.
+0 of 0 axiom rules necessary.
+Reordering and filtering variables: [1.390s CPU, 1.396s wall-clock]
+Translator variables: 343
+Translator derived variables: 0
+Translator facts: 856
+Translator goal facts: 52
+Translator mutex groups: 0
+Translator total mutex groups size: 0
+Translator operators: 58912
+Translator axioms: 0
+Translator task size: 688103
+Translator peak memory: 418956 KB
+Writing output... [0.660s CPU, 0.659s wall-clock]
+Done! [16.650s CPU, 16.654s wall-clock]
+translate exit code: 0
+
+INFO     Running search (release).
+INFO     search stdin: output.sas
+INFO     search time limit: 343s
+INFO     search memory limit: None
+INFO     search command line string: /opt/downward/builds/release/bin/downward --search 'let(hlm,landmark_sum(lm_factory=lm_reasonable_orders_hps(lm_rhw()),transform=adapt_costs(one),pref=false),let(hff,ff(transform=adapt_costs(one)),lazy_greedy([hff,hlm],preferred=[hff,hlm],cost_type=one,reopen_closed=false)))' --internal-plan-file sas_plan < output.sas
+[t=0.000000s, 10028 KB] Search code revision: e0cc05b13
+[t=0.000000s, 10028 KB] reading input...
+[t=0.568756s, 33240 KB] done reading input!
+[t=0.571867s, 33504 KB] Initializing landmark sum heuristic...
+[t=0.571867s, 33504 KB] Generating landmark graph...
+[t=0.577672s, 35752 KB] Building a landmark graph with reasonable orders.
+[t=0.582883s, 37876 KB] Initializing Exploration...
+[t=0.643891s, 65220 KB] Generating landmarks using the RPG/SAS+ approach
+[t=1.765580s, 66588 KB] Landmarks generation time: 1.187908s
+[t=1.765580s, 66588 KB] Discovered 65 landmarks, of which 3 are disjunctive and 0 are conjunctive.
+[t=1.765580s, 66588 KB] There are 13 landmark orderings.
+[t=1.765580s, 66588 KB] approx. reasonable orders
+[t=2.073612s, 66588 KB] Landmarks generation time: 1.501745s
+[t=2.073612s, 66588 KB] Discovered 65 landmarks, of which 3 are disjunctive and 0 are conjunctive.
+[t=2.073612s, 66588 KB] There are 13 landmark orderings.
+[t=2.073612s, 66588 KB] Landmark graph generation time: 1.501745s
+[t=2.073612s, 66588 KB] Landmark graph contains 65 landmarks, of which 3 are disjunctive and 0 are conjunctive.
+[t=2.073612s, 66588 KB] Landmark graph contains 13 orderings.
+[t=2.118429s, 76156 KB] Simplifying 351524 unary operators... done! [351524 unary operators]
+[t=5.068087s, 88960 KB] time to simplify: 2.949659s
+[t=5.077311s, 99480 KB] Initializing additive heuristic...
+[t=5.077311s, 99480 KB] Initializing FF heuristic...
+[t=5.077311s, 99480 KB] Building successor generator... done!
+[t=5.119004s, 99480 KB] peak memory difference for successor generator creation: 0 KB
+[t=5.119004s, 99480 KB] time for successor generation creation: 0.041693s
+[t=5.119004s, 99480 KB] Variables: 343
+[t=5.119004s, 99480 KB] FactPairs: 856
+[t=5.119004s, 99480 KB] Bytes per state: 48
+[t=5.119004s, 99480 KB] Conducting lazy best first search, (real) bound = 2147483647
+[t=5.125539s, 99480 KB] New best heuristic value for landmark_sum_heuristic: 8
+[t=5.125539s, 99480 KB] New best heuristic value for ff: 20
+[t=5.125539s, 99480 KB] g=0, 1 evaluated, 0 expanded
+[t=5.126270s, 99480 KB] Initial heuristic value for landmark_sum_heuristic: 8
+[t=5.126270s, 99480 KB] Initial heuristic value for ff: 20
+[t=5.136111s, 99480 KB] New best heuristic value for ff: 18
+[t=5.136111s, 99480 KB] g=1, 3 evaluated, 2 expanded
+[t=5.141192s, 99480 KB] New best heuristic value for ff: 17
+[t=5.141192s, 99480 KB] g=2, 4 evaluated, 3 expanded
+[t=5.146330s, 99480 KB] New best heuristic value for landmark_sum_heuristic: 7
+[t=5.146330s, 99480 KB] g=3, 5 evaluated, 4 expanded
+[t=5.151048s, 99480 KB] New best heuristic value for ff: 15
+[t=5.152195s, 99480 KB] g=4, 6 evaluated, 5 expanded
+[t=5.157262s, 99480 KB] New best heuristic value for ff: 10
+[t=5.158213s, 99480 KB] g=5, 7 evaluated, 6 expanded
+[t=5.267021s, 99480 KB] New best heuristic value for landmark_sum_heuristic: 6
+[t=5.267021s, 99480 KB] g=7, 31 evaluated, 30 expanded
+[t=5.351139s, 99480 KB] New best heuristic value for ff: 8
+[t=5.351139s, 99480 KB] g=13, 48 evaluated, 47 expanded
+[t=5.438228s, 99480 KB] New best heuristic value for landmark_sum_heuristic: 5
+[t=5.438228s, 99480 KB] g=16, 68 evaluated, 67 expanded
+[t=15.894760s, 99480 KB] New best heuristic value for ff: 7
+[t=15.894760s, 99480 KB] g=38, 2296 evaluated, 2289 expanded
+[t=158.734832s, 99480 KB] New best heuristic value for ff: 6
+[t=158.734832s, 99480 KB] g=43, 33577 evaluated, 33365 expanded
+[t=209.685869s, 99480 KB] New best heuristic value for ff: 5
+[t=209.685869s, 99480 KB] g=75, 45672 evaluated, 45259 expanded
+Peak memory: 99480 KB
+caught signal 24 -- exiting
+Time limit has been reached.
+Remove intermediate file output.sas
+search exit code: 23
+
+Driver aborting after search
+INFO     Planner time: 360.17s
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 360.318689
+[METRIC] Runtime_internal_s: 0.00
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: 99480
+
+
+=== STDERR ===
+(empty)

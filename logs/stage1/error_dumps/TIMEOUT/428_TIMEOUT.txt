@@ -1,0 +1,208 @@
+=== ERROR DUMP -- Run ID 428 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-01T17:11:35.395865+00:00
+
+=== STDOUT ===
+[INFO] Running DecStar (IPC 2023 Agile Track Config):
+[INFO]   Domain: /pddl_domain/visitall_gpt-5.4_General.pddl
+[INFO]   Problem: /pddl_problem/instance-17.pddl
+INFO     planner time limit: 360s
+INFO     planner memory limit: 8000 MB
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: 359s
+INFO     translator memory limit: 8000 MB
+INFO     translator command line string: /usr/bin/pypy3 /planner/builds/release64/bin/translate/translate.py /pddl_domain/visitall_gpt-5.4_General.pddl /pddl_problem/instance-17.pddl --sas-file output.sas
+Parsing...
+Parsing: [0.120s CPU, 0.129s wall-clock]
+Normalizing task... [0.000s CPU, 0.006s wall-clock]
+Instantiating...
+Generating Datalog program... [0.120s CPU, 0.107s wall-clock]
+Normalizing Datalog program...
+Normalizing Datalog program: [0.020s CPU, 0.022s wall-clock]
+Preparing model... [0.110s CPU, 0.107s wall-clock]
+Generated 6 rules.
+Computing model... [0.380s CPU, 0.386s wall-clock]
+49477 relevant atoms
+18972 auxiliary atoms
+68449 final queue length
+91019 total queue pushes
+Completing instantiation... [0.240s CPU, 0.238s wall-clock]
+Instantiating: [0.870s CPU, 0.860s wall-clock]
+Computing fact groups...
+Finding invariants...
+4 initial candidates
+Finding invariants: [0.010s CPU, 0.005s wall-clock]
+Checking invariant weight... [0.000s CPU, 0.003s wall-clock]
+Instantiating groups... [0.010s CPU, 0.010s wall-clock]
+Collecting mutex groups... [0.000s CPU, 0.005s wall-clock]
+Choosing groups...
+3844 uncovered facts
+Choosing groups: [0.020s CPU, 0.013s wall-clock]
+Building translation key... [0.040s CPU, 0.033s wall-clock]
+Computing fact groups: [0.120s CPU, 0.114s wall-clock]
+Building STRIPS to SAS dictionary... [0.010s CPU, 0.011s wall-clock]
+Building dictionary for full mutex groups... [0.000s CPU, 0.003s wall-clock]
+Building mutex information...
+Building mutex information: [0.010s CPU, 0.008s wall-clock]
+Translating task...
+Processing axioms...
+Simplifying axioms... [0.000s CPU, 0.000s wall-clock]
+Processing axioms: [0.010s CPU, 0.013s wall-clock]
+Translating task: [0.350s CPU, 0.355s wall-clock]
+0 effect conditions simplified
+0 implied preconditions added
+Detecting unreachable propositions...
+0 operators removed
+0 axioms removed
+3 propositions removed
+Detecting unreachable propositions: [0.210s CPU, 0.210s wall-clock]
+Reordering and filtering variables...
+3844 of 3844 variables necessary.
+0 of 1 mutex groups necessary.
+15128 of 15128 operators necessary.
+0 of 0 axiom rules necessary.
+Reordering and filtering variables: [0.110s CPU, 0.104s wall-clock]
+Translator variables: 3844
+Translator derived variables: 0
+Translator facts: 11530
+Translator goal facts: 3843
+Translator mutex groups: 0
+Translator total mutex groups size: 0
+Translator operators: 15128
+Translator axioms: 0
+Translator task size: 79725
+Translator peak memory: 173344 KB
+Writing output... [0.170s CPU, 0.177s wall-clock]
+Done! [1.980s CPU, 1.992s wall-clock]
+translate exit code: 0
+
+INFO     Running search (release64).
+INFO     search portfolio: /planner/driver/portfolios/seq_agl_decstar.py
+remaining time: 357.0
+config 0: relative time 60, remaining 300
+args: ['/planner/builds/release64/bin/downward', '--decoupling', 'ifork(search_type=sat, max_leaf_size=10000)', '--heuristic', 'hff=ff(cost_type=one)', '--search', 'lazy_greedy([hff],       cost_type=one,      preferred=[hff])', '--internal-plan-file', 'sas_plan']
+INFO     search stdin: output.sas
+INFO     search time limit: 71s
+INFO     search memory limit: 8000 MB
+INFO     search command line string: /planner/builds/release64/bin/downward --decoupling 'ifork(search_type=sat, max_leaf_size=10000)' --heuristic 'hff=ff(cost_type=one)' --search 'lazy_greedy([hff],       cost_type=one,      preferred=[hff])' --internal-plan-file sas_plan < output.sas
+using dominance pruning
+performing decoupled satisficing search
+maximum leaf factor size 2147483647
+using inverted-fork factoring profile
+reading input... [t=0.00159661s]
+done reading input! [t=0.0585642s]
+No mobile factoring possible.
+factoring time 0.000912401s
+No factoring with at least 2 leaves found!
+Factoring strategy abstained.
+Peak memory: 57852 KB
+exitcode: 19
+
+remaining time: 356.92
+config 1: relative time 60, remaining 240
+args: ['/planner/builds/release64/bin/downward', '--decoupling', 'fork(search_type=sat, pruning=cost_frontier(irrelevance=TRANSITIONS), max_leaf_size=10000)', '--heuristic', 'hff=ff(cost_type=one)', '--search', 'lazy_greedy([hff],       cost_type=one,      preferred=[hff])', '--internal-plan-file', 'sas_plan']
+INFO     search stdin: output.sas
+INFO     search time limit: 89s
+INFO     search memory limit: 8000 MB
+INFO     search command line string: /planner/builds/release64/bin/downward --decoupling 'fork(search_type=sat, pruning=cost_frontier(irrelevance=TRANSITIONS), max_leaf_size=10000)' --heuristic 'hff=ff(cost_type=one)' --search 'lazy_greedy([hff],       cost_type=one,      preferred=[hff])' --internal-plan-file sas_plan < output.sas
+using frontier pruning method
+performing irrelevance analysis in leaf factors
+performing decoupled satisficing search
+maximum leaf factor size 2147483647
+using fork factoring profile
+reading input... [t=0.00100745s]
+done reading input! [t=0.0570491s]
+No mobile factoring possible.
+factoring time 0s
+No factoring with at least 2 leaves found!
+Factoring strategy abstained.
+Peak memory: 57852 KB
+exitcode: 19
+
+remaining time: 356.85
+config 2: relative time 120, remaining 180
+args: ['/planner/builds/release64/bin/downward', '--decoupling', 'lp_general(search_type=sat, factoring_time_limit=30, memory_limit=7500, add_cg_sccs=true, strategy=mm_approx, min_flexibility=0.8)', '--heuristic', 'hff=ff(cost_type=one)', '--search', 'lazy_greedy([hff],            preferred=[hff], cost_type=one,            symmetry=symmetry_state_pruning(lex_prices=false, lex_num_states=false, lex_goal_cost=false))', '--internal-plan-file', 'sas_plan']
+INFO     search stdin: output.sas
+INFO     search time limit: 237s
+INFO     search memory limit: 8000 MB
+INFO     search command line string: /planner/builds/release64/bin/downward --decoupling 'lp_general(search_type=sat, factoring_time_limit=30, memory_limit=7500, add_cg_sccs=true, strategy=mm_approx, min_flexibility=0.8)' --heuristic 'hff=ff(cost_type=one)' --search 'lazy_greedy([hff],            preferred=[hff], cost_type=one,            symmetry=symmetry_state_pruning(lex_prices=false, lex_num_states=false, lex_goal_cost=false))' --internal-plan-file sas_plan < output.sas
+using dominance pruning
+performing decoupled satisficing search
+maximum leaf factor size 2147483647
+using LP factoring strategy
+reading input... [t=0.00298134s]
+done reading input! [t=0.0589849s]
+No mobile factoring possible.
+factoring time 0.000801715s
+No factoring with at least 2 leaves found!
+Factoring strategy abstained.
+Peak memory: 57852 KB
+exitcode: 19
+
+remaining time: 356.79
+config 3: relative time 60, remaining 60
+args: ['/planner/builds/release64/bin/downward', '--heuristic', 'hff=ff(cost_type=one)', '--search', 'lazy_greedy([hff],            preferred=[hff],            cost_type=one)', '--internal-plan-file', 'sas_plan']
+INFO     search stdin: output.sas
+INFO     search time limit: 356s
+INFO     search memory limit: 8000 MB
+INFO     search command line string: /planner/builds/release64/bin/downward --heuristic 'hff=ff(cost_type=one)' --search 'lazy_greedy([hff],            preferred=[hff],            cost_type=one)' --internal-plan-file sas_plan < output.sas
+reading input... [t=0.00199642s]
+done reading input! [t=0.058994s]
+Variables: 3844
+Bytes per state: 484
+Building successor generator...done! [t=0.0627172s]
+peak memory difference for root successor generator creation: 1340 KB
+time for root successor generation creation: 0.00272656s
+done! [t=0.0627172s]
+done initalizing global data [t=0.0627172s]
+Simplifying 30252 unary operators... done! [30252 unary operators]
+time to simplify: 0.0188648s
+Initializing additive heuristic...
+Initializing FF heuristic...
+Conducting lazy best first search, (real) bound = 2147483647
+Best heuristic value: 3843 [g=0, 1 evaluated, 0 expanded, t=0.0889192s, 62948 KB]
+Best heuristic value: 3842 [g=2, 7 evaluated, 6 expanded, t=0.0948107s, 62948 KB]
+Best heuristic value: 3841 [g=6, 49 evaluated, 48 expanded, t=0.12494s, 62948 KB]
+Best heuristic value: 3840 [g=10, 84 evaluated, 83 expanded, t=0.14895s, 62948 KB]
+Best heuristic value: 3839 [g=14, 126 evaluated, 125 expanded, t=0.178701s, 62948 KB]
+Best heuristic value: 3838 [g=18, 161 evaluated, 160 expanded, t=0.203799s, 62948 KB]
+Best heuristic value: 3837 [g=22, 203 evaluated, 202 expanded, t=0.2328s, 62948 KB]
+Best heuristic value: 3836 [g=26, 238 evaluated, 237 expanded, t=0.25769s, 62948 KB]
+Best heuristic value: 3835 [g=30, 281 evaluated, 280 expanded, t=0.287959s, 62948 KB]
+Best heuristic value: 3834 [g=32, 288 evaluated, 287 expanded, t=0.292623s, 62948 KB]
+Best heuristic value: 3833 [g=40, 358 evaluated, 357 expanded, t=0.344831s, 62948 KB]
+Best heuristic value: 3832 [g=44, 417 evaluated, 416 expanded, t=0.390716s, 62948 KB]
+Best heuristic value: 3830 [g=48, 435 evaluated, 434 expanded, t=0.405634s, 62948 KB]
+Best heuristic value: 3829 [g=54, 459 evaluated, 458 expanded, t=0.424838s, 62948 KB]
+Best heuristic value: 3828 [g=58, 543 evaluated, 542 expanded, t=0.491081s, 62948 KB]
+Best heuristic value: 3827 [g=66, 768 evaluated, 767 expanded, t=0.665684s, 62948 KB]
+Best heuristic value: 3826 [g=58, 17796 evaluated, 17795 expanded, t=14.1637s, 70700 KB]
+Best heuristic value: 3825 [g=64, 17948 evaluated, 17947 expanded, t=14.2827s, 70700 KB]
+Best heuristic value: 3824 [g=88, 20482 evaluated, 20481 expanded, t=16.3213s, 72300 KB]
+Best heuristic value: 3823 [g=102, 32149 evaluated, 32148 expanded, t=25.302s, 79368 KB]
+Best heuristic value: 3822 [g=129, 35671 evaluated, 35670 expanded, t=28.1378s, 81496 KB]
+Peak memory: 336736 KB
+caught signal 24 -- exiting
+Time limit has been reached.
+exitcode: 23
+
+Exit codes: [19, 19, 19, 23]
+Remove intermediate file output.sas
+search exit code: 23
+
+Driver aborting after search
+INFO     Planner time: 358.82s
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 358.95616
+[METRIC] Runtime_internal_s: 0.00
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: 336736
+
+
+=== STDERR ===
+(empty)
