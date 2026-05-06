@@ -132,7 +132,7 @@ def process_domain_for_llm(llm_config: dict, domain_config: dict, retry_policy: 
                 rl_attempts += 1
                 if rl_attempts > max_rl_retries:
                     log_error("LLM", f"{domain_name} | {llm_name}", "RateLimit", str(e), raw_dump=str(e) + "\n" + traceback.format_exc(), run_id=f"stg1_{domain_name}_{llm_name}")
-                    log_llm_generation(domain_name, llm_config["model_id"], 1, "RateLimit", 0, 0, 0, "")
+                    log_llm_generation(domain_name, llm_config["model_id"], 0, "RateLimit", 0, 0, 0, "")
                     with stats_lock: llm_stats[llm_name]["rate_limit"] += 1
                     return
                 time.sleep(rl_wait ** rl_attempts) # Exponential backoff
@@ -141,7 +141,7 @@ def process_domain_for_llm(llm_config: dict, domain_config: dict, retry_policy: 
                 sv_attempts += 1
                 if sv_attempts > max_sv_retries:
                     log_error("LLM", f"{domain_name} | {llm_name}", "ServerError", str(e), raw_dump=str(e) + "\n" + traceback.format_exc(), run_id=f"stg1_{domain_name}_{llm_name}")
-                    log_llm_generation(domain_name, llm_config["model_id"], 1, "ServerError", 0, 0, 0, "")
+                    log_llm_generation(domain_name, llm_config["model_id"], 0, "ServerError", 0, 0, 0, "")
                     with stats_lock: llm_stats[llm_name]["server_error"] += 1
                     return
                 time.sleep(sv_wait)
@@ -165,14 +165,14 @@ def process_domain_for_llm(llm_config: dict, domain_config: dict, retry_policy: 
                 sv_attempts += 1 # Treat empty as server error/safety trip
                 if sv_attempts > max_sv_retries:
                     log_error("LLM", f"{domain_name} | {llm_name}", "Empty", str(e), raw_dump=str(e) + "\n" + traceback.format_exc(), run_id=f"stg1_{domain_name}_{llm_name}")
-                    log_llm_generation(domain_name, llm_config["model_id"], 1, "Empty", 0, 0, 0, "")
+                    log_llm_generation(domain_name, llm_config["model_id"], 0, "Empty", 0, 0, 0, "")
                     with stats_lock: llm_stats[llm_name]["empty"] += 1
                     return
                 time.sleep(sv_wait)
                 
             except TokenLimitError as e:
                 log_error("LLM", f"{domain_name} | {llm_name}", "TokenLimitExceeded", str(e), raw_dump=str(e) + "\n" + traceback.format_exc(), run_id=f"stg1_{domain_name}_{llm_name}")
-                log_llm_generation(domain_name, llm_config["model_id"], 1, "TokenLimitExceeded", 0, 0, 0, "")
+                log_llm_generation(domain_name, llm_config["model_id"], 0, "TokenLimitExceeded", 0, 0, 0, "")
                 return
                 
             except LLMProviderError as e:
@@ -194,7 +194,7 @@ def process_domain_for_llm(llm_config: dict, domain_config: dict, retry_policy: 
         with open(path_str, "w", encoding="utf-8") as f:
             f.write(content)
             
-        log_llm_generation(domain_name, llm_config["model_id"], 1, "Passed", api_time, in_tokens, out_tokens, str(raw_resp_path))
+        log_llm_generation(domain_name, llm_config["model_id"], 0, "Passed", api_time, in_tokens, out_tokens, str(raw_resp_path))
         
         with stats_lock:
             llm_stats[llm_name]["success"] += 1
