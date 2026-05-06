@@ -51,8 +51,8 @@ BENCHMARKS_DIR = PROJECT_ROOT / "benchmarks"
 EXTRACTED_PDDL_DIR = PROJECT_ROOT / "results" / "general_prompt" / "Extracted PDDL"
 VALIDATED_DOMAINS_DIR = PROJECT_ROOT / "results" / "general_prompt" / "Validated Domains"
 PRODUCTION_DIR = PROJECT_ROOT / "validation_and_evaluation" / "data" / "production"
-DIFFS_DIR = PRODUCTION_DIR / "diffs"
-DIFF_METRICS_CSV_PATH = PRODUCTION_DIR / "pddl_diff_metrics.csv"
+DIFFS_DIR = PRODUCTION_DIR / "general_prompt" / "diffs"
+DIFF_METRICS_CSV_PATH = PRODUCTION_DIR / "general_prompt" / "general_prompt_pddl_diff_metrics.csv"
 
 # ── Mapping from config short name to CSV model_id ──
 # Built dynamically from experiment_config.yaml

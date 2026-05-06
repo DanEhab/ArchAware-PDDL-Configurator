@@ -22,10 +22,10 @@ Production Usage (real experiment run):
     )
 
 Output structure (production):
-    results/<stage>/<model>/<domain>/validation/
+        results/<stage>/<model>/<domain>/validation/
         <domain>__<model>__<stage>__<run_id>.validation.json
-    validation_and_evaluation/data/production/
-        pddl_diff_metrics.csv   (one row per validated domain)
+    validation_and_evaluation/data/production/<stage>/
+        <stage>_pddl_diff_metrics.csv   (one row per validated domain)
 
 Pipeline flow:
     LLM Raw Response
@@ -325,7 +325,7 @@ def append_validation_csv(
     Append a validation result as a row in the production CSV.
 
     CSV location:
-        validation_and_evaluation/data/production/pddl_diff_metrics.csv
+        validation_and_evaluation/data/production/<stage>/<stage>_pddl_diff_metrics.csv
 
     Creates the CSV with header if it doesn't exist yet.
 
@@ -338,9 +338,9 @@ def append_validation_csv(
     Returns:
         Path to the CSV file.
     """
-    csv_dir = project_root / "validation_and_evaluation" / "data" / "production"
+    csv_dir = project_root / "validation_and_evaluation" / "data" / "production" / stage
     csv_dir.mkdir(parents=True, exist_ok=True)
-    csv_path = csv_dir / "pddl_diff_metrics.csv"
+    csv_path = csv_dir / f"{stage}_pddl_diff_metrics.csv"
 
     # Check if file exists (to decide whether to write header)
     write_header = not csv_path.exists()
@@ -423,7 +423,7 @@ def record_validation(
             project_root=Path("."),
         )
         print(paths["json"])  # results/general_prompt/gpt-5.4/barman/validation/...
-        print(paths["csv"])   # validation_and_evaluation/data/production/pddl_diff_metrics.csv
+        print(paths["csv"])   # validation_and_evaluation/data/production/general_prompt/general_prompt_pddl_diff_metrics.csv
 
     Also saves the extracted PDDL to the results directory if extraction succeeded.
 
