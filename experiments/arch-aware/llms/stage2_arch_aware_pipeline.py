@@ -101,6 +101,17 @@ def process_domain_for_llm(llm_config: dict, domain_name: str, planner: str, ret
             
     prompt_id = PROMPT_ID_MAP[planner]
 
+    domain_results_dir = RESULTS_DIR / domain_name
+    raw_resp_path = domain_results_dir / f"{domain_name}_{llm_short}_Arch_Aware_{planner}.txt"
+
+    # --- CHECKPOINT LOGIC: SKIP IF ALREADY EXISTS ---
+    if raw_resp_path.exists():
+        print(f"[{llm_name} | {domain_name} | {planner}] Output file already exists. Skipping (Checkpoint)...")
+        with stats_lock:
+            completed_runs += 1
+        return
+    # ------------------------------------------------
+
     with stats_lock:
         if llm_name not in llm_stats:
             llm_stats[llm_name] = {

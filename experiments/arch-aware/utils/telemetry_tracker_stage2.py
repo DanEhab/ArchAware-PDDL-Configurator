@@ -1,5 +1,6 @@
 import csv
 import os
+import threading
 from datetime import datetime
 from pathlib import Path
 
@@ -8,6 +9,9 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 LLM_GEN_FILE_GLOBAL = RESULTS_DIR / "llm_generation_data.csv"
 LLM_GEN_FILE_STAGE2 = RESULTS_DIR / "arch_aware" / "LLM Results" / "arch_aware_llm_generation_data.csv"
 SUMMARIES_DIR = PROJECT_ROOT / "logs" / "stage2" / "LLM_run" / "run_summaries"
+
+# Global lock for thread-safe CSV writing
+telemetry_lock = threading.Lock()
 
 LLM_GEN_HEADERS = [
     "ID", "Domain Name", "LLM Model", "Prompt ID", "LLM_Status", 
@@ -18,22 +22,23 @@ LLM_GEN_HEADERS = [
 ]
 
 def initialize_telemetry():
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    (RESULTS_DIR / "arch_aware" / "LLM Results").mkdir(parents=True, exist_ok=True)
-    SUMMARIES_DIR.mkdir(parents=True, exist_ok=True)
-    
-    if not LLM_GEN_FILE_GLOBAL.exists():
-        with open(LLM_GEN_FILE_GLOBAL, mode="w", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow(LLM_GEN_HEADERS)
-            
-    if not LLM_GEN_FILE_STAGE2.exists():
-        with open(LLM_GEN_FILE_STAGE2, mode="w", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow(LLM_GEN_HEADERS)
+    with telemetry_lock:
+        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+        (RESULTS_DIR / "arch_aware" / "LLM Results").mkdir(parents=True, exist_ok=True)
+        SUMMARIES_DIR.mkdir(parents=True, exist_ok=True)
+        
+        if not LLM_GEN_FILE_GLOBAL.exists() or os.path.getsize(LLM_GEN_FILE_GLOBAL) == 0:
+            with open(LLM_GEN_FILE_GLOBAL, mode="w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(LLM_GEN_HEADERS)
+                
+        if not LLM_GEN_FILE_STAGE2.exists() or os.path.getsize(LLM_GEN_FILE_STAGE2) == 0:
+            with open(LLM_GEN_FILE_STAGE2, mode="w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(LLM_GEN_HEADERS)
 
 def get_next_llm_gen_id() -> int:
-    if not LLM_GEN_FILE_GLOBAL.exists():
+    if not LLM_GEN_FILE_GLOBAL.exists() or os.path.getsize(LLM_GEN_FILE_GLOBAL) == 0:
         return 1
     with open(LLM_GEN_FILE_GLOBAL, mode="r", encoding="utf-8") as f:
         reader = csv.reader(f)
@@ -50,22 +55,23 @@ def log_llm_generation(
     domain_name: str, llm_model: str, prompt_id: int, llm_status: str, 
     api_time: float, input_tokens: int, output_tokens: int, raw_response_path: str
 ):
-    timestamp = datetime.utcnow().isoformat() + "Z"
-    record_id = get_next_llm_gen_id()
-    
-    row = [
-        record_id, domain_name, llm_model, prompt_id, llm_status,
-        f"{api_time:.3f}" if api_time is not None else "",
-        input_tokens if input_tokens is not None else "",
-        output_tokens if output_tokens is not None else "",
-        raw_response_path,
-        "", "", "", "", "", "", "", timestamp
-    ]
-    
-    for file_path in [LLM_GEN_FILE_GLOBAL, LLM_GEN_FILE_STAGE2]:
-        with open(file_path, mode="a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow(row)
+    with telemetry_lock:
+        timestamp = datetime.utcnow().isoformat() + "Z"
+        record_id = get_next_llm_gen_id()
+        
+        row = [
+            record_id, domain_name, llm_model, prompt_id, llm_status,
+            f"{api_time:.3f}" if api_time is not None else "",
+            input_tokens if input_tokens is not None else "",
+            output_tokens if output_tokens is not None else "",
+            raw_response_path,
+            "", "", "", "", "", "", "", timestamp
+        ]
+        
+        for file_path in [LLM_GEN_FILE_GLOBAL, LLM_GEN_FILE_STAGE2]:
+            with open(file_path, mode="a", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(row)
         
 def generate_run_summary(termination_reason: str, elapsed_time_s: float, llm_stats: dict):
     """
