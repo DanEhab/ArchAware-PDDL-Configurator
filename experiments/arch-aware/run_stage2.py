@@ -159,6 +159,35 @@ def check_validation_pipeline():
     run_child_script(script_path)
     print("  -> Validation Phase Complete.\n")
 
+def check_improvement_detection_pipeline():
+    print("[INFO] Checking Improvement Detection Phase (Stage 2)...")
+    print("  -> Running Improvement Detection Pipeline (Phase D)...")
+    script_path = PROJECT_ROOT / "experiments" / "arch-aware" / "improvement" / "run_improvement_test.py"
+    run_child_script(script_path)
+    print("  -> Improvement Detection Phase Complete.\n")
+
+def check_cross_test_pipeline():
+    print("[INFO] Checking Cross-Test Phase (Stage 2)...")
+    print("  -> Running Cross-Test Execution Pipeline (Phase E)...")
+    script_path = PROJECT_ROOT / "experiments" / "arch-aware" / "cross_test" / "run_cross_test.py"
+    # Execute as a module to correctly resolve imports of components
+    process = subprocess.Popen(
+        [sys.executable, "-m", "experiments.arch-aware.cross_test.run_cross_test"],
+        cwd=str(PROJECT_ROOT),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8"
+    )
+    for line in process.stdout:
+        sys.stdout.write(line)
+        sys.stdout.flush()
+    process.wait()
+    if process.returncode != 0:
+        raise subprocess.CalledProcessError(process.returncode, process.args)
+    print("  -> Cross-Test Phase Complete.\n")
+
+
 # ====================================================================== #
 # Planner Work Queue                                                     #
 # ====================================================================== #
@@ -417,8 +446,17 @@ def main():
     heartbeat.stop()
     elapsed = time.time() - pipeline_start
     print(f"\n======================================================================")
-    print(f"  Stage 2 complete -- time: {int(elapsed//3600)}h {int((elapsed%3600)//60)}m")
+    print(f"  Phase C complete -- time: {int(elapsed//3600)}h {int((elapsed%3600)//60)}m")
     print(f"======================================================================")
+
+    print("\n[INFO] Moving to Evaluation and Cross-Testing Phases...\n")
+    check_improvement_detection_pipeline()
+    check_cross_test_pipeline()
+
+    print(f"\n======================================================================")
+    print(f"  Stage 2 Full Pipeline Finished Successfully!")
+    print(f"======================================================================")
+
 
 if __name__ == "__main__":
     main()
