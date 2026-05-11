@@ -83,6 +83,7 @@ class CSVManagerCrossTest:
                         row.get("Problem_Instance", ""),
                         row.get("Planner_Used", ""),
                         row.get("LLM_Used", "N/A"),
+                        row.get("PromptID", ""),
                     )
                     self.completed_runs.add(key)
                 
@@ -99,9 +100,9 @@ class CSVManagerCrossTest:
     # Public API
     # ------------------------------------------------------------------
 
-    def is_completed(self, domain: str, problem: str, planner: str, llm_used: str) -> bool:
+    def is_completed(self, domain: str, problem: str, planner: str, llm_used: str, prompt_id: str) -> bool:
         """O(1) check whether this specific run already exists in the CSV."""
-        return (domain, problem, planner, llm_used) in self.completed_runs
+        return (domain, problem, planner, llm_used, prompt_id) in self.completed_runs
 
     def append_row(self, row_data: dict) -> int:
         """Thread-safe append of a single result row to both CSVs."""
@@ -133,6 +134,7 @@ class CSVManagerCrossTest:
                     row_data.get("Problem_Instance", ""),
                     row_data.get("Planner_Used", ""),
                     row_data.get("LLM_Used", "N/A"),
+                    str(row_data.get("PromptID", "")),
                 )
             )
             return run_id

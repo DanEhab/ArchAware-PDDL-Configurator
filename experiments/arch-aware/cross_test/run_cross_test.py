@@ -48,7 +48,7 @@ BENCHMARKS_DIR = PROJECT_ROOT / "benchmarks"
 IMPROVEMENT_CSV = PROJECT_ROOT / "results" / "arch_aware" / "improvement" / "improvement_results.csv"
 
 # Logs
-LOG_DIR = PROJECT_ROOT / "logs" / "cross_test"
+LOG_DIR = PROJECT_ROOT / "logs" / "stage2" / "cross_test"
 HEARTBEAT_PATH = LOG_DIR / "pipeline_heartbeat.log"
 SUMMARIES_DIR = LOG_DIR / "run_summaries"
 ERROR_REGISTER = LOG_DIR / "error_register.csv"
@@ -80,6 +80,7 @@ class TeeLogger:
 
     def write(self, message):
         self._terminal.write(message)
+        self._terminal.flush()
         self._log_file.write(message)
         self._log_file.flush()
 
@@ -152,7 +153,15 @@ def run_planner_workload(
         if p_name != planner_name:
             continue
 
-        if csv_mgr.is_completed(d_name, problem_id, planner_name, llm):
+        prompt_id_map = {
+            "lama": 1,
+            "decstar": 2,
+            "bfws": 3,
+            "madagascar": 4
+        }
+        prompt_id = prompt_id_map.get(target_planner_used_in_gen, 0)
+
+        if csv_mgr.is_completed(d_name, problem_id, planner_name, llm, prompt_id):
             print(f"  [SKIP] {planner_name} | {d_name}/{llm}/{problem_id} (checkpointed)")
             continue
 
@@ -186,7 +195,7 @@ def run_planner_workload(
             "Planner_Used": planner_name,
             "Stage": "Cross_Test",
             "LLM_Used": llm,
-            "PromptID": f"Cross_{target_planner_used_in_gen}",
+            "PromptID": prompt_id,
             "PlanCost": result.get("PlanCost"),
             "Runtime_internal_s": result.get("Runtime_internal_s"),
             "Runtime_wall_s": result.get("Runtime_wall_s"),

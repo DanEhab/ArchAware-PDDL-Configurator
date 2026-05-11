@@ -93,6 +93,7 @@ class TeeLogger:
 
     def write(self, message):
         self._terminal.write(message)
+        self._terminal.flush()
         self._log_file.write(message)
         self._log_file.flush()
 
@@ -108,7 +109,7 @@ class TeeLogger:
 # ====================================================================== #
 def run_child_script(script_path: Path):
     process = subprocess.Popen(
-        [sys.executable, str(script_path)],
+        [sys.executable, "-u", str(script_path)],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -172,7 +173,7 @@ def check_cross_test_pipeline():
     script_path = PROJECT_ROOT / "experiments" / "arch-aware" / "cross_test" / "run_cross_test.py"
     # Execute as a module to correctly resolve imports of components
     process = subprocess.Popen(
-        [sys.executable, "-m", "experiments.arch-aware.cross_test.run_cross_test"],
+        [sys.executable, "-u", "-m", "experiments.arch-aware.cross_test.run_cross_test"],
         cwd=str(PROJECT_ROOT),
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
