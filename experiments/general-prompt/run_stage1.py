@@ -110,7 +110,8 @@ def run_child_script(script_path: Path):
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        encoding="utf-8"
+        encoding="utf-8",
+        errors="replace"
     )
     for line in process.stdout:
         sys.stdout.write(line)
@@ -318,6 +319,9 @@ def run_planner_workload(
 # Main Loop
 # ======================================================================
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+        
     TERMINAL_LOG_DIR.mkdir(parents=True, exist_ok=True)
     ts_str = datetime.now().strftime("%Y%m%d_%H%M%S")
     terminal_log_path = TERMINAL_LOG_DIR / f"run_{ts_str}.log"
