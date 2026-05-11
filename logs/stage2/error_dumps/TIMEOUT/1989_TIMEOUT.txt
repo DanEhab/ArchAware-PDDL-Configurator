@@ -1,0 +1,30 @@
+=== ERROR DUMP -- Run ID 1989 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-08T20:27:12.049600+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl_domain/ricochet-robots_gpt-5.4_Arch_Aware_madagascar.pddl
+[INFO]   Problem: /pddl_problem/instance-19.pddl
+Madagascar 0.99999 25/02/2015 09:45:59 amd64 1-core (no VSIDS)
+Options: file:/pddl_domain/ricochet-robots_gpt-5.4_Arch_Aware_madagascar.pddl file:/pddl_problem/instance-19.pddl
+Domain: ricochet-robots
+Problem: ricochet-robots-20x20-none-665184
+Parser: 12888 ground actions and 5137 state variables
+Invariants: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21  12.17 secs
+Goal: conjunctive
+Simplified: 12496 ground actions and 2017 state variables
+Actions: STRIPS
+Disabling graph %: 10 20 30 40 50 60 70 80 90 100
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 360.068934
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

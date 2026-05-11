@@ -1,0 +1,93 @@
+{
+  "domain": "barman",
+  "LLM_Model": "gpt-5.4-2026-03-05",
+  "LLM_ID": "69",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(ontable ?c - container)",
+          "(holding ?h - hand ?c - container)",
+          "(handempty ?h - hand)",
+          "(empty ?c - container)",
+          "(contains ?c - container ?b - beverage)",
+          "(clean ?c - container)",
+          "(used ?c - container ?b - beverage)",
+          "(dispenses ?d - dispenser ?i - ingredient)",
+          "(shaker-empty-level ?s - shaker ?l - level)",
+          "(shaker-level ?s - shaker ?l - level)",
+          "(next ?l1 ?l2 - level)",
+          "(unshaked ?s - shaker)",
+          "(shaked ?s - shaker)",
+          "(cocktail-part1 ?c - cocktail ?i - ingredient)",
+          "(cocktail-part2 ?c - cocktail ?i - ingredient)"
+        ],
+        "candidate": [
+          "(contains ?c - container ?b - beverage)",
+          "(shaked ?s - shaker)",
+          "(holding ?h - hand ?c - container)",
+          "(handempty ?h - hand)",
+          "(empty ?c - container)",
+          "(clean ?c - container)",
+          "(used ?c - container ?b - beverage)",
+          "(ontable ?c - container)",
+          "(shaker-level ?s - shaker ?l - level)",
+          "(shaker-empty-level ?s - shaker ?l - level)",
+          "(unshaked ?s - shaker)",
+          "(next ?l1 ?l2 - level)",
+          "(dispenses ?d - dispenser ?i - ingredient)",
+          "(cocktail-part1 ?c - cocktail ?i - ingredient)",
+          "(cocktail-part2 ?c - cocktail ?i - ingredient)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "grasp",
+          "leave",
+          "fill-shot",
+          "refill-shot",
+          "empty-shot",
+          "clean-shot",
+          "pour-shot-to-clean-shaker",
+          "pour-shot-to-used-shaker",
+          "empty-shaker",
+          "clean-shaker",
+          "shake",
+          "pour-shaker-to-shot"
+        ],
+        "candidate": [
+          "pour-shaker-to-shot",
+          "shake",
+          "pour-shot-to-clean-shaker",
+          "pour-shot-to-used-shaker",
+          "fill-shot",
+          "refill-shot",
+          "grasp",
+          "leave",
+          "empty-shot",
+          "clean-shot",
+          "empty-shaker",
+          "clean-shaker"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 6369,
+  "reordered_elements": [
+    "pred",
+    "actions"
+  ],
+  "timestamp": "2026-05-08T12:22:26.429596+00:00"
+}

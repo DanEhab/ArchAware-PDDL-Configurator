@@ -1,0 +1,157 @@
+{
+  "domain": "depots",
+  "LLM_Model": "gpt-5.4-2026-03-05",
+  "LLM_ID": "54",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "eff_del_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(at ?x - locatable ?y - place)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)",
+          "(clear ?x - surface)"
+        ],
+        "candidate": [
+          "(available ?x - hoist)",
+          "(clear ?x - surface)",
+          "(at ?x - locatable ?y - place)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Load",
+          "Unload"
+        ],
+        "candidate": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Unload",
+          "Load"
+        ]
+      },
+      {
+        "type": "Load-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(lifting ?x ?y)",
+          "(at ?x ?p)",
+          "(at ?z ?p)"
+        ]
+      },
+      {
+        "type": "Drop-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(clear ?z)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(lifting ?x ?y)",
+          "(at ?z ?p)",
+          "(clear ?z)",
+          "(at ?x ?p)"
+        ]
+      },
+      {
+        "type": "Drop-eff-add-order",
+        "original": [
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(clear ?y)",
+          "(on ?y ?z)"
+        ],
+        "candidate": [
+          "(at ?y ?p)",
+          "(clear ?y)",
+          "(on ?y ?z)",
+          "(available ?x)"
+        ]
+      },
+      {
+        "type": "Unload-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(available ?x)",
+          "(in ?y ?z)"
+        ],
+        "candidate": [
+          "(in ?y ?z)",
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(available ?x)"
+        ]
+      },
+      {
+        "type": "Lift-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(on ?y ?z)",
+          "(clear ?y)"
+        ],
+        "candidate": [
+          "(at ?y ?p)",
+          "(on ?y ?z)",
+          "(clear ?y)",
+          "(at ?x ?p)",
+          "(available ?x)"
+        ]
+      },
+      {
+        "type": "Lift-eff-del-order",
+        "original": [
+          "(not (at ?y ?p))",
+          "(not (clear ?y))",
+          "(not (available ?x))",
+          "(not (on ?y ?z))"
+        ],
+        "candidate": [
+          "(not (at ?y ?p))",
+          "(not (clear ?y))",
+          "(not (on ?y ?z))",
+          "(not (available ?x))"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1489,
+  "reordered_elements": [
+    "pred",
+    "actions",
+    "pre",
+    "eff_add",
+    "eff_del"
+  ],
+  "timestamp": "2026-05-08T12:22:20.603646+00:00"
+}

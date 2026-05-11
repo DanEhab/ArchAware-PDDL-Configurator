@@ -1,0 +1,26 @@
+=== ERROR DUMP -- Run ID 2027 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-08T20:57:14.408900+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl_domain/visitall_deepseek-r1_Arch_Aware_madagascar.pddl
+[INFO]   Problem: /pddl_problem/instance-07.pddl
+Madagascar 0.99999 25/02/2015 09:45:59 amd64 1-core (no VSIDS)
+Options: file:/pddl_domain/visitall_deepseek-r1_Arch_Aware_madagascar.pddl file:/pddl_problem/instance-07.pddl
+Domain: grid-visit-all
+Problem: grid-52
+Parser: 10608 ground actions and 16016 state variables
+Invariants: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 359.995259
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

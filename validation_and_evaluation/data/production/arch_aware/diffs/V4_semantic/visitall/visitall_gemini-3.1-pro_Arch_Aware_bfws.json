@@ -1,0 +1,49 @@
+{
+  "domain": "visitall",
+  "LLM_Model": "gemini-3.1-pro-preview-customtools",
+  "LLM_ID": "40",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "eff_add_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)",
+          "(visited ?x - place)"
+        ],
+        "candidate": [
+          "(visited ?x - place)",
+          "(at-robot ?x - place)",
+          "(connected ?x ?y - place)"
+        ]
+      },
+      {
+        "type": "move-eff-add-order",
+        "original": [
+          "(at-robot ?nextpos)",
+          "(visited ?nextpos)"
+        ],
+        "candidate": [
+          "(visited ?nextpos)",
+          "(at-robot ?nextpos)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 388,
+  "reordered_elements": [
+    "pred",
+    "eff_add"
+  ],
+  "timestamp": "2026-05-08T12:22:08.530130+00:00"
+}

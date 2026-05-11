@@ -1,0 +1,15 @@
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

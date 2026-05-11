@@ -1,0 +1,49 @@
+{
+  "domain": "visitall",
+  "LLM_Model": "gpt-5.4-2026-03-05",
+  "LLM_ID": "21",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "pre_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)",
+          "(visited ?x - place)"
+        ],
+        "candidate": [
+          "(at-robot ?x - place)",
+          "(visited ?x - place)",
+          "(connected ?x ?y - place)"
+        ]
+      },
+      {
+        "type": "move-precondition-order",
+        "original": [
+          "(at-robot ?curpos)",
+          "(connected ?curpos ?nextpos)"
+        ],
+        "candidate": [
+          "(connected ?curpos ?nextpos)",
+          "(at-robot ?curpos)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 379,
+  "reordered_elements": [
+    "pred",
+    "pre"
+  ],
+  "timestamp": "2026-05-08T12:22:03.321260+00:00"
+}

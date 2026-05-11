@@ -1,0 +1,128 @@
+{
+  "domain": "depots",
+  "LLM_Model": "deepseek-reasoner",
+  "LLM_ID": "94",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "eff_del_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(at ?x - locatable ?y - place)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)",
+          "(clear ?x - surface)"
+        ],
+        "candidate": [
+          "(available ?x - hoist)",
+          "(clear ?x - surface)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(at ?x - locatable ?y - place)"
+        ]
+      },
+      {
+        "type": "Load-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(lifting ?x ?y)",
+          "(at ?z ?p)"
+        ]
+      },
+      {
+        "type": "Load-eff-add-order",
+        "original": [
+          "(in ?y ?z)",
+          "(available ?x)"
+        ],
+        "candidate": [
+          "(available ?x)",
+          "(in ?y ?z)"
+        ]
+      },
+      {
+        "type": "Drop-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(clear ?z)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(lifting ?x ?y)",
+          "(at ?z ?p)",
+          "(clear ?z)"
+        ]
+      },
+      {
+        "type": "Unload-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(available ?x)",
+          "(in ?y ?z)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(available ?x)",
+          "(at ?z ?p)",
+          "(in ?y ?z)"
+        ]
+      },
+      {
+        "type": "Unload-eff-del-order",
+        "original": [
+          "(not (in ?y ?z))",
+          "(not (available ?x))"
+        ],
+        "candidate": [
+          "(not (available ?x))",
+          "(not (in ?y ?z))"
+        ]
+      },
+      {
+        "type": "Lift-eff-del-order",
+        "original": [
+          "(not (at ?y ?p))",
+          "(not (clear ?y))",
+          "(not (available ?x))",
+          "(not (on ?y ?z))"
+        ],
+        "candidate": [
+          "(not (available ?x))",
+          "(not (at ?y ?p))",
+          "(not (clear ?y))",
+          "(not (on ?y ?z))"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1494,
+  "reordered_elements": [
+    "pred",
+    "pre",
+    "eff_add",
+    "eff_del"
+  ],
+  "timestamp": "2026-05-08T12:22:21.965816+00:00"
+}

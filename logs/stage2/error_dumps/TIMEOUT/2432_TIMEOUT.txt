@@ -1,0 +1,504 @@
+=== ERROR DUMP -- Run ID 2432 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-09T06:23:14.232740+00:00
+
+=== STDOUT ===
+[INFO] Running DecStar (IPC 2023 Agile Track Config):
+[INFO]   Domain: /pddl_domain/depots_deepseek-r1_Arch_Aware_decstar.pddl
+[INFO]   Problem: /pddl_problem/instance-12.pddl
+INFO     planner time limit: 360s
+INFO     planner memory limit: 8000 MB
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: 359s
+INFO     translator memory limit: 8000 MB
+INFO     translator command line string: /usr/bin/pypy3 /planner/builds/release64/bin/translate/translate.py /pddl_domain/depots_deepseek-r1_Arch_Aware_decstar.pddl /pddl_problem/instance-12.pddl --sas-file output.sas
+Parsing...
+Parsing: [0.000s CPU, 0.006s wall-clock]
+Normalizing task... [0.000s CPU, 0.000s wall-clock]
+Instantiating...
+Generating Datalog program... [0.010s CPU, 0.006s wall-clock]
+Normalizing Datalog program...
+Normalizing Datalog program: [0.010s CPU, 0.009s wall-clock]
+Preparing model... [0.000s CPU, 0.006s wall-clock]
+Generated 43 rules.
+Computing model... [0.140s CPU, 0.140s wall-clock]
+4500 relevant atoms
+3537 auxiliary atoms
+8037 final queue length
+17669 total queue pushes
+Completing instantiation... [0.220s CPU, 0.211s wall-clock]
+Instantiating: [0.380s CPU, 0.372s wall-clock]
+Computing fact groups...
+Finding invariants...
+16 initial candidates
+Finding invariants: [0.020s CPU, 0.020s wall-clock]
+Checking invariant weight... [0.000s CPU, 0.002s wall-clock]
+Instantiating groups... [0.010s CPU, 0.009s wall-clock]
+Collecting mutex groups... [0.000s CPU, 0.001s wall-clock]
+Choosing groups...
+39 uncovered facts
+Choosing groups: [0.010s CPU, 0.006s wall-clock]
+Building translation key... [0.000s CPU, 0.004s wall-clock]
+Computing fact groups: [0.040s CPU, 0.049s wall-clock]
+Building STRIPS to SAS dictionary... [0.010s CPU, 0.001s wall-clock]
+Building dictionary for full mutex groups... [0.000s CPU, 0.004s wall-clock]
+Building mutex information...
+Building mutex information: [0.000s CPU, 0.004s wall-clock]
+Translating task...
+Processing axioms...
+Simplifying axioms... [0.000s CPU, 0.000s wall-clock]
+Processing axioms: [0.010s CPU, 0.012s wall-clock]
+Translating task: [0.470s CPU, 0.471s wall-clock]
+5130 effect conditions simplified
+0 implied preconditions added
+Detecting unreachable propositions...
+0 operators removed
+0 axioms removed
+56 propositions removed
+Detecting unreachable propositions: [0.190s CPU, 0.184s wall-clock]
+Reordering and filtering variables...
+59 of 59 variables necessary.
+42 of 59 mutex groups necessary.
+3570 of 3570 operators necessary.
+0 of 0 axiom rules necessary.
+Reordering and filtering variables: [0.090s CPU, 0.093s wall-clock]
+Translator variables: 59
+Translator derived variables: 0
+Translator facts: 591
+Translator goal facts: 11
+Translator mutex groups: 42
+Translator total mutex groups size: 747
+Translator operators: 3570
+Translator axioms: 0
+Translator task size: 33628
+Translator peak memory: 140812 KB
+Writing output... [0.110s CPU, 0.115s wall-clock]
+Done! [1.310s CPU, 1.314s wall-clock]
+translate exit code: 0
+
+INFO     Running search (release64).
+INFO     search portfolio: /planner/driver/portfolios/seq_agl_decstar.py
+remaining time: 358.0
+config 0: relative time 60, remaining 300
+args: ['/planner/builds/release64/bin/downward', '--decoupling', 'ifork(search_type=sat, max_leaf_size=10000)', '--heuristic', 'hff=ff(cost_type=one)', '--search', 'lazy_greedy([hff],       cost_type=one,      preferred=[hff])', '--internal-plan-file', 'sas_plan']
+INFO     search stdin: output.sas
+INFO     search time limit: 71s
+INFO     search memory limit: 8000 MB
+INFO     search command line string: /planner/builds/release64/bin/downward --decoupling 'ifork(search_type=sat, max_leaf_size=10000)' --heuristic 'hff=ff(cost_type=one)' --search 'lazy_greedy([hff],       cost_type=one,      preferred=[hff])' --internal-plan-file sas_plan < output.sas
+using dominance pruning
+performing decoupled satisficing search
+maximum leaf factor size 2147483647
+using inverted-fork factoring profile
+reading input... [t=0.0017405s]
+done reading input! [t=0.0186292s]
+building causal graph...done! [t=0.00702644s]
+factoring time 0.0101969s
+Info: factoring type set to inverted-fork, no non-inverted-fork leaf factors
+Factoring hash: 3545999165
+number leaf factors: 2
+57 variables in center factor
+1 variables in leaf factor 0
+1 variables in leaf factor 1
+min leaf factor size: 6
+average leaf factor size: 6
+max leaf factor size: 6
+avg fact flexibility for leaf 0: 1
+avg fact flexibility for leaf 1: 1
+avg fact flexibility: 1
+min mobility: 30
+avg mobility: 30
+max mobility: 30
+sum mobility: 60
+product mobility: 900
+min flexibility: 1
+avg flexibility: 1
+max flexibility: 1
+sum flexibility: 2
+packing state variables...Variables: 57
+Bytes per state: 24
+Bytes per state of leaf factor 0: 4
+Bytes per state of leaf factor 1: 4
+Building successor generator...done! [t=0.0326253s]
+peak memory difference for root successor generator creation: 0 KB
+time for root successor generation creation: 0.00186475s
+done! [t=0.0326253s]
+done initalizing global data [t=0.0326253s]
+set type of heuristic to CENTER
+Simplifying 16530 unary operators... done! [16530 unary operators]
+time to simplify: 0.0153285s
+Initializing additive heuristic...
+Initializing FF heuristic...
+state space of leaf 0 is strongly connected via leaf-only actions
+state space of leaf 1 is strongly connected via leaf-only actions
+min reachable leaf factor size 6
+avg reachable leaf factor size 6
+max reachable leaf factor size 6
+factor 0 does not have a goal
+factor 1 does not have a goal
+done building leaf state spaces [t=0.0515452s]
+Conducting lazy best first search, (real) bound = 2147483647
+Best heuristic value: 44 [g=0, 1 evaluated, 0 expanded, t=0.0515452s, 57284 KB]
+Best heuristic value: 43 [g=1, 4 evaluated, 3 expanded, t=0.0525787s, 57284 KB]
+Best heuristic value: 41 [g=2, 8 evaluated, 7 expanded, t=0.0525787s, 57284 KB]
+Best heuristic value: 40 [g=3, 13 evaluated, 12 expanded, t=0.053827s, 57284 KB]
+Best heuristic value: 38 [g=5, 24 evaluated, 23 expanded, t=0.0558475s, 57284 KB]
+Best heuristic value: 36 [g=9, 107 evaluated, 106 expanded, t=0.066535s, 57284 KB]
+Best heuristic value: 35 [g=11, 1402 evaluated, 1401 expanded, t=0.24695s, 57284 KB]
+Best heuristic value: 34 [g=13, 1673 evaluated, 1672 expanded, t=0.28483s, 57284 KB]
+Best heuristic value: 33 [g=14, 1676 evaluated, 1675 expanded, t=0.28483s, 57284 KB]
+Best heuristic value: 30 [g=16, 1686 evaluated, 1685 expanded, t=0.28666s, 57284 KB]
+Best heuristic value: 29 [g=29, 17046 evaluated, 17045 expanded, t=2.44395s, 66752 KB]
+Best heuristic value: 28 [g=37, 111525 evaluated, 111524 expanded, t=15.8696s, 129336 KB]
+Best heuristic value: 27 [g=39, 334836 evaluated, 334835 expanded, t=47.6889s, 272176 KB]
+Peak memory: 387444 KB
+caught signal 24 -- exiting
+Time limit has been reached.
+exitcode: 23
+
+remaining time: 286.97
+config 1: relative time 60, remaining 240
+args: ['/planner/builds/release64/bin/downward', '--decoupling', 'fork(search_type=sat, pruning=cost_frontier(irrelevance=TRANSITIONS), max_leaf_size=10000)', '--heuristic', 'hff=ff(cost_type=one)', '--search', 'lazy_greedy([hff],       cost_type=one,      preferred=[hff])', '--internal-plan-file', 'sas_plan']
+INFO     search stdin: output.sas
+INFO     search time limit: 71s
+INFO     search memory limit: 8000 MB
+INFO     search command line string: /planner/builds/release64/bin/downward --decoupling 'fork(search_type=sat, pruning=cost_frontier(irrelevance=TRANSITIONS), max_leaf_size=10000)' --heuristic 'hff=ff(cost_type=one)' --search 'lazy_greedy([hff],       cost_type=one,      preferred=[hff])' --internal-plan-file sas_plan < output.sas
+using frontier pruning method
+performing irrelevance analysis in leaf factors
+performing decoupled satisficing search
+maximum leaf factor size 2147483647
+using fork factoring profile
+reading input... [t=0.00196059s]
+done reading input! [t=0.0188825s]
+building causal graph...done! [t=0.00585601s]
+factoring time 0.0103501s
+No factoring with at least 2 leaves found!
+Factoring strategy abstained.
+Peak memory: 54700 KB
+exitcode: 19
+
+remaining time: 286.93
+config 2: relative time 120, remaining 180
+args: ['/planner/builds/release64/bin/downward', '--decoupling', 'lp_general(search_type=sat, factoring_time_limit=30, memory_limit=7500, add_cg_sccs=true, strategy=mm_approx, min_flexibility=0.8)', '--heuristic', 'hff=ff(cost_type=one)', '--search', 'lazy_greedy([hff],            preferred=[hff], cost_type=one,            symmetry=symmetry_state_pruning(lex_prices=false, lex_num_states=false, lex_goal_cost=false))', '--internal-plan-file', 'sas_plan']
+INFO     search stdin: output.sas
+INFO     search time limit: 191s
+INFO     search memory limit: 8000 MB
+INFO     search command line string: /planner/builds/release64/bin/downward --decoupling 'lp_general(search_type=sat, factoring_time_limit=30, memory_limit=7500, add_cg_sccs=true, strategy=mm_approx, min_flexibility=0.8)' --heuristic 'hff=ff(cost_type=one)' --search 'lazy_greedy([hff],            preferred=[hff], cost_type=one,            symmetry=symmetry_state_pruning(lex_prices=false, lex_num_states=false, lex_goal_cost=false))' --internal-plan-file sas_plan < output.sas
+using dominance pruning
+performing decoupled satisficing search
+maximum leaf factor size 2147483647
+using LP factoring strategy
+reading input... [t=0.00300152s]
+done reading input! [t=0.0191966s]
+3512 action schemes
+1892 potential leaves
+building causal graph...done! [t=0.00614889s]
+Added 0 causal-graph SCC potential leaves.
+Removed 1890 potential leaves because of minimal flexibility/mobility.
+LP variables: 6
+LP constraints: 9
+LP construction time: 0.071742s
+Version identifier: 22.1.2.0 | 2024-11-26 | 0edbb82fd
+CPXPARAM_Threads                                 1
+CPXPARAM_TimeLimit                               29
+CPXPARAM_MIP_Tolerances_Integrality              0
+Tried aggregator 1 time.
+MIP Presolve eliminated 9 rows and 6 columns.
+MIP Presolve modified 2 coefficients.
+All rows and columns eliminated.
+Presolve time = 0.00 sec. (0.00 ticks)
+
+Root node processing (before b&c):
+  Real time             =    0.00 sec. (0.01 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.00 ticks)
+                          ------------
+Total (root+branch&cut) =    0.00 sec. (0.01 ticks)
+LP solving time: 0.000730377s
+CPLEX status: Optimal
+LP objective value: 6.80239
+factoring time 0.0757599s
+Info: factoring type set to inverted-fork, no non-inverted-fork leaf factors
+Factoring hash: 3545999165
+number leaf factors: 2
+57 variables in center factor
+1 variables in leaf factor 0
+1 variables in leaf factor 1
+min leaf factor size: 6
+average leaf factor size: 6
+max leaf factor size: 6
+avg fact flexibility for leaf 0: 1
+avg fact flexibility for leaf 1: 1
+avg fact flexibility: 1
+min mobility: 30
+avg mobility: 30
+max mobility: 30
+sum mobility: 60
+product mobility: 900
+min flexibility: 1
+avg flexibility: 1
+max flexibility: 1
+sum flexibility: 2
+packing state variables...Variables: 57
+Bytes per state: 24
+Bytes per state of leaf factor 0: 4
+Bytes per state of leaf factor 1: 4
+Building successor generator...done! [t=0.0989883s]
+peak memory difference for root successor generator creation: 0 KB
+time for root successor generation creation: 0.00187066s
+done! [t=0.0989883s]
+done initalizing global data [t=0.0989883s]
+set type of heuristic to CENTER
+Simplifying 16530 unary operators... done! [16530 unary operators]
+time to simplify: 0.0160779s
+Initializing additive heuristic...
+Initializing FF heuristic...
+Creating symmetry graph stabilizing goal only and using orbit search.
+WARNING: exploiting leaf invertibility and symmetry state pruning are not fully compatible; probably exploiting invertibility will be switched off.
+state space of leaf 0 is strongly connected via leaf-only actions
+state space of leaf 1 is strongly connected via leaf-only actions
+min reachable leaf factor size 6
+avg reachable leaf factor size 6
+max reachable leaf factor size 6
+factor 0 does not have a goal
+factor 1 does not have a goal
+done building leaf state spaces [t=0.118008s]
+Initializing symmetry 
+Using Bliss to find group generators
+Got 6 group generators, time step: [t=0.131113s]
+Number of generators: 6
+done initializing symmetries [t=0.131113s]
+Conducting lazy best first search, (real) bound = 2147483647
+Best heuristic value: 44 [g=0, 1 evaluated, 0 expanded, t=0.132056s, 60888 KB]
+Best heuristic value: 43 [g=1, 3 evaluated, 2 expanded, t=0.132056s, 60888 KB]
+Best heuristic value: 41 [g=3, 14 evaluated, 13 expanded, t=0.134224s, 60888 KB]
+Best heuristic value: 39 [g=4, 20 evaluated, 19 expanded, t=0.135198s, 60888 KB]
+Best heuristic value: 38 [g=5, 25 evaluated, 24 expanded, t=0.13608s, 60888 KB]
+Best heuristic value: 36 [g=9, 103 evaluated, 102 expanded, t=0.147182s, 60888 KB]
+Best heuristic value: 35 [g=11, 1493 evaluated, 1492 expanded, t=0.349304s, 60888 KB]
+Best heuristic value: 34 [g=13, 1774 evaluated, 1773 expanded, t=0.390072s, 60888 KB]
+Best heuristic value: 33 [g=14, 1776 evaluated, 1775 expanded, t=0.390072s, 60888 KB]
+Best heuristic value: 30 [g=16, 1786 evaluated, 1785 expanded, t=0.390915s, 60888 KB]
+Best heuristic value: 29 [g=29, 7745 evaluated, 7744 expanded, t=1.25307s, 60888 KB]
+Best heuristic value: 28 [g=38, 33064 evaluated, 33063 expanded, t=5.11904s, 77416 KB]
+Best heuristic value: 27 [g=40, 48424 evaluated, 48423 expanded, t=7.44005s, 87500 KB]
+Best heuristic value: 26 [g=46, 48547 evaluated, 48546 expanded, t=7.45814s, 87632 KB]
+Best heuristic value: 25 [g=47, 48548 evaluated, 48547 expanded, t=7.45814s, 87632 KB]
+Best heuristic value: 24 [g=48, 48551 evaluated, 48550 expanded, t=7.45889s, 87632 KB]
+Best heuristic value: 23 [g=49, 48553 evaluated, 48552 expanded, t=7.45889s, 87632 KB]
+Best heuristic value: 21 [g=51, 48563 evaluated, 48562 expanded, t=7.46094s, 87632 KB]
+Best heuristic value: 20 [g=52, 48566 evaluated, 48565 expanded, t=7.46094s, 87632 KB]
+Best heuristic value: 18 [g=55, 48576 evaluated, 48575 expanded, t=7.4619s, 87632 KB]
+Best heuristic value: 17 [g=65, 49579 evaluated, 49578 expanded, t=7.60504s, 88560 KB]
+Best heuristic value: 15 [g=66, 49582 evaluated, 49581 expanded, t=7.60504s, 88560 KB]
+Best heuristic value: 14 [g=67, 49584 evaluated, 49583 expanded, t=7.60504s, 88560 KB]
+Best heuristic value: 13 [g=68, 49586 evaluated, 49585 expanded, t=7.60596s, 88560 KB]
+Best heuristic value: 12 [g=81, 178894 evaluated, 178893 expanded, t=26.4976s, 176428 KB]
+Best heuristic value: 10 [g=83, 178898 evaluated, 178897 expanded, t=26.4976s, 176428 KB]
+Best heuristic value: 9 [g=84, 178900 evaluated, 178899 expanded, t=26.4989s, 176428 KB]
+Best heuristic value: 8 [g=85, 178902 evaluated, 178901 expanded, t=26.4989s, 176428 KB]
+Best heuristic value: 7 [g=91, 191418 evaluated, 191417 expanded, t=28.1387s, 184660 KB]
+Best heuristic value: 6 [g=92, 191420 evaluated, 191419 expanded, t=28.1395s, 184660 KB]
+Best heuristic value: 5 [g=93, 191421 evaluated, 191420 expanded, t=28.1395s, 184660 KB]
+Best heuristic value: 4 [g=102, 191609 evaluated, 191608 expanded, t=28.1634s, 184924 KB]
+Best heuristic value: 3 [g=103, 191610 evaluated, 191609 expanded, t=28.1634s, 184924 KB]
+Best heuristic value: 2 [g=104, 191611 evaluated, 191610 expanded, t=28.1634s, 184924 KB]
+Best heuristic value: 1 [g=105, 191612 evaluated, 191611 expanded, t=28.1649s, 184924 KB]
+Found a plan of cost 108 [t=28.1649s, 184924 KB]
+Actual search time: 28.0328s [t=28.1649s]
+drive truck0 distributor1 distributor2 (1)
+drive truck1 depot1 distributor1 (1)
+lift hoist5 crate13 crate9 distributor2 (1)
+lift hoist4 crate14 crate11 distributor1 (1)
+load hoist4 crate14 truck1 distributor1 (1)
+load hoist5 crate13 truck0 distributor2 (1)
+drive truck0 distributor2 depot1 (1)
+unload hoist1 crate13 truck0 depot1 (1)
+drive truck0 depot1 distributor2 (1)
+lift hoist5 crate9 crate8 distributor2 (1)
+load hoist5 crate9 truck0 distributor2 (1)
+drive truck0 distributor2 depot2 (1)
+unload hoist2 crate9 truck0 depot2 (1)
+drive truck0 depot2 distributor0 (1)
+drop hoist2 crate9 pallet2 depot2 (1)
+lift hoist4 crate11 pallet4 distributor1 (1)
+load hoist4 crate11 truck1 distributor1 (1)
+drive truck1 distributor1 distributor0 (1)
+lift hoist3 crate4 crate2 distributor0 (1)
+load hoist3 crate4 truck1 distributor0 (1)
+drive truck1 distributor0 depot1 (1)
+lift hoist3 crate2 pallet3 distributor0 (1)
+load hoist3 crate2 truck0 distributor0 (1)
+drive truck0 distributor0 distributor2 (1)
+unload hoist5 crate2 truck0 distributor2 (1)
+drive truck0 distributor2 depot1 (1)
+load hoist1 crate13 truck0 depot1 (1)
+drop hoist5 crate2 crate8 distributor2 (1)
+lift hoist1 crate12 crate10 depot1 (1)
+load hoist1 crate12 truck0 depot1 (1)
+unload hoist1 crate13 truck0 depot1 (1)
+drive truck0 depot1 distributor2 (1)
+drop hoist1 crate13 crate10 depot1 (1)
+unload hoist5 crate12 truck0 distributor2 (1)
+drop hoist5 crate12 crate2 distributor2 (1)
+lift hoist1 crate13 crate10 depot1 (1)
+load hoist1 crate13 truck1 depot1 (1)
+unload hoist1 crate14 truck1 depot1 (1)
+drop hoist1 crate14 crate10 depot1 (1)
+unload hoist1 crate13 truck1 depot1 (1)
+drive truck1 depot1 distributor2 (1)
+drop hoist1 crate13 crate14 depot1 (1)
+lift hoist5 crate12 crate2 distributor2 (1)
+load hoist5 crate12 truck0 distributor2 (1)
+drive truck0 distributor2 depot1 (1)
+unload hoist1 crate12 truck0 depot1 (1)
+drive truck0 depot1 distributor2 (1)
+lift hoist5 crate2 crate8 distributor2 (1)
+load hoist5 crate2 truck1 distributor2 (1)
+lift hoist5 crate8 crate7 distributor2 (1)
+load hoist5 crate8 truck1 distributor2 (1)
+lift hoist5 crate7 crate6 distributor2 (1)
+load hoist5 crate7 truck1 distributor2 (1)
+drive truck1 distributor2 distributor1 (1)
+lift hoist5 crate6 crate3 distributor2 (1)
+unload hoist4 crate2 truck1 distributor1 (1)
+drive truck1 distributor1 distributor2 (1)
+load hoist5 crate6 truck1 distributor2 (1)
+drive truck1 distributor2 depot0 (1)
+lift hoist5 crate3 crate0 distributor2 (1)
+load hoist5 crate3 truck0 distributor2 (1)
+drive truck0 distributor2 depot2 (1)
+unload hoist2 crate3 truck0 depot2 (1)
+drive truck0 depot2 distributor2 (1)
+drop hoist2 crate3 crate9 depot2 (1)
+drop hoist4 crate2 pallet4 distributor1 (1)
+lift hoist5 crate0 pallet5 distributor2 (1)
+load hoist5 crate0 truck0 distributor2 (1)
+drive truck0 distributor2 depot1 (1)
+load hoist1 crate12 truck0 depot1 (1)
+drive truck0 depot1 distributor2 (1)
+unload hoist5 crate12 truck0 distributor2 (1)
+drive truck0 distributor2 depot1 (1)
+drop hoist5 crate12 pallet5 distributor2 (1)
+lift hoist4 crate2 pallet4 distributor1 (1)
+unload hoist1 crate0 truck0 depot1 (1)
+drive truck0 depot1 distributor1 (1)
+drop hoist1 crate0 crate13 depot1 (1)
+load hoist4 crate2 truck0 distributor1 (1)
+drive truck0 distributor1 depot0 (1)
+unload hoist0 crate2 truck0 depot0 (1)
+drive truck0 depot0 depot1 (1)
+lift hoist1 crate0 crate13 depot1 (1)
+load hoist1 crate0 truck0 depot1 (1)
+drive truck0 depot1 distributor1 (1)
+unload hoist4 crate0 truck0 distributor1 (1)
+drive truck0 distributor1 depot0 (1)
+drop hoist4 crate0 pallet4 distributor1 (1)
+load hoist0 crate2 truck0 depot0 (1)
+drive truck0 depot0 distributor1 (1)
+unload hoist0 crate6 truck1 depot0 (1)
+drive truck1 depot0 depot1 (1)
+unload hoist4 crate2 truck0 distributor1 (1)
+drive truck0 distributor1 depot0 (1)
+drop hoist4 crate2 crate0 distributor1 (1)
+load hoist0 crate6 truck0 depot0 (1)
+drive truck0 depot0 distributor1 (1)
+unload hoist4 crate6 truck0 distributor1 (1)
+drive truck0 distributor1 depot1 (1)
+drop hoist4 crate6 crate2 distributor1 (1)
+lift hoist1 crate13 crate14 depot1 (1)
+load hoist1 crate13 truck1 depot1 (1)
+lift hoist1 crate14 crate10 depot1 (1)
+load hoist1 crate14 truck1 depot1 (1)
+drive truck1 depot1 depot0 (1)
+lift hoist1 crate10 crate5 depot1 (1)
+unload hoist0 crate13 truck1 depot0 (1)
+drive truck1 depot0 depot1 (1)
+drop hoist0 crate13 pallet0 depot0 (1)
+load hoist1 crate10 truck0 depot1 (1)
+drive truck0 depot1 depot0 (1)
+unload hoist0 crate10 truck0 depot0 (1)
+drive truck0 depot0 depot1 (1)
+lift hoist1 crate5 crate1 depot1 (1)
+load hoist1 crate5 truck1 depot1 (1)
+drive truck1 depot1 depot0 (1)
+lift hoist1 crate1 pallet1 depot1 (1)
+load hoist1 crate1 truck0 depot1 (1)
+drive truck0 depot1 distributor2 (1)
+unload hoist5 crate1 truck0 distributor2 (1)
+drive truck0 distributor2 depot0 (1)
+drop hoist5 crate1 crate12 distributor2 (1)
+load hoist0 crate10 truck1 depot0 (1)
+drive truck1 depot0 depot1 (1)
+unload hoist1 crate10 truck1 depot1 (1)
+drive truck1 depot1 depot0 (1)
+drop hoist1 crate10 pallet1 depot1 (1)
+lift hoist0 crate13 pallet0 depot0 (1)
+load hoist0 crate13 truck0 depot0 (1)
+drive truck0 depot0 distributor1 (1)
+lift hoist1 crate10 pallet1 depot1 (1)
+unload hoist0 crate5 truck1 depot0 (1)
+drop hoist0 crate5 pallet0 depot0 (1)
+unload hoist4 crate13 truck0 distributor1 (1)
+drive truck0 distributor1 depot1 (1)
+drop hoist4 crate13 crate6 distributor1 (1)
+load hoist1 crate10 truck0 depot1 (1)
+drive truck0 depot1 depot0 (1)
+unload hoist0 crate10 truck0 depot0 (1)
+drive truck0 depot0 distributor1 (1)
+lift hoist4 crate13 crate6 distributor1 (1)
+load hoist4 crate13 truck0 distributor1 (1)
+drive truck0 distributor1 depot1 (1)
+unload hoist1 crate13 truck0 depot1 (1)
+drive truck0 depot1 depot0 (1)
+drop hoist1 crate13 pallet1 depot1 (1)
+load hoist0 crate10 truck0 depot0 (1)
+drive truck0 depot0 depot1 (1)
+unload hoist0 crate14 truck1 depot0 (1)
+unload hoist1 crate10 truck0 depot1 (1)
+drive truck0 depot1 depot0 (1)
+drop hoist1 crate10 crate13 depot1 (1)
+load hoist0 crate14 truck0 depot0 (1)
+drive truck0 depot0 depot1 (1)
+unload hoist1 crate14 truck0 depot1 (1)
+drop hoist1 crate14 crate10 depot1 (1)
+Plan length: 156 step(s).
+Plan cost: 156
+Initial state h value: 44.
+Expanded 191612 state(s).
+Reopened 0 state(s).
+Evaluated 191613 state(s).
+Evaluations: 191613
+Generated 3078528 state(s).
+Dead ends: 0 state(s).
+Number of registered states: 191747
+decoupled state space size 24529728
+Average number of member states (generated decoupled states): 36
+Time spent on dominance pruning: 0.28953s
+maximum duplicate counter 0
+Number of registered leaf states in factor 0: 6
+Number of registered leaf states in factor 1: 6
+Search time: 28.0469s
+Total time: 28.1649s
+Solution found.
+Peak memory: 186640 KB
+exitcode: 0
+
+Exit codes: [23, 19, 0]
+Remove intermediate file output.sas
+search exit code: 2
+
+INFO     Planner time: 100.85s
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 100.908669
+[METRIC] Runtime_internal_s: 28.1649
+[METRIC] StatesExpanded: 191612
+[METRIC] StatesGenerated: 3078528
+[METRIC] StatesEvaluated: 191613
+[METRIC] PeakMemory_KB: 186640
+
+
+=== STDERR ===
+(empty)

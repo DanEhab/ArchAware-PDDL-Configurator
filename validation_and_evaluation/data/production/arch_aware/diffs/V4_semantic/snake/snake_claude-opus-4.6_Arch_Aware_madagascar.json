@@ -1,0 +1,148 @@
+{
+  "domain": "snake",
+  "LLM_Model": "claude-opus-4-6",
+  "LLM_ID": "43",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(ISADJACENT ?x ?y)",
+          "(tailsnake ?x)",
+          "(headsnake ?x)",
+          "(nextsnake ?x ?y)",
+          "(blocked ?x)",
+          "(spawn ?x)",
+          "(NEXTSPAWN ?x ?y)",
+          "(ispoint ?x)"
+        ],
+        "candidate": [
+          "(headsnake ?x)",
+          "(tailsnake ?x)",
+          "(nextsnake ?x ?y)",
+          "(blocked ?x)",
+          "(ispoint ?x)",
+          "(spawn ?x)",
+          "(NEXTSPAWN ?x ?y)",
+          "(ISADJACENT ?x ?y)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "move",
+          "move-and-eat-spawn",
+          "move-and-eat-no-spawn"
+        ],
+        "candidate": [
+          "move-and-eat-spawn",
+          "move-and-eat-no-spawn",
+          "move"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn ?spawnpoint)",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)",
+          "(not (= ?spawnpoint dummypoint))"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(ispoint ?newhead)",
+          "(not (blocked ?newhead))",
+          "(spawn ?spawnpoint)",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)",
+          "(not (= ?spawnpoint dummypoint))"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(ispoint ?spawnpoint)",
+          "(spawn ?nextspawnpoint)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(blocked ?newhead)",
+          "(ispoint ?spawnpoint)",
+          "(spawn ?nextspawnpoint)"
+        ]
+      },
+      {
+        "type": "move-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(tailsnake ?newtail)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(blocked ?newhead)",
+          "(tailsnake ?newtail)"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn dummypoint)"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(ispoint ?newhead)",
+          "(not (blocked ?newhead))",
+          "(spawn dummypoint)"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(blocked ?newhead)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1921,
+  "reordered_elements": [
+    "pred",
+    "actions",
+    "pre",
+    "eff_add"
+  ],
+  "timestamp": "2026-05-08T12:22:12.950335+00:00"
+}

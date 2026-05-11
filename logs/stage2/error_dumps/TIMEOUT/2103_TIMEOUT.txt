@@ -1,0 +1,21 @@
+=== ERROR DUMP -- Run ID 2103 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-08T21:39:17.303948+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl_domain/visitall_deepseek-r1_Arch_Aware_madagascar.pddl
+[INFO]   Problem: /pddl_problem/instance-16.pddl
+
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 359.99363
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

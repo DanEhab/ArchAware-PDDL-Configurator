@@ -1,0 +1,12 @@
+Timestamp,Component,Affected_Parameters,Error_Classification,Message
+2026-05-08T12:03:55.806480Z,LLM,depots | gemini-3.1-pro | decstar,TokenLimitExceeded,"Gemini max tokens reached. Text: ```lisp
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	dep..."
+2026-05-08T12:06:09.518831Z,LLM,barman | gemini-3.1-pro | lama,TokenLimitExceeded,"Gemini max tokens reached. Text: (define (domain barman)
+  (:requirements :strips :typing)
+  (:types hand level beverage dispenser co..."
+2026-05-08T12:07:07.541024Z,LLM,barman | gemini-3.1-pro | decstar,TokenLimitExceeded,"Gemini max tokens reached. Text: (define (domain barman)
+  (:requirements :strips :typing)
+  (:types hand level beverage dispenser co..."

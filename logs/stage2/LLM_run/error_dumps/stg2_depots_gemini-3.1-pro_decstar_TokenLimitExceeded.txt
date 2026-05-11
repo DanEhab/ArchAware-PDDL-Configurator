@@ -1,0 +1,17 @@
+Gemini max tokens reached. Text: ```lisp
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	dep...
+Traceback (most recent call last):
+  File "/Users/danielehab/My Drive/ArchAware-PDDL-Configurator/experiments/arch-aware/llms/stage2_arch_aware_pipeline.py", line 162, in process_domain_for_llm
+    content, api_time, in_tokens, out_tokens = provider.generate(prompt)
+  File "/Users/danielehab/My Drive/ArchAware-PDDL-Configurator/experiments/general-prompt/llms/llm_providers.py", line 216, in generate
+    raise e
+  File "/Users/danielehab/My Drive/ArchAware-PDDL-Configurator/experiments/general-prompt/llms/llm_providers.py", line 198, in generate
+    elif finish_reason.name == 'MAX_TOKENS': raise TokenLimitError(f"Gemini max tokens reached. Text: {text[:100]}...")
+llm_providers.TokenLimitError: Gemini max tokens reached. Text: ```lisp
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	dep...

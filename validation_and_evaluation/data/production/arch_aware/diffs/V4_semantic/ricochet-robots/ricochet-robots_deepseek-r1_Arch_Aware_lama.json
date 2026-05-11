@@ -1,0 +1,119 @@
+{
+  "domain": "ricochet-robots",
+  "LLM_Model": "deepseek-reasoner",
+  "LLM_ID": "83",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(NEXT ?c - cell ?cnext - cell ?dir - direction)",
+          "(BLOCKED ?c - cell ?dir - direction)",
+          "(at ?r - robot ?c - cell)",
+          "(free ?c - cell)",
+          "(nothing-is-moving)",
+          "(is-moving ?r - robot ?dir - direction)"
+        ],
+        "candidate": [
+          "(at ?r - robot ?c - cell)",
+          "(free ?c - cell)",
+          "(nothing-is-moving)",
+          "(is-moving ?r - robot ?dir - direction)",
+          "(NEXT ?c - cell ?cnext - cell ?dir - direction)",
+          "(BLOCKED ?c - cell ?dir - direction)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "go",
+          "step",
+          "stop-at-barrier",
+          "stop-at-robot"
+        ],
+        "candidate": [
+          "go",
+          "stop-at-barrier",
+          "stop-at-robot",
+          "step"
+        ]
+      },
+      {
+        "type": "stop-at-robot-precondition-order",
+        "original": [
+          "(is-moving ?r ?dir)",
+          "(at ?r ?cat)",
+          "(NEXT ?cat ?cnext ?dir)",
+          "(not (free ?cnext))"
+        ],
+        "candidate": [
+          "(NEXT ?cat ?cnext ?dir)",
+          "(is-moving ?r ?dir)",
+          "(at ?r ?cat)",
+          "(not (free ?cnext))"
+        ]
+      },
+      {
+        "type": "stop-at-barrier-precondition-order",
+        "original": [
+          "(is-moving ?r ?dir)",
+          "(at ?r ?cat)",
+          "(BLOCKED ?cat ?dir)"
+        ],
+        "candidate": [
+          "(BLOCKED ?cat ?dir)",
+          "(is-moving ?r ?dir)",
+          "(at ?r ?cat)"
+        ]
+      },
+      {
+        "type": "step-precondition-order",
+        "original": [
+          "(is-moving ?r ?dir)",
+          "(at ?r ?cfrom)",
+          "(NEXT ?cfrom ?cto ?dir)",
+          "(free ?cto)",
+          "(not (BLOCKED ?cfrom ?dir))"
+        ],
+        "candidate": [
+          "(NEXT ?cfrom ?cto ?dir)",
+          "(not (BLOCKED ?cfrom ?dir))",
+          "(is-moving ?r ?dir)",
+          "(at ?r ?cfrom)",
+          "(free ?cto)"
+        ]
+      },
+      {
+        "type": "step-eff-add-order",
+        "original": [
+          "(free ?cfrom)",
+          "(at ?r ?cto)"
+        ],
+        "candidate": [
+          "(at ?r ?cto)",
+          "(free ?cfrom)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1756,
+  "reordered_elements": [
+    "pred",
+    "actions",
+    "pre",
+    "eff_add"
+  ],
+  "timestamp": "2026-05-08T12:22:16.072043+00:00"
+}

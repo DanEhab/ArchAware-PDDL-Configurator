@@ -1,0 +1,119 @@
+{
+  "domain": "ricochet-robots",
+  "LLM_Model": "gemini-3.1-pro-preview-customtools",
+  "LLM_ID": "77",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(NEXT ?c - cell ?cnext - cell ?dir - direction)",
+          "(BLOCKED ?c - cell ?dir - direction)",
+          "(at ?r - robot ?c - cell)",
+          "(free ?c - cell)",
+          "(nothing-is-moving)",
+          "(is-moving ?r - robot ?dir - direction)"
+        ],
+        "candidate": [
+          "(at ?r - robot ?c - cell)",
+          "(free ?c - cell)",
+          "(nothing-is-moving)",
+          "(is-moving ?r - robot ?dir - direction)",
+          "(NEXT ?c - cell ?cnext - cell ?dir - direction)",
+          "(BLOCKED ?c - cell ?dir - direction)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "go",
+          "step",
+          "stop-at-barrier",
+          "stop-at-robot"
+        ],
+        "candidate": [
+          "step",
+          "go",
+          "stop-at-barrier",
+          "stop-at-robot"
+        ]
+      },
+      {
+        "type": "stop-at-robot-precondition-order",
+        "original": [
+          "(is-moving ?r ?dir)",
+          "(at ?r ?cat)",
+          "(NEXT ?cat ?cnext ?dir)",
+          "(not (free ?cnext))"
+        ],
+        "candidate": [
+          "(at ?r ?cat)",
+          "(not (free ?cnext))",
+          "(is-moving ?r ?dir)",
+          "(NEXT ?cat ?cnext ?dir)"
+        ]
+      },
+      {
+        "type": "stop-at-barrier-precondition-order",
+        "original": [
+          "(is-moving ?r ?dir)",
+          "(at ?r ?cat)",
+          "(BLOCKED ?cat ?dir)"
+        ],
+        "candidate": [
+          "(at ?r ?cat)",
+          "(is-moving ?r ?dir)",
+          "(BLOCKED ?cat ?dir)"
+        ]
+      },
+      {
+        "type": "step-precondition-order",
+        "original": [
+          "(is-moving ?r ?dir)",
+          "(at ?r ?cfrom)",
+          "(NEXT ?cfrom ?cto ?dir)",
+          "(free ?cto)",
+          "(not (BLOCKED ?cfrom ?dir))"
+        ],
+        "candidate": [
+          "(at ?r ?cfrom)",
+          "(free ?cto)",
+          "(is-moving ?r ?dir)",
+          "(NEXT ?cfrom ?cto ?dir)",
+          "(not (BLOCKED ?cfrom ?dir))"
+        ]
+      },
+      {
+        "type": "step-eff-add-order",
+        "original": [
+          "(free ?cfrom)",
+          "(at ?r ?cto)"
+        ],
+        "candidate": [
+          "(at ?r ?cto)",
+          "(free ?cfrom)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1756,
+  "reordered_elements": [
+    "pred",
+    "actions",
+    "pre",
+    "eff_add"
+  ],
+  "timestamp": "2026-05-08T12:22:19.586299+00:00"
+}

@@ -1,0 +1,193 @@
+{
+  "domain": "snake",
+  "LLM_Model": "deepseek-reasoner",
+  "LLM_ID": "78",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "eff_del_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(ISADJACENT ?x ?y)",
+          "(tailsnake ?x)",
+          "(headsnake ?x)",
+          "(nextsnake ?x ?y)",
+          "(blocked ?x)",
+          "(spawn ?x)",
+          "(NEXTSPAWN ?x ?y)",
+          "(ispoint ?x)"
+        ],
+        "candidate": [
+          "(ispoint ?x)",
+          "(headsnake ?x)",
+          "(spawn ?x)",
+          "(NEXTSPAWN ?x ?y)",
+          "(tailsnake ?x)",
+          "(nextsnake ?x ?y)",
+          "(blocked ?x)",
+          "(ISADJACENT ?x ?y)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "move",
+          "move-and-eat-spawn",
+          "move-and-eat-no-spawn"
+        ],
+        "candidate": [
+          "move-and-eat-no-spawn",
+          "move-and-eat-spawn",
+          "move"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn ?spawnpoint)",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)",
+          "(not (= ?spawnpoint dummypoint))"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(ispoint ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ISADJACENT ?head ?newhead)",
+          "(spawn ?spawnpoint)",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)",
+          "(not (= ?spawnpoint dummypoint))"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(ispoint ?spawnpoint)",
+          "(spawn ?nextspawnpoint)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(blocked ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(ispoint ?spawnpoint)",
+          "(spawn ?nextspawnpoint)"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-eff-del-order",
+        "original": [
+          "(not (headsnake ?head))",
+          "(not (ispoint ?newhead))",
+          "(not (spawn ?spawnpoint))"
+        ],
+        "candidate": [
+          "(not (ispoint ?newhead))",
+          "(not (headsnake ?head))",
+          "(not (spawn ?spawnpoint))"
+        ]
+      },
+      {
+        "type": "move-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(not (ispoint ?newhead))",
+          "(not (blocked ?newhead))",
+          "(ISADJACENT ?head ?newhead)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)"
+        ]
+      },
+      {
+        "type": "move-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(tailsnake ?newtail)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(blocked ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(tailsnake ?newtail)"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn dummypoint)"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(ispoint ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ISADJACENT ?head ?newhead)",
+          "(spawn dummypoint)"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(blocked ?newhead)",
+          "(nextsnake ?newhead ?head)"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-eff-del-order",
+        "original": [
+          "(not (headsnake ?head))",
+          "(not (ispoint ?newhead))"
+        ],
+        "candidate": [
+          "(not (ispoint ?newhead))",
+          "(not (headsnake ?head))"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1924,
+  "reordered_elements": [
+    "pred",
+    "actions",
+    "pre",
+    "eff_add",
+    "eff_del"
+  ],
+  "timestamp": "2026-05-08T12:22:11.234689+00:00"
+}

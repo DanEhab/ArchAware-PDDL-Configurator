@@ -1,0 +1,78 @@
+{
+  "domain": "depots",
+  "LLM_Model": "gpt-5.4-2026-03-05",
+  "LLM_ID": "52",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(at ?x - locatable ?y - place)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)",
+          "(clear ?x - surface)"
+        ],
+        "candidate": [
+          "(at ?x - locatable ?y - place)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(clear ?x - surface)",
+          "(available ?x - hoist)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Load",
+          "Unload"
+        ],
+        "candidate": [
+          "Drive",
+          "Load",
+          "Unload",
+          "Drop",
+          "Lift"
+        ]
+      },
+      {
+        "type": "Unload-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(available ?x)",
+          "(in ?y ?z)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(in ?y ?z)",
+          "(available ?x)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1489,
+  "reordered_elements": [
+    "pred",
+    "actions",
+    "pre"
+  ],
+  "timestamp": "2026-05-08T12:22:20.251168+00:00"
+}

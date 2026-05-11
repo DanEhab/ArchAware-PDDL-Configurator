@@ -1,0 +1,36 @@
+{
+  "domain": "visitall",
+  "LLM_Model": "deepseek-reasoner",
+  "LLM_ID": "34",
+  "stage": "Arch_Aware",
+  "validation_status": "VALID",
+  "failed_stage": null,
+  "rejection_reason": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)",
+          "(visited ?x - place)"
+        ],
+        "candidate": [
+          "(at-robot ?x - place)",
+          "(visited ?x - place)",
+          "(connected ?x ?y - place)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 387,
+  "reordered_elements": [
+    "pred"
+  ],
+  "timestamp": "2026-05-08T12:22:05.194557+00:00"
+}
