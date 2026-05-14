@@ -1,0 +1,136 @@
+=== ERROR DUMP -- Run ID 2649 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-12T10:10:49.287990+00:00
+
+=== STDOUT ===
+[INFO] Running LAPKT-BFWS-Preference (IPC-2018 Agile Track Config):
+[INFO]   Domain: /pddl_domain/snake_gpt-5.4_Arch_Aware_lama.pddl
+[INFO]   Problem: /pddl_problem/instance-19.pddl
+Domain: /pddl_domain/snake_gpt-5.4_Arch_Aware_lama.pddl Problem: /pddl_problem/instance-19.pddl
+Parsing...
+Parsing: [0.000s CPU, 0.010s wall-clock]
+Generating Datalog program... [0.000s CPU, 0.001s wall-clock]
+Normalizing Datalog program...
+Trivial rules: Converted to facts.
+Normalizing Datalog program: [0.010s CPU, 0.003s wall-clock]
+Preparing model... [0.000s CPU, 0.004s wall-clock]
+Generated 32 rules.
+Computing model... [2.060s CPU, 2.057s wall-clock]
+98563 relevant atoms
+2834 auxiliary atoms
+101397 final queue length
+504289 total queue pushes
+Completing instantiation... [10.890s CPU, 10.902s wall-clock]
+goal relaxed reachable: True
+659 atoms
+Computing fact groups...
+Finding invariants...
+13 initial candidates
+Time limit reached, aborting invariant generation
+Finding invariants: [0.020s CPU, 0.026s wall-clock]
+Checking invariant weight... [0.000s CPU, 0.000s wall-clock]
+Instantiating groups... [0.000s CPU, 0.000s wall-clock]
+Collecting mutex groups... [0.000s CPU, 0.000s wall-clock]
+Choosing groups...
+659 uncovered facts
+Choosing groups: [0.010s CPU, 0.001s wall-clock]
+Building translation key... [0.010s CPU, 0.003s wall-clock]
+Computing fact groups: [0.040s CPU, 0.039s wall-clock]
+Axioms 0
+Deterministic 97390 actions
+147 negated fluents created
+Invariants 659
+
+ Match tree built with 97390 nodes.
+
+PDDL problem description loaded: 
+	Domain: snake
+	Problem: snake-empty-9x9-1-5-61-22485
+	#Actions: 97390
+	#Fluents: 806
+Goals found: 66
+Goals_Edges found: 66
+Starting search with 1-BFWS...
+--[5 / 0]--
+--[5 / 5]--
+--[5 / 8]--
+--[5 / 11]--
+--[5 / 14]--
+--[5 / 15]--
+--[5 / 20]--
+--[5 / 21]--
+--[5 / 22]--
+--[5 / 25]--
+--[5 / 26]--
+--[5 / 27]--
+--[5 / 28]--
+--[5 / 31]--
+--[5 / 34]--
+--[5 / 37]--
+--[5 / 41]--
+--[5 / 42]--
+--[5 / 43]--
+--[5 / 44]--
+--[5 / 46]--
+--[5 / 47]--
+--[5 / 48]--
+--[5 / 49]--
+--[5 / 50]--
+--[5 / 51]--
+--[5 / 53]--
+--[5 / 54]--
+--[5 / 55]--
+--[5 / 56]--
+--[5 / 57]--
+--[5 / 58]--
+--[5 / 59]--
+--[5 / 61]--
+--[5 / 64]--
+--[5 / 65]--
+--[5 / 66]--
+--[5 / 68]--
+--[5 / 70]--
+--[5 / 71]--
+--[5 / 72]--
+--[5 / 73]--
+--[5 / 74]--
+--[5 / 75]--
+--[5 / 76]--
+--[5 / 77]--
+--[5 / 78]--
+--[5 / 79]--
+--[5 / 80]--
+--[5 / 81]--
+Total time: 0.781628
+Nodes generated during search: 18689
+Nodes expanded during search: 16387
+Plan found with cost: NOTFOUND
+Fast-BFS search completed in 0.781628 secs
+Starting search with BFWS(novel,land,h_ff)...
+Landmarks found: 66
+Landmarks_Edges found: 66
+--[5 / 4294967295]--
+--[5 / 36]--
+--[5 / 33]--
+--[5 / 28]--
+--[5 / 25]--
+--[5 / 24]--
+--[5 / 23]--
+--[5 / 21]--
+--[5 / 20]--
+--[5 / 17]--
+--[5 / 16]--
+--[5 / 15]--
+--[5 / 14]--
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 359.999595
+[METRIC] Runtime_internal_s: 0.781628
+[METRIC] StatesExpanded: 16387
+[METRIC] StatesGenerated: 18689
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

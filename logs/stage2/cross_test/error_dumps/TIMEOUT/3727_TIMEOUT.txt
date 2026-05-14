@@ -1,0 +1,118 @@
+=== ERROR DUMP -- Run ID 3727 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-12T23:58:33.611262+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl_domain/snake_gemini-3.1-pro_Arch_Aware_lama.pddl
+[INFO]   Problem: /pddl_problem/instance-09.pddl
+Madagascar 0.99999 25/02/2015 09:45:59 amd64 1-core (no VSIDS)
+Options: file:/pddl_domain/snake_gemini-3.1-pro_Arch_Aware_lama.pddl file:/pddl_problem/instance-09.pddl
+Domain: snake
+Problem: snake-empty-7x7-1-5-34-22285
+Parser: 425880 ground actions and 2935 state variables
+Invariants: 0 1 2 3 4 5 6 7  2.11 secs
+Goal: conjunctive
+Simplified: 30816 ground actions and 389 state variables
+Actions: STRIPS
+Disabling graph %: 10 20 30 40 50 60 70 80 90 100 4.59 secs (max SCC size 1)
+Plan type: E-step
+				Allocated 32 MB permanent (total 433 MB)
+Horizon 5: 156414 variables
+5 UNSAT (0 decisions 0 conflicts)
+Horizon 7: 218824 variables
+7 UNSAT (0 decisions 0 conflicts)
+Horizon 10: 312439 variables
+10 UNSAT (0 decisions 0 conflicts)
+				Allocated 32 MB permanent (total 849 MB)
+Horizon 14: 437259 variables
+14 UNSAT (0 decisions 0 conflicts)
+Horizon 20: 624489 variables
+20 UNSAT (0 decisions 0 conflicts)
+				Allocated 32 MB permanent (total 1123 MB)
+Horizon 28: 874129 variables
+28 UNSAT (0 decisions 0 conflicts)
+				Allocated 32 MB permanent (total 1305 MB)
+Horizon 40: 1248589 variables
+				Allocated 32 MB (total 1337 MB)
+				Allocated 32 MB permanent (total 1549 MB)
+				Allocated 32 MB permanent (total 1581 MB)
+Horizon 56: 1747869 variables
+				Allocated 32 MB permanent (total 1837 MB)
+				Allocated 32 MB permanent (total 1869 MB)
+Horizon 80: 2496789 variables
+				Allocated 32 MB permanent (total 2185 MB)
+				Allocated 32 MB permanent (total 2217 MB)
+				Allocated 32 MB permanent (total 2249 MB)
+				Allocated 32 MB permanent (total 2281 MB)
+Horizon 113: 3526554 variables
+				Allocated 32 MB permanent (total 2685 MB)
+				Allocated 32 MB permanent (total 2717 MB)
+				Allocated 32 MB permanent (total 2749 MB)
+				Allocated 32 MB permanent (total 2781 MB)
+				Allocated 32 MB permanent (total 2813 MB)
+Horizon 160: 4993189 variables
+				Allocated 32 MB permanent (total 3338 MB)
+				Allocated 32 MB permanent (total 3370 MB)
+				Allocated 32 MB permanent (total 3402 MB)
+				Allocated 32 MB permanent (total 3434 MB)
+				Allocated 32 MB permanent (total 3466 MB)
+				Allocated 32 MB permanent (total 3498 MB)
+Horizon 226: 7052719 variables
+				Allocated 32 MB permanent (total 4197 MB)
+				Allocated 32 MB permanent (total 4229 MB)
+				Allocated 32 MB permanent (total 4261 MB)
+				Allocated 32 MB permanent (total 4293 MB)
+				Allocated 32 MB permanent (total 4325 MB)
+				Allocated 32 MB permanent (total 4357 MB)
+				Allocated 32 MB permanent (total 4389 MB)
+				Allocated 32 MB permanent (total 4421 MB)
+				Allocated 32 MB permanent (total 4453 MB)
+				Allocated 32 MB permanent (total 4485 MB)
+Horizon 320: 9985989 variables
+				Allocated 32 MB permanent (total 5427 MB)
+				Allocated 32 MB permanent (total 5459 MB)
+				Allocated 32 MB permanent (total 5491 MB)
+				Allocated 32 MB permanent (total 5523 MB)
+				Allocated 32 MB permanent (total 5555 MB)
+				Allocated 32 MB permanent (total 5587 MB)
+				Allocated 32 MB permanent (total 5619 MB)
+				Allocated 32 MB permanent (total 5651 MB)
+				Allocated 32 MB permanent (total 5683 MB)
+				Allocated 32 MB permanent (total 5715 MB)
+				Allocated 32 MB permanent (total 5747 MB)
+				Allocated 32 MB permanent (total 5779 MB)
+				Allocated 32 MB permanent (total 5811 MB)
+				Allocated 32 MB permanent (total 5843 MB)
+Horizon 452: 14105049 variables
+				Allocated 32 MB (total 5875 MB)
+				Allocated 32 MB (total 5907 MB)
+				Allocated 32 MB (total 5939 MB)
+				Allocated 32 MB (total 5971 MB)
+				Allocated 32 MB (total 6003 MB)
+				Allocated 32 MB (total 6035 MB)
+40 UNSAT (1688 decisions 1594 conflicts)
+				Allocated 32 MB (total 6067 MB)
+				Allocated 32 MB (total 6099 MB)
+				Allocated 32 MB (total 6131 MB)
+				Allocated 32 MB (total 6163 MB)
+				Allocated 32 MB (total 6195 MB)
+				Allocated 32 MB (total 6227 MB)
+				Allocated 32 MB (total 6259 MB)
+				Allocated 32 MB (total 6291 MB)
+				Allocated 32 MB (total 6323 MB)
+				Allocated 32 MB (total 6355 MB)
+				Allocated 32 MB (total 6387 MB)
+						GC: 654.35 MB
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 360.02978
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

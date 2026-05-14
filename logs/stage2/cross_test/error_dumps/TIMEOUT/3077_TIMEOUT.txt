@@ -1,0 +1,21 @@
+=== ERROR DUMP -- Run ID 3077 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-12T15:09:55.735633+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl_domain/visitall_claude-opus-4.6_Arch_Aware_lama.pddl
+[INFO]   Problem: /pddl_problem/instance-12.pddl
+
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 359.994133
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

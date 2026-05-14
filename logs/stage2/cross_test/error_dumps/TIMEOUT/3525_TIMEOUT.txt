@@ -1,0 +1,30 @@
+=== ERROR DUMP -- Run ID 3525 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-12T20:43:23.392935+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl_domain/snake_claude-opus-4.6_Arch_Aware_lama.pddl
+[INFO]   Problem: /pddl_problem/instance-17.pddl
+Madagascar 0.99999 25/02/2015 09:45:59 amd64 1-core (no VSIDS)
+Options: file:/pddl_domain/snake_claude-opus-4.6_Arch_Aware_lama.pddl file:/pddl_problem/instance-17.pddl
+Domain: snake
+Problem: snake-empty-9x9-1-5-37-22455
+Parser: 1947456 ground actions and 7413 state variables
+Invariants: 0 1 2 3 4 5 6 7 8  14.94 secs
+Goal: conjunctive
+Simplified: 86131 ground actions and 611 state variables
+Actions: STRIPS
+Disabling graph %: 10 20 30 40 50 60 70 80 90 100
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 360.153442
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

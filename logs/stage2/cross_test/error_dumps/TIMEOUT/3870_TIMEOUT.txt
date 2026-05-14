@@ -1,0 +1,85 @@
+=== ERROR DUMP -- Run ID 3870 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-13T04:42:43.516474+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl_domain/barman_claude-opus-4.6_Arch_Aware_lama.pddl
+[INFO]   Problem: /pddl_problem/instance-02.pddl
+Madagascar 0.99999 25/02/2015 09:45:59 amd64 1-core (no VSIDS)
+Options: file:/pddl_domain/barman_claude-opus-4.6_Arch_Aware_lama.pddl file:/pddl_problem/instance-02.pddl
+Domain: barman
+Problem: prob
+Parser: 3778 ground actions and 613 state variables
+Invariants: 0 1 2  0.01 secs
+Goal: conjunctive
+Simplified: 2344 ground actions and 418 state variables
+Actions: STRIPS
+Disabling graph %: 10 20 30 40 50 60 70 80 90 100 0.02 secs (max SCC size 450)
+Plan type: E-step
+				Allocated 32 MB permanent (total 139 MB)
+Horizon 5: 22198 variables
+				Allocated 32 MB (total 250 MB)
+Horizon 7: 30910 variables
+5 UNSAT (96 decisions 96 conflicts)
+Horizon 10: 43978 variables
+Horizon 14: 61402 variables
+Horizon 20: 87538 variables
+Horizon 28: 122386 variables
+Horizon 40: 174658 variables
+Horizon 56: 244354 variables
+Horizon 80: 348898 variables
+Horizon 113: 492646 variables
+7 UNSAT (508 decisions 496 conflicts)
+				Allocated 32 MB permanent (total 1182 MB)
+Horizon 160: 697378 variables
+Horizon 226: 984874 variables
+				Allocated 32 MB permanent (total 1507 MB)
+Horizon 320: 1394338 variables
+				Allocated 32 MB permanent (total 1732 MB)
+Horizon 452: 1969330 variables
+				Allocated 32 MB permanent (total 2005 MB)
+Horizon 640: 2788258 variables
+				Allocated 32 MB permanent (total 2346 MB)
+				Allocated 32 MB permanent (total 2378 MB)
+Horizon 905: 3942598 variables
+				Allocated 32 MB permanent (total 2817 MB)
+				Allocated 32 MB permanent (total 2849 MB)
+				Allocated 32 MB permanent (total 2881 MB)
+Horizon 1280: 5576098 variables
+				Allocated 32 MB permanent (total 3455 MB)
+				Allocated 32 MB permanent (total 3487 MB)
+				Allocated 32 MB permanent (total 3519 MB)
+				Allocated 32 MB permanent (total 3551 MB)
+Horizon 1810: 7884778 variables
+				Allocated 32 MB permanent (total 4319 MB)
+				Allocated 32 MB permanent (total 4351 MB)
+				Allocated 32 MB permanent (total 4383 MB)
+				Allocated 32 MB permanent (total 4415 MB)
+				Allocated 32 MB permanent (total 4447 MB)
+				Allocated 32 MB permanent (total 4479 MB)
+Horizon 2560: 11151778 variables
+				Allocated 32 MB (total 4511 MB)
+						GC: 35.96 MB
+10 UNSAT (1680 decisions 1622 conflicts)
+						GC: 41.70 MB
+						GC: 57.56 MB
+				Allocated 32 MB (total 4543 MB)
+						GC: 62.87 MB
+14 UNSAT (7069 decisions 5855 conflicts)
+						GC: 64.37 MB
+						GC: 49.14 MB
+						GC: 52.68 MB
+						GC: 55.47 MB
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 360.010963
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

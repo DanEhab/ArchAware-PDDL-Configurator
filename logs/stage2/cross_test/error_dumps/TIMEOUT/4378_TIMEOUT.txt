@@ -1,0 +1,109 @@
+=== ERROR DUMP -- Run ID 4378 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-13T17:24:23.345497+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl_domain/snake_deepseek-r1_Arch_Aware_decstar.pddl
+[INFO]   Problem: /pddl_problem/instance-17.pddl
+Madagascar 0.99999 25/02/2015 09:45:59 amd64 1-core (no VSIDS)
+Options: file:/pddl_domain/snake_deepseek-r1_Arch_Aware_decstar.pddl file:/pddl_problem/instance-17.pddl
+Domain: snake
+Problem: snake-empty-9x9-1-5-37-22455
+Parser: 1947456 ground actions and 7413 state variables
+Invariants: 0 1 2 3 4 5 6 7 8  13.46 secs
+Goal: conjunctive
+Simplified: 86131 ground actions and 611 state variables
+Actions: STRIPS
+Disabling graph %: 10 20 30 40 50 60 70 80 90 100 28.11 secs (max SCC size 1)
+Plan type: E-step
+				Allocated 32 MB permanent (total 1292 MB)
+Horizon 5: 434321 variables
+5 UNSAT (0 decisions 0 conflicts)
+				Allocated 32 MB permanent (total 1574 MB)
+Horizon 7: 607805 variables
+7 UNSAT (0 decisions 0 conflicts)
+Horizon 10: 868031 variables
+10 UNSAT (0 decisions 0 conflicts)
+				Allocated 32 MB permanent (total 1882 MB)
+				Allocated 32 MB permanent (total 1914 MB)
+Horizon 14: 1214999 variables
+14 UNSAT (0 decisions 0 conflicts)
+				Allocated 32 MB permanent (total 2125 MB)
+Horizon 20: 1735451 variables
+20 UNSAT (0 decisions 0 conflicts)
+				Allocated 32 MB permanent (total 2377 MB)
+				Allocated 32 MB permanent (total 2409 MB)
+				Allocated 32 MB permanent (total 2441 MB)
+Horizon 28: 2429387 variables
+28 UNSAT (0 decisions 0 conflicts)
+				Allocated 32 MB permanent (total 2755 MB)
+				Allocated 32 MB permanent (total 2787 MB)
+				Allocated 32 MB permanent (total 2819 MB)
+Horizon 40: 3470291 variables
+				Allocated 32 MB (total 2851 MB)
+40 UNSAT (17 decisions 17 conflicts)
+				Allocated 32 MB permanent (total 3246 MB)
+				Allocated 32 MB permanent (total 3278 MB)
+				Allocated 32 MB permanent (total 3310 MB)
+				Allocated 32 MB permanent (total 3342 MB)
+				Allocated 32 MB permanent (total 3374 MB)
+Horizon 56: 4858163 variables
+				Allocated 32 MB permanent (total 3893 MB)
+				Allocated 32 MB permanent (total 3925 MB)
+				Allocated 32 MB permanent (total 3957 MB)
+				Allocated 32 MB permanent (total 3989 MB)
+				Allocated 32 MB permanent (total 4021 MB)
+				Allocated 32 MB permanent (total 4053 MB)
+Horizon 80: 6939971 variables
+				Allocated 32 MB permanent (total 4741 MB)
+				Allocated 32 MB permanent (total 4773 MB)
+				Allocated 32 MB permanent (total 4805 MB)
+				Allocated 32 MB permanent (total 4837 MB)
+				Allocated 32 MB permanent (total 4869 MB)
+				Allocated 32 MB permanent (total 4901 MB)
+				Allocated 32 MB permanent (total 4933 MB)
+				Allocated 32 MB permanent (total 4965 MB)
+				Allocated 32 MB permanent (total 4997 MB)
+				Allocated 32 MB permanent (total 5029 MB)
+Horizon 113: 9802457 variables
+				Allocated 32 MB permanent (total 5958 MB)
+				Allocated 32 MB permanent (total 5990 MB)
+				Allocated 32 MB permanent (total 6022 MB)
+				Allocated 32 MB permanent (total 6054 MB)
+				Allocated 32 MB permanent (total 6086 MB)
+				Allocated 32 MB permanent (total 6118 MB)
+				Allocated 32 MB permanent (total 6150 MB)
+				Allocated 32 MB permanent (total 6182 MB)
+				Allocated 32 MB permanent (total 6214 MB)
+				Allocated 32 MB permanent (total 6246 MB)
+				Allocated 32 MB permanent (total 6278 MB)
+				Allocated 32 MB permanent (total 6310 MB)
+				Allocated 32 MB permanent (total 6342 MB)
+Horizon 160: 13879331 variables
+				Allocated 32 MB (total 6374 MB)
+				Allocated 32 MB (total 6406 MB)
+				Allocated 32 MB (total 6438 MB)
+				Allocated 32 MB (total 6470 MB)
+				Allocated 32 MB (total 6502 MB)
+				Allocated 32 MB (total 6534 MB)
+				Allocated 32 MB (total 6566 MB)
+				Allocated 32 MB (total 6598 MB)
+				Allocated 32 MB (total 6630 MB)
+				Allocated 32 MB (total 6662 MB)
+				Allocated 32 MB (total 6694 MB)
+				Allocated 32 MB (total 6726 MB)
+				Allocated 32 MB (total 6758 MB)
+						GC: 671.23 MB
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 360.098005
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)
