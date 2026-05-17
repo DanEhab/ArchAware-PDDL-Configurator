@@ -31,6 +31,7 @@ ENV/
 # ──────────────────────────────────────────────────────────────
 PDFs/
 *.pdf
+LLM Modulo Feedback Loop Implementation Helper/
 
 # ──────────────────────────────────────────────────────────────
 # 4. Markdowns — Converted thesis PDFs (not for public commits)
@@ -80,6 +81,7 @@ desktop.ini
 # 9. Utility / Temporary Scripts
 # ──────────────────────────────────────────────────────────────
 convert_pdfs.py
+generate_html.py
 text.txt
 
 # Proprietary/Large Binaries
