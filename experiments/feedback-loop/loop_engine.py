@@ -28,7 +28,32 @@ with open(CONFIG_PATH, "r", encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
 DOCKER_CFG = CONFIG["docker"]
 
-def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=None, stage=None, prompt_id=None):
+UI_QUEUE = None
+
+def set_ui_queue(q):
+    global UI_QUEUE
+    UI_QUEUE = q
+
+def push_log(llm, event_type, message):
+    if UI_QUEUE:
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+        llm_pad = f"{llm:<8}"[:8]
+        evt_pad = f"[{event_type}]"
+        raw_msg = f"[{timestamp}] [{llm_pad}] {evt_pad:<11} {message}"
+        UI_QUEUE.put(("LOG", llm, event_type, message, raw_msg))
+    else:
+        print(f"[{llm}] [{event_type}] {message}")
+
+def push_pipeline(llm, current, total, text):
+    if UI_QUEUE:
+        UI_QUEUE.put(("PIPELINE_UPDATE", llm, current, total, text))
+
+def push_complete(triple_id, total_iters, verdict, delta):
+    if UI_QUEUE:
+        UI_QUEUE.put(("TRIPLE_COMPLETE", triple_id, total_iters, verdict, delta))
+
+
+def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=None, stage=None, prompt_id=None, domain_name=None, iteration=None):
     results = {
         "coverage": 0,
         "total_instances": len(test_instances),
@@ -38,7 +63,18 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
         "instance_statuses": [],
         "instances": {} 
     }
+    
+    # Pre-calculate llm name for logs
+    llm_for_log = llm_model if llm_model else "Unknown"
+    
     for instance_path in test_instances:
+        inst_name = os.path.basename(instance_path)
+        iter_str = f"iter{iteration}" if iteration is not None else "iter0"
+        d_name = domain_name if domain_name else "unknown"
+        short_path = f"{d_name}/{iter_str}/{inst_name}"
+        
+        push_log(llm_for_log, "RUN", f"{planner_name:<7} | {short_path} ...")
+        
         docker_image = f"{planner_name}_planner"
         res = execute_planner(
             planner_name=planner_name, 
@@ -48,7 +84,7 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
             docker_cfg=DOCKER_CFG
         )
         status = res.get("Output_Status", "FAILURE")
-        inst_name = os.path.basename(instance_path)
+        
         results['instance_statuses'].append((inst_name, status))
         res['LLM_Used'] = llm_model or 'N/A'
         res['Stage'] = stage or 'Feedback_Loop'
@@ -59,6 +95,15 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
         
         runtime = float(res.get("Runtime_wall_s") or 0.0) if status == "SUCCESS" else None
         states = int(res.get("StatesExpanded") or 0) if status == "SUCCESS" else None
+        
+        if status == "SUCCESS":
+            push_log(llm_for_log, "SUCCESS", f"{planner_name:<7} | {short_path} | wall={runtime:.1f}s")
+        elif status == "TIMEOUT":
+            push_log(llm_for_log, "TIMEOUT", f"{planner_name:<7} | {short_path} | wall=360.0s")
+        elif status == "MEMORY_OUT":
+            push_log(llm_for_log, "MEMOUT", f"{planner_name:<7} | {short_path} | wall=OOM")
+        else:
+            push_log(llm_for_log, "ERROR", f"{planner_name:<7} | {short_path} | {status}")
         
         results["instances"][inst_name] = {
             "status": status,
@@ -98,13 +143,13 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     seed_copy_path = os.path.join(run_dir, f"{domain_name}_{llm_model.replace('/','-')}_Feedback_{planner_name}_iter0.pddl")
     Path(seed_copy_path).write_text(current_domain_str, encoding="utf-8")
     
-    print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration 0: Computing baseline performance on Target Planner...")
-    baseline_stats = run_soft_critic(stage0_baseline_path, planner_name, test_instances)
+    push_log(llm_model, "RUN", f"Computing baseline performance on Target Planner...")
+    baseline_stats = run_soft_critic(stage0_baseline_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
     
     stage2_stats = None
     if initial_telemetry_feedback == "DELAY_VALID_TELEMETRY":
-        print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration 0 (Valid seed): Computing Seed performance on Target Planner...")
-        stage2_stats = run_soft_critic(seed_copy_path, planner_name, test_instances)
+        push_log(llm_model, "RUN", f"Iteration 0 (Valid seed): Computing Seed performance on Target Planner...")
+        stage2_stats = run_soft_critic(seed_copy_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
         
         from meta_controller import build_telemetry_for_valid_full
         imp_csv = os.path.join(REPO_ROOT, "results", "arch_aware", "improvement", "improvement_results.csv")
@@ -155,7 +200,8 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     last_ipc = seed_score
 
     for iteration in range(1, max_iter + 1):
-        print(f"\n[{llm_model} | {planner_name} | {domain_name}] --- Starting Iteration {iteration} ---")
+        push_pipeline(llm_model, iteration, max_iter, f"🔄 {domain_name} + {planner_name} (Iter {iteration})")
+        push_log(llm_model, "LLM_GEN", f"{domain_name}+{planner_name} | Iter {iteration}: Prompt sent, awaiting generation...")
         
         history_buffer_str = "\n\n".join(history_buffer)
         
@@ -186,11 +232,12 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
         llm_error_str = "SUCCESS"
         elapsed, input_toks, output_toks = 0.0, 0, 0
         try:
-            print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: Generating reordered domain via LLM...")
+            push_log(llm_model, "LLM_GEN", f"{domain_name}+{planner_name} | Iter {iteration}: Prompt sent, awaiting generation...")
             llm_response, elapsed, input_toks, output_toks = llm.generate(prompt_text)
+            push_log(llm_model, "LLM_RECV", f"{domain_name}+{planner_name} | Iter {iteration}: Output received ({output_toks} tokens).")
         except Exception as e:
             llm_error_str = str(e)
-            print(f"[{llm_model} | {planner_name} | {domain_name}] LLM Error: {e}")
+            push_log(llm_model, "LLM_ERROR", f"{domain_name}+{planner_name} | Iter {iteration}: API Error. {llm_error_str[:100]}")
             
             # error.csv dump
             error_csv = str(REPO_ROOT / "logs" / "stage3" / "error.csv")
@@ -221,7 +268,7 @@ ERROR:
         llm_resp_path = os.path.join(llm_resp_dir, f"{domain_name}_{llm_model.replace('/','-')}_{planner_name}_iter{iteration}.txt")
         Path(llm_resp_path).write_text(llm_response, encoding="utf-8")
 
-        print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: Running V1-V4 Validation Pipeline (Hard Critics)...")
+        push_log(llm_model, "VALIDATE", f"{domain_name}+{planner_name} | Iter {iteration}: Running V1-V4 Validation Pipeline (Hard Critics)...")
         tmp_domain_path = os.path.join(run_dir, f"{domain_name}_{llm_model.replace('/','-')}_Feedback_{planner_name}_iter{iteration}.pddl")
         
         idx_pddl = llm_response.lower().find("(define (domain")
@@ -275,7 +322,7 @@ ERROR:
                  history_buffer.append(f"Iteration {iteration}:\n  • Your Strategy: \"{rationale}\"\n  • Result: REJECTED — V1 check failed.\n    Changes detected: Malformed.")
             
             log_to_csv(csv_path, {"Triple_ID": f"{domain_name}_{planner_name}_{llm_model}", "Domain": domain_name, "LLM": llm_model, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": f"INVALID_{failed_stage}", "V4_Failure_Detail": v4_detail, "Coverage": 0.0, "Avg_Run_Wall_s": 0.0, "Avg_StatesExpanded": 0, "IPC_Score": 0.0, "Delta_vs_Baseline": "N/A", "Delta_vs_Previous": "N/A", "Is_Best_So_Far": False, "LLM_Rationale": rationale, "Termination_Reason": "N/A" if iteration < max_iter else "MAX_ITER", "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": "N/A", "Timestamp": datetime.datetime.now().isoformat()})
-            print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: Validation Failed at {failed_stage}")
+            push_log(llm_model, "VALIDATE", f"{domain_name}+{planner_name} | Iter {iteration}: {failed_stage} Failure! ({reason[:60] if failed_stage != 'V4' else v4_detail[:60]})")
             continue
 
         Path(tmp_domain_path).write_text(val_result.extracted_pddl, encoding="utf-8")
@@ -286,8 +333,8 @@ ERROR:
         eval_domain_path = os.path.join(eval_domain_dir, f"domain_iter{iteration}.pddl")
         Path(eval_domain_path).write_text(val_result.extracted_pddl, encoding="utf-8")
         
-        print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: Executing Target Planner on test instances (Soft Critic)...")
-        current_stats = run_soft_critic(eval_domain_path, planner_name, test_instances)
+        push_log(llm_model, "VALIDATE", f"{domain_name}+{planner_name} | Iter {iteration}: V1-V4 passed successfully.")
+        current_stats = run_soft_critic(eval_domain_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=iteration)
         mean_ipc_gain = calculate_simple_ipc(baseline_stats, current_stats)
         
         verdict = "IMPROVEMENT" if mean_ipc_gain > 0 else "REGRESSION"
@@ -347,15 +394,20 @@ IMPROVEMENT DIRECTION:
             best_domain_path = tmp_domain_path
             best_iter_num = iteration
 
-        current_domain_str = val_result.extracted_pddl
+        push_log(llm_model, "CRITIQUE", f"{domain_name}+{planner_name} | Iter {iteration}: {new_cov}/15 Solved | IPC: {iter_ipc_abs:.3f} | Delta: {mean_ipc_gain:+.3f}")
         
+        if is_best:
+            push_log(llm_model, "RESULT", f"{domain_name}+{planner_name} | Iter {iteration}: IMPROVEMENT detected. Setting as best_so_far.")
+        else:
+            push_log(llm_model, "RESULT", f"{domain_name}+{planner_name} | Iter {iteration}: {verdict} detected. Reverting to Iter {best_iter_num} best.")
+
         all_timeout = current_stats["coverage"] == 0 and baseline_stats["coverage"] == 0
         term_reason = "ALL_TIMEOUT" if all_timeout else ("MAX_ITER" if iteration == max_iter else "N/A")
         
         log_to_csv(csv_path, {"Triple_ID": f"{domain_name}_{planner_name}_{llm_model}", "Domain": domain_name, "LLM": llm_model, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": "VALID", "V4_Failure_Detail": "N/A", "Coverage": new_cov/15.0, "Avg_Run_Wall_s": stage2_avg_time, "Avg_StatesExpanded": stage2_avg_states, "IPC_Score": iter_ipc_abs, "Delta_vs_Baseline": mean_ipc_gain, "Delta_vs_Previous": delta_prev, "Is_Best_So_Far": is_best, "LLM_Rationale": rationale, "Termination_Reason": term_reason, "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": tmp_domain_path, "Timestamp": datetime.datetime.now().isoformat()})
 
         if all_timeout:
-            print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: ALL_TIMEOUT activated. Ending loop early.")
+            push_log(llm_model, "TERMINATE", f"{domain_name}+{planner_name} | ALL_TIMEOUT triggered on Iter {iteration}. Ending loop.")
             break
 
     # Determine what domains are finally sent out
@@ -365,14 +417,19 @@ IMPROVEMENT DIRECTION:
 
     if best_domain_path:
         Path(final_output_path).write_text(Path(best_domain_path).read_text(encoding="utf-8"), encoding="utf-8")
-        print(f"Feedback loop complete. Final best domain saved to {final_output_path} (Score: {best_score})")
+        push_log(llm_model, "TERMINATE", f"{domain_name}+{planner_name} | Loop ended. Saved best to final_domains.")
     else:
         # Defaults to Stage 2 seed if valid, else Stage 0 baseline.
         Path(final_output_path).write_text(Path(base_domain_path).read_text(encoding="utf-8"), encoding="utf-8")
-        print("Feedback loop complete, but NO VALID BEST DOMAIN was produced. Used fallback.")
+        push_log(llm_model, "TERMINATE", f"{domain_name}+{planner_name} | Loop ended. NO VALID BEST DOMAIN. Used fallback.")
         
     imp_vs_seed = best_score - seed_score
     was_stage2 = not is_valid_seed
+    
+    # Send completion event
+    best_delta = best_score - baseline_stats["coverage"] # approximate delta for UI
+    vstr = "IMPROVEMENT" if imp_vs_seed > 0 else "ALL_TIMEOUT" if all_timeout else "REGRESSION"
+    push_complete(f"{domain_name}, {llm_model}, {planner_name}", iteration, vstr, imp_vs_seed)
     
     log_to_csv(final_domains_csv, {
         "Triple_ID": f"{domain_name}_{planner_name}_{llm_model}",

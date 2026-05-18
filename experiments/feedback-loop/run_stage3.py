@@ -49,20 +49,16 @@ import concurrent.futures
 import pandas as pd
 from pathlib import Path
 import datetime
+import threading
+import queue
+from collections import deque
 
-class TerminalLogger(object):
-    def __init__(self, filename):
-        self.terminal = sys.stdout
-        self.log = open(filename, "a", encoding="utf-8")
-        
-    def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message)
-        self.log.flush()
-        
-    def flush(self):
-        self.terminal.flush()
-        self.log.flush()
+from rich.live import Live
+from rich.layout import Layout
+from rich.panel import Panel
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
+from rich.console import Group, Console
+from rich.text import Text
 
 REPO_ROOT = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 if str(REPO_ROOT) not in sys.path:
@@ -71,8 +67,12 @@ if str(REPO_ROOT) not in sys.path:
 # Handle directory with hyphen
 sys.path.insert(0, str(REPO_ROOT / "experiments" / "feedback-loop"))
 
+import loop_engine
 from loop_engine import run_feedback_loop  # type: ignore
 from meta_controller import build_telemetry_for_valid_full, get_6A_telemetry, get_6C_telemetry  # type: ignore
+
+UI_QUEUE = queue.Queue()
+loop_engine.set_ui_queue(UI_QUEUE)
 
 DOMAINS = ["barman", "depots", "ricochet-robots", "snake", "visitall"]
 PLANNERS = ["lama", "decstar", "bfws", "madagascar"]
@@ -214,7 +214,7 @@ def resolve_seed_domain(domain, planner, llm):
     return seed_domain_path, stage0_path, init_hist, init_tel, stage2_ipc, is_valid_seed
 
 def run_pipeline_for_llm(llm):
-    print(f"=== Starting Pipeline for LLM: {llm} ===")
+    UI_QUEUE.put(("LOG", llm, "INFO", f"=== Starting Pipeline for LLM: {llm} ===", None))
     output_dir = os.path.join(REPO_ROOT, "results", "feedback_loop")
     os.makedirs(output_dir, exist_ok=True)
     
@@ -226,7 +226,7 @@ def run_pipeline_for_llm(llm):
             df = pd.read_csv(final_domains_csv)
             completed_triples = set(df['Triple_ID'].unique())
         except Exception as e:
-            print(f"Warning: Could not read checkpoint CSV: {e}")
+            pass
     
     for domain in DOMAINS:
         test_instances = get_test_instances(domain)
@@ -234,11 +234,11 @@ def run_pipeline_for_llm(llm):
             
         for planner in PLANNERS:
             if shutdown_flag.is_set():
-                print(f"[Shutdown] Stopping {llm} thread...")
+                UI_QUEUE.put(("LOG", llm, "INFO", "[Shutdown] Stopping thread...", None))
                 return
             triple_id = f"{domain}_{planner}_{llm}"
             if triple_id in completed_triples:
-                print(f"[{triple_id}] Skipping - already completed (checkpoint found).")
+                UI_QUEUE.put(("LOG", llm, "INFO", f"[{triple_id}] Skipping - already completed (checkpoint).", None))
                 continue
                 
             try:
@@ -268,9 +268,36 @@ def run_pipeline_for_llm(llm):
                         comp_count = len(pd.read_csv(final_domains_csv))
                     except:
                         pass
-                update_heartbeat(comp_count, 80)
+                UI_QUEUE.put(("OVERALL_PROGRESS", comp_count, 80))
             except Exception as e:
-                print(f"Error processing {domain} | {planner} | {llm}: {e}")
+                import traceback
+                tb = traceback.format_exc()
+                UI_QUEUE.put(("LOG", llm, "LLM_ERROR", f"Error processing {domain} | {planner} | {llm}: {e}", None))
+
+def run_pipelines_orchestrator():
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            futures = {executor.submit(run_pipeline_for_llm, llm): llm for llm in LLMS}
+            for future in concurrent.futures.as_completed(futures):
+                llm = futures[future]
+                try:
+                    future.result()
+                    UI_QUEUE.put(("LOG", llm, "INFO", f"Pipeline finished successfully.", None))
+                except Exception as e:
+                    UI_QUEUE.put(("FATAL_ERROR", f"Pipeline {llm} crashed: {e}"))
+        UI_QUEUE.put(("DONE", None))
+    except Exception as e:
+        UI_QUEUE.put(("FATAL_ERROR", f"Orchestrator failed: {e}"))
+
+def build_layout():
+    layout = Layout()
+    layout.split_column(
+        Layout(name="header", size=5),
+        Layout(name="pipelines", size=6),
+        Layout(name="log", size=17),
+        Layout(name="completed", size=6)
+    )
+    return layout
 
 def main():
     log_dir = os.path.join(REPO_ROOT, "logs", "stage3", "terminal_output")
@@ -278,22 +305,125 @@ def main():
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file = os.path.join(log_dir, f"run_{timestamp}.log")
     
-    sys.stdout = TerminalLogger(log_file)
-    sys.stderr = sys.stdout
-
-    print("Starting Stage 3 Feedback Loop Master Orchestrator...")
-    output_dir = os.path.join(REPO_ROOT, "results", "feedback_loop")
-    os.makedirs(output_dir, exist_ok=True)
+    # Initialize UI state
+    log_messages = deque(maxlen=15)
+    completed_messages = deque(maxlen=4)
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        futures = {executor.submit(run_pipeline_for_llm, llm): llm for llm in LLMS}
-        for future in concurrent.futures.as_completed(futures):
-            llm = futures[future]
-            try:
-                future.result()
-                print(f"Pipeline finished successfully for {llm}")
-            except Exception as e:
-                print(f"Pipeline crashed for {llm}: {e}")
+    overall_progress = Progress(
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        TextColumn("({task.completed}/{task.total} Triples)"),
+        TimeElapsedColumn()
+    )
+    overall_task = overall_progress.add_task("[bold cyan]OVERALL PROGRESS:", total=80)
+    
+    pipeline_progress = Progress(
+        TextColumn("[bold]{task.description:<20}"),
+        BarColumn(),
+        TextColumn("{task.completed:>2}/{task.total} | {task.fields[status]}"),
+    )
+    
+    pipeline_tasks = {}
+    for llm in LLMS:
+        pipeline_tasks[llm] = pipeline_progress.add_task(f"Pipeline: {llm[:10]}", total=20, status="Starting...")
+
+    # Load initial completed count
+    output_dir = os.path.join(REPO_ROOT, "results", "feedback_loop")
+    final_domains_csv = os.path.join(output_dir, "stage3_final_domains.csv")
+    if os.path.exists(final_domains_csv):
+        try:
+            df = pd.read_csv(final_domains_csv)
+            comp_count = len(df)
+            overall_progress.update(overall_task, completed=comp_count)
+        except Exception:
+            pass
+
+    layout = build_layout()
+    header_text = Text(
+        "================================================================================\n"
+        "  [PHASE 3] ARCH-AWARE FEEDBACK LOOP EXECUTOR \n"
+        "  [Engine: Antigravity | Container Runtime: Docker]\n"
+        "================================================================================",
+        style="bold bright_blue", justify="center"
+    )
+    layout["header"].update(Group(header_text, overall_progress))
+    layout["pipelines"].update(Panel(pipeline_progress, title="[ ⚡ PARALLEL PIPELINE STATUS ]", border_style="cyan"))
+    layout["log"].update(Panel(Text("Waiting for logs..."), title="[ 📜 LIVE EXECUTION LOG ]", border_style="green"))
+    layout["completed"].update(Panel(Text(""), title="[ 🏆 LATEST COMPLETED TRIPLES ]", border_style="yellow"))
+
+    # Start background thread
+    threading.Thread(target=run_pipelines_orchestrator, daemon=True).start()
+
+    with open(log_file, "a", encoding="utf-8") as f_log:
+        with Live(layout, refresh_per_second=4, screen=False):
+            while True:
+                try:
+                    event = UI_QUEUE.get(timeout=0.25)
+                    etype = event[0]
+                    
+                    if etype == "LOG":
+                        _, llm, tag, msg, raw_msg = event
+                        
+                        # Determine color
+                        color = "white"
+                        if tag == "LLM_GEN": color = "cyan"
+                        elif tag == "LLM_RECV": color = "blue"
+                        elif tag == "VALIDATE": color = "magenta" if "Failure" in msg or "Error" in msg else "green"
+                        elif tag == "RUN": color = "yellow"
+                        elif tag == "SUCCESS": color = "green"
+                        elif tag == "TIMEOUT": color = "red"
+                        elif tag == "CRITIQUE": color = "yellow"
+                        elif tag == "RESULT": color = "bold green" if "IMPROVEMENT" in msg else "bold yellow"
+                        elif tag == "LLM_ERROR" or tag == "FATAL_ERROR": color = "bold red"
+                        
+                        ts = datetime.datetime.now().strftime("%H:%M:%S")
+                        llm_pad = f"{llm:<10}"[:10]
+                        tag_pad = f"[{tag}]"
+                        
+                        colored_msg = f"[{ts}] [{color}]{llm_pad}[/] [{color}]{tag_pad:<12}[/] {msg}"
+                        log_messages.append(colored_msg)
+                        layout["log"].update(Panel(Text.from_markup("\n".join(log_messages)), title="[ 📜 LIVE EXECUTION LOG ]", border_style="green"))
+                        
+                        # Write raw unformatted log
+                        raw_str = raw_msg if raw_msg else f"[{ts}] [{llm_pad}] {tag_pad:<12} {msg}"
+                        f_log.write(raw_str + "\n")
+                        f_log.flush()
+                        
+                    elif etype == "PIPELINE_UPDATE":
+                        _, llm, current, total, text = event
+                        if llm in pipeline_tasks:
+                            pipeline_progress.update(pipeline_tasks[llm], completed=current, status=text)
+                            
+                    elif etype == "TRIPLE_COMPLETE":
+                        _, triple_id, total_iters, verdict, delta = event
+                        icon = "✔" if verdict == "IMPROVEMENT" else "✖"
+                        color = "green" if verdict == "IMPROVEMENT" else "red" if verdict == "ALL_TIMEOUT" else "yellow"
+                        comp_msg = f"[{color}]{icon} ({triple_id}) | Total Iters: {total_iters} | Final Result: {verdict} (Best Delta: {delta:+.2f})[/]"
+                        completed_messages.append(comp_msg)
+                        layout["completed"].update(Panel(Text.from_markup("\n".join(completed_messages)), title="[ 🏆 LATEST COMPLETED TRIPLES ]", border_style="yellow"))
+                        
+                    elif etype == "OVERALL_PROGRESS":
+                        _, current, total = event
+                        overall_progress.update(overall_task, completed=current)
+                        
+                    elif etype == "FATAL_ERROR":
+                        _, err_msg = event
+                        log_messages.append(f"[bold red]FATAL ERROR: {err_msg}[/]")
+                        layout["log"].update(Panel(Text.from_markup("\n".join(log_messages)), title="[ 📜 LIVE EXECUTION LOG ]", border_style="red"))
+                        f_log.write(f"FATAL ERROR: {err_msg}\n")
+                        break
+                        
+                    elif etype == "DONE":
+                        log_messages.append("[bold bright_green]All pipelines completed successfully![/]")
+                        layout["log"].update(Panel(Text.from_markup("\n".join(log_messages)), title="[ 📜 LIVE EXECUTION LOG ]", border_style="green"))
+                        f_log.write("All pipelines completed successfully.\n")
+                        break
+                        
+                except queue.Empty:
+                    pass
+                    
+    print("\nOrchestrator Shutdown Complete.")
 
     # Generate final summary
     print("\nAll threads finished. Generating combined run summary...")
