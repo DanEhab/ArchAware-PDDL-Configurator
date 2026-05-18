@@ -109,11 +109,26 @@ def run_pipeline_for_llm(llm):
     output_dir = os.path.join(REPO_ROOT, "results", "feedback_loop")
     os.makedirs(output_dir, exist_ok=True)
     
+    # Checkpointing: Load completed triples
+    completed_triples = set()
+    final_domains_csv = os.path.join(output_dir, "stage3_final_domains.csv")
+    if os.path.exists(final_domains_csv):
+        try:
+            df = pd.read_csv(final_domains_csv)
+            completed_triples = set(df['Triple_ID'].unique())
+        except Exception as e:
+            print(f"Warning: Could not read checkpoint CSV: {e}")
+    
     for domain in DOMAINS:
         test_instances = get_test_instances(domain)
         if not test_instances: continue
             
         for planner in PLANNERS:
+            triple_id = f"{domain}_{planner}_{llm}"
+            if triple_id in completed_triples:
+                print(f"[{triple_id}] Skipping - already completed (checkpoint found).")
+                continue
+                
             try:
                 seed_domain_path, stage0_baseline_path, init_hist, init_tel, stage2_ipc, is_valid_seed = resolve_seed_domain(domain, planner, llm)
                 
