@@ -17,10 +17,11 @@ from llms.llm_providers import get_provider  # type: ignore
 import yaml
 import numpy as np
 
-from csv_manager_stage3 import log_to_csv  # type: ignore
+from csv_manager_stage3 import log_to_csv, log_diff_metrics  # type: ignore
 from rationale_extractor import extract_rationale  # type: ignore
 from meta_controller import calculate_simple_ipc, build_telemetry_table, meta_controller_diagnostics  # type: ignore
 from prompt_builder import build_feedback_prompt  # type: ignore
+from validation_and_evaluation.scripts.validation.validation_pipeline import save_validation_json
 
 CONFIG_PATH = REPO_ROOT / "config" / "experiment_config.yaml"
 with open(CONFIG_PATH, "r", encoding="utf-8") as f:
@@ -193,6 +194,26 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
         problem_file_path_obj = Path(test_instances[0]) if test_instances else None
         val_result = validate_domain(llm_response, Path(stage0_baseline_path), problem_file_path_obj)
         val_status = val_result.status
+        
+        # Save Validation JSON and update diff metrics
+        stage_name = f"Feedback_Loop{iteration}"
+        run_id = f"Feedback_{planner_name}_iter{iteration}"
+        json_path = save_validation_json(val_result, domain_name, llm_model.replace('/','-'), stage_name, run_id, REPO_ROOT)
+        pddl_len = len(val_result.extracted_pddl) if val_result.extracted_pddl else 0
+        
+        log_diff_metrics(
+            diff_features=val_result.diff_features,
+            status=val_status,
+            reason=val_result.reason,
+            failed_stage=val_result.failed_stage,
+            llm_id=f"{domain_name}_{planner_name}_{llm_model.replace('/','-')}",
+            domain=domain_name,
+            model_id=llm_model,
+            iteration=iteration,
+            json_path=json_path,
+            pddl_length=pddl_len,
+            repo_root=REPO_ROOT
+        )
         
         if val_status != "VALID":
             verdict = "FAILED_VALIDATION"
