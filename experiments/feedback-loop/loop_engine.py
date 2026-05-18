@@ -222,12 +222,6 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
         prompt_log_path = os.path.join(prompt_save_dir, f"{domain_name}_{llm_model.replace('/','-')}_{planner_name}_iter{iteration}_prompt.txt")
         Path(prompt_log_path).write_text(prompt_text, encoding="utf-8")
 
-        import os
-        from run_stage3 import REPO_ROOT
-        import importlib.util
-        csv_spec = importlib.util.spec_from_file_location("csv_manager_stage3", str(REPO_ROOT / "experiments/feedback-loop/csv_manager_stage3.py"))
-        csv_mod = importlib.util.module_from_spec(csv_spec)
-        csv_spec.loader.exec_module(csv_mod)
         llm_error_str = "SUCCESS"
         elapsed, input_toks, output_toks = 0.0, 0, 0
         try:
@@ -240,7 +234,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             
             # error.csv dump
             error_csv = str(REPO_ROOT / "logs" / "stage3" / "error.csv")
-            csv_mod.log_to_csv(error_csv, {
+            log_to_csv(error_csv, {
                 "Timestamp": datetime.datetime.now(timezone.utc).isoformat(),
                 "Component": "LLM_Generation",
                 "Model": llm_model,
