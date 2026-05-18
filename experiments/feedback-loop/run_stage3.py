@@ -1,3 +1,47 @@
+
+def generate_run_summary():
+    output_dir = os.path.join(REPO_ROOT, "results", "feedback_loop")
+    final_domains_csv = os.path.join(output_dir, "stage3_final_domains.csv")
+    if not os.path.exists(final_domains_csv):
+        return
+    import pandas as pd
+    df = pd.read_csv(final_domains_csv)
+    
+    total_triples = len(df)
+    improved = len(df[df['Validation_Status'] == 'VALID'])
+    
+    summary_txt = "==================================================\n"
+    summary_txt += "           STAGE 3 EXECUTION SUMMARY              \n"
+    summary_txt += "==================================================\n\n"
+    summary_txt += f"Total Triples Processed: {total_triples}\n"
+    summary_txt += f"Total Triples Improved (VALID): {improved} ({(improved/total_triples*100) if total_triples > 0 else 0:.1f}%)\n\n"
+    
+    summary_txt += "BREAKDOWN BY LLM:\n"
+    summary_txt += "-----------------\n"
+    for llm in df['LLM'].unique():
+        llm_df = df[df['LLM'] == llm]
+        llm_imp = len(llm_df[llm_df['Validation_Status'] == 'VALID'])
+        summary_txt += f"- {llm}: {llm_imp}/{len(llm_df)} Improved\n"
+    
+    summary_txt += "\nBREAKDOWN BY PLANNER:\n"
+    summary_txt += "---------------------\n"
+    for planner in df['Target_Planner'].unique():
+        pl_df = df[df['Target_Planner'] == planner]
+        pl_imp = len(pl_df[pl_df['Validation_Status'] == 'VALID'])
+        summary_txt += f"- {planner}: {pl_imp}/{len(pl_df)} Improved\n"
+        
+    summary_txt += "\nBREAKDOWN BY DOMAIN:\n"
+    summary_txt += "--------------------\n"
+    for dom in df['Domain'].unique():
+        dom_df = df[df['Domain'] == dom]
+        dom_imp = len(dom_df[dom_df['Validation_Status'] == 'VALID'])
+        summary_txt += f"- {dom}: {dom_imp}/{len(dom_df)} Improved\n"
+    
+    summary_path = os.path.join(output_dir, "run_summary.txt")
+    with open(summary_path, "w", encoding="utf-8") as f:
+        f.write(summary_txt)
+    print(f"\n[SUMMARY] Saved completed run summary to {summary_path}")
+
 import os
 import sys
 import glob
@@ -189,6 +233,9 @@ def run_pipeline_for_llm(llm):
         if not test_instances: continue
             
         for planner in PLANNERS:
+            if shutdown_flag.is_set():
+                print(f"[Shutdown] Stopping {llm} thread...")
+                return
             triple_id = f"{domain}_{planner}_{llm}"
             if triple_id in completed_triples:
                 print(f"[{triple_id}] Skipping - already completed (checkpoint found).")
@@ -211,6 +258,17 @@ def run_pipeline_for_llm(llm):
                     is_valid_seed=is_valid_seed,
                     max_iter=3
                 )
+                
+                # Update heartbeat count
+                final_domains_csv = os.path.join(output_dir, "stage3_final_domains.csv")
+                comp_count = 0
+                if os.path.exists(final_domains_csv):
+                    import pandas as pd
+                    try:
+                        comp_count = len(pd.read_csv(final_domains_csv))
+                    except:
+                        pass
+                update_heartbeat(comp_count, 80)
             except Exception as e:
                 print(f"Error processing {domain} | {planner} | {llm}: {e}")
 
@@ -236,6 +294,13 @@ def main():
                 print(f"Pipeline finished successfully for {llm}")
             except Exception as e:
                 print(f"Pipeline crashed for {llm}: {e}")
+
+    # Generate final summary
+    print("\nAll threads finished. Generating combined run summary...")
+    try:
+        generate_run_summary()
+    except Exception as e:
+        print(f"Failed to generate run summary: {e}")
 
 if __name__ == "__main__":
     main()

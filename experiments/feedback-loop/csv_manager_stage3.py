@@ -78,3 +78,129 @@ def log_diff_metrics(diff_features, status, reason, failed_stage, llm_id, domain
             writer = csv.DictWriter(f, fieldnames=row.keys())
             if write_header_global: writer.writeheader()
             writer.writerow(row)
+
+def log_llm_generation(row_data, repo_root):
+    local_path = Path(repo_root) / "results/feedback_loop/feedback_loop_llm_generation_data.csv"
+    global_path = Path(repo_root) / "results/llm_generation_data.csv"
+    
+    local_path.parent.mkdir(parents=True, exist_ok=True)
+    global_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Ensure standard keys
+    expected_keys = [
+        "ID", "Domain Name", "LLM Model", "Prompt ID", "LLM_Status", "LLM API Time S",
+        "Input Tokens Consumed", "Output Tokens Generated", "Path to Raw LLM Response",
+        "Passed Stage V1", "Path to Extracted PDDL", "Passed VAL Syntactic Check (V2)",
+        "VAL_error_string", "Passed V3", "Passed V4", "Validation Status", "Timestamp"
+    ]
+    
+    filled_row = {k: row_data.get(k, "N/A") for k in expected_keys}
+    if "Timestamp" not in row_data or row_data["Timestamp"] == "N/A":
+        filled_row["Timestamp"] = datetime.now(timezone.utc).isoformat()
+        
+    with csv_lock:
+        local_hdr = not local_path.exists()
+        with local_path.open("a", newline="", encoding="utf-8") as lf:
+            w = csv.DictWriter(lf, fieldnames=expected_keys)
+            if local_hdr: w.writeheader()
+            w.writerow(filled_row)
+            
+        global_hdr = not global_path.exists()
+        with global_path.open("a", newline="", encoding="utf-8") as gf:
+            w = csv.DictWriter(gf, fieldnames=expected_keys)
+            if global_hdr: w.writeheader()
+            w.writerow(filled_row)
+
+def log_planner_execution(row_data, repo_root):
+    local_path = Path(repo_root) / "results/feedback_loop/feedback_loop_planner_execution_data.csv"
+    global_path = Path(repo_root) / "results/planner_execution_data.csv"
+    
+    local_path.parent.mkdir(parents=True, exist_ok=True)
+    global_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    expected_keys = [
+        "Run_ID", "Domain_Name", "Domain_File", "Problem_Instance", "Planner_Used",
+        "Stage", "LLM_Used", "PromptID", "PlanCost", "Runtime_internal_s",
+        "Runtime_wall_s", "Output_Status", "StatesExpanded", "StatesGenerated",
+        "StatesEvaluated", "PeakMemoryKB", "Timestamp"
+    ]
+    
+    filled_row = {k: row_data.get(k, "N/A") for k in expected_keys}
+    if "Timestamp" not in row_data or row_data["Timestamp"] == "N/A":
+        filled_row["Timestamp"] = datetime.now(timezone.utc).isoformat()
+        
+    with csv_lock:
+        local_hdr = not local_path.exists()
+        with local_path.open("a", newline="", encoding="utf-8") as lf:
+            w = csv.DictWriter(lf, fieldnames=expected_keys)
+            if local_hdr: w.writeheader()
+            w.writerow(filled_row)
+            
+        global_hdr = not global_path.exists()
+        with global_path.open("a", newline="", encoding="utf-8") as gf:
+            w = csv.DictWriter(gf, fieldnames=expected_keys)
+            if global_hdr: w.writeheader()
+            w.writerow(filled_row)
+
+def log_llm_generation(row_data, repo_root):
+    local_path = Path(repo_root) / "results/feedback_loop/feedback_loop_llm_generation_data.csv"
+    global_path = Path(repo_root) / "results/llm_generation_data.csv"
+    
+    local_path.parent.mkdir(parents=True, exist_ok=True)
+    global_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Ensure standard keys
+    expected_keys = [
+        "ID", "Domain Name", "LLM Model", "Prompt ID", "LLM_Status", "LLM API Time S",
+        "Input Tokens Consumed", "Output Tokens Generated", "Path to Raw LLM Response",
+        "Passed Stage V1", "Path to Extracted PDDL", "Passed VAL Syntactic Check (V2)",
+        "VAL_error_string", "Passed V3", "Passed V4", "Validation Status", "Timestamp"
+    ]
+    
+    filled_row = {k: row_data.get(k, "N/A") for k in expected_keys}
+    if "Timestamp" not in row_data or row_data["Timestamp"] == "N/A":
+        filled_row["Timestamp"] = datetime.now(timezone.utc).isoformat()
+        
+    with csv_lock:
+        local_hdr = not local_path.exists()
+        with local_path.open("a", newline="", encoding="utf-8") as lf:
+            w = csv.DictWriter(lf, fieldnames=expected_keys)
+            if local_hdr: w.writeheader()
+            w.writerow(filled_row)
+            
+        global_hdr = not global_path.exists()
+        with global_path.open("a", newline="", encoding="utf-8") as gf:
+            w = csv.DictWriter(gf, fieldnames=expected_keys)
+            if global_hdr: w.writeheader()
+            w.writerow(filled_row)
+
+def log_planner_execution(row_data, repo_root):
+    local_path = Path(repo_root) / "results/feedback_loop/feedback_loop_planner_execution_data.csv"
+    global_path = Path(repo_root) / "results/planner_execution_data.csv"
+    
+    local_path.parent.mkdir(parents=True, exist_ok=True)
+    global_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    expected_keys = [
+        "Run_ID", "Domain_Name", "Domain_File", "Problem_Instance", "Planner_Used",
+        "Stage", "LLM_Used", "PromptID", "PlanCost", "Runtime_internal_s",
+        "Runtime_wall_s", "Output_Status", "StatesExpanded", "StatesGenerated",
+        "StatesEvaluated", "PeakMemoryKB", "Timestamp"
+    ]
+    
+    filled_row = {k: row_data.get(k, "N/A") for k in expected_keys}
+    if "Timestamp" not in row_data or row_data["Timestamp"] == "N/A":
+        filled_row["Timestamp"] = datetime.now(timezone.utc).isoformat()
+        
+    with csv_lock:
+        local_hdr = not local_path.exists()
+        with local_path.open("a", newline="", encoding="utf-8") as lf:
+            w = csv.DictWriter(lf, fieldnames=expected_keys)
+            if local_hdr: w.writeheader()
+            w.writerow(filled_row)
+            
+        global_hdr = not global_path.exists()
+        with global_path.open("a", newline="", encoding="utf-8") as gf:
+            w = csv.DictWriter(gf, fieldnames=expected_keys)
+            if global_hdr: w.writeheader()
+            w.writerow(filled_row)

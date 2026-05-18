@@ -28,7 +28,7 @@ with open(CONFIG_PATH, "r", encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
 DOCKER_CFG = CONFIG["docker"]
 
-def run_soft_critic(domain_pddl_path, planner_name, test_instances):
+def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=None, stage=None, prompt_id=None):
     results = {
         "coverage": 0,
         "total_instances": len(test_instances),
@@ -49,7 +49,13 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances):
         )
         status = res.get("Output_Status", "FAILURE")
         inst_name = os.path.basename(instance_path)
-        results["instance_statuses"].append((inst_name, status))
+        results['instance_statuses'].append((inst_name, status))
+        res['LLM_Used'] = llm_model or 'N/A'
+        res['Stage'] = stage or 'Feedback_Loop'
+        res['PromptID'] = prompt_id or 'N/A'
+        from experiments.base.utils import REPO_ROOT
+        from experiments.feedback_loop.csv_manager_stage3 import log_planner_execution
+        log_planner_execution(res, str(REPO_ROOT))
         
         runtime = float(res.get("Runtime_wall_s") or 0.0) if status == "SUCCESS" else None
         states = int(res.get("StatesExpanded") or 0) if status == "SUCCESS" else None
@@ -171,11 +177,43 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
         prompt_log_path = os.path.join(prompt_save_dir, f"{domain_name}_{llm_model.replace('/','-')}_{planner_name}_iter{iteration}_prompt.txt")
         Path(prompt_log_path).write_text(prompt_text, encoding="utf-8")
 
+        import os
+        from run_stage3 import REPO_ROOT
+        import importlib.util
+        csv_spec = importlib.util.spec_from_file_location("csv_manager_stage3", str(REPO_ROOT / "experiments/feedback-loop/csv_manager_stage3.py"))
+        csv_mod = importlib.util.module_from_spec(csv_spec)
+        csv_spec.loader.exec_module(csv_mod)
+        llm_error_str = "SUCCESS"
+        elapsed, input_toks, output_toks = 0.0, 0, 0
         try:
             print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: Generating reordered domain via LLM...")
             llm_response, elapsed, input_toks, output_toks = llm.generate(prompt_text)
         except Exception as e:
+            llm_error_str = str(e)
             print(f"[{llm_model} | {planner_name} | {domain_name}] LLM Error: {e}")
+            
+            # error.csv dump
+            error_csv = str(REPO_ROOT / "logs" / "stage3" / "error.csv")
+            csv_mod.log_to_csv(error_csv, {
+                "Timestamp": datetime.now(timezone.utc).isoformat(),
+                "Component": "LLM_Generation",
+                "Model": llm_model,
+                "Planner": planner_name,
+                "Domain": domain_name,
+                "Iteration": iteration,
+                "Error": llm_error_str
+            })
+            # textual dump
+            err_dump_dir = REPO_ROOT / "logs" / "stage3" / "errors"
+            err_dump_dir.mkdir(parents=True, exist_ok=True)
+            err_file = err_dump_dir / f"{domain_name}_{llm_model.replace('/','-')}_{planner_name}_iter{iteration}_error.txt"
+            with open(err_file, "w", encoding="utf-8") as ef:
+                ef.write(f"PROMPT:
+{prompt_text}
+
+ERROR:
+{llm_error_str}")
+                
             break
 
         rationale = extract_rationale(llm_response)
@@ -352,3 +390,4 @@ IMPROVEMENT DIRECTION:
         "Was_Stage2_Failure": was_stage2,
         "Stage3_Domain_Path": final_output_path
     })
+
