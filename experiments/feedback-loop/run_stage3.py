@@ -4,6 +4,21 @@ import glob
 import concurrent.futures
 import pandas as pd
 from pathlib import Path
+import datetime
+
+class TerminalLogger(object):
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, "a", encoding="utf-8")
+        
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+        self.log.flush()
+        
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
 
 REPO_ROOT = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 if str(REPO_ROOT) not in sys.path:
@@ -17,7 +32,7 @@ from meta_controller import build_telemetry_for_valid_full, get_6A_telemetry, ge
 
 DOMAINS = ["barman", "depots", "ricochet-robots", "snake", "visitall"]
 PLANNERS = ["lama", "decstar", "bfws", "madagascar"]
-LLMS = ["claude-opus-4.6", "deepseek-r1", "gemini-3.1-pro", "gpt-5.4", "gpt-5.4-2026-03-05"]
+LLMS = ["claude-opus-4.6", "deepseek-r1", "gemini-3.1-pro", "gpt-5.4"]
 
 def get_test_instances(domain):
     indices = [1, 2, 3, 4, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19]
@@ -150,6 +165,14 @@ def run_pipeline_for_llm(llm):
                 print(f"Error processing {domain} | {planner} | {llm}: {e}")
 
 def main():
+    log_dir = os.path.join(REPO_ROOT, "logs", "stage3", "terminal_output")
+    os.makedirs(log_dir, exist_ok=True)
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = os.path.join(log_dir, f"run_{timestamp}.log")
+    
+    sys.stdout = TerminalLogger(log_file)
+    sys.stderr = sys.stdout
+
     print("Starting Stage 3 Feedback Loop Master Orchestrator...")
     output_dir = os.path.join(REPO_ROOT, "results", "feedback_loop")
     os.makedirs(output_dir, exist_ok=True)

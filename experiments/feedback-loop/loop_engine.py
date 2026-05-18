@@ -91,7 +91,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     seed_copy_path = os.path.join(run_dir, f"{domain_name}_{llm_model.replace('/','-')}_Feedback_{planner_name}_iter0.pddl")
     Path(seed_copy_path).write_text(current_domain_str, encoding="utf-8")
     
-    print("Evaluating Baseline soft critic...")
+    print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration 0: Computing baseline performance on Target Planner...")
     baseline_stats = run_soft_critic(stage0_baseline_path, planner_name, test_instances)
     
     history_buffer = initial_history_buffer.copy()
@@ -99,11 +99,21 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     cumulative_failures = 0
     v4_semantic_failures = 0
     
+    # Resolve the correct provider and model_id from the global config based on the friendly name
     provider_name = "openai"
-    if "claude" in llm_model.lower(): provider_name = "anthropic"
-    elif "gemini" in llm_model.lower(): provider_name = "google"
-    elif "deepseek" in llm_model.lower(): provider_name = "deepseek"
-    llm = get_provider(provider_name, llm_model, temp=0.0, top_p=1.0, max_tokens=8192)
+    actual_model_id = llm_model
+    if "llms" in CONFIG:
+        for cfg_llm in CONFIG["llms"]:
+            if cfg_llm.get("name") == llm_model:
+                provider_name = cfg_llm.get("provider", "openai")
+                actual_model_id = cfg_llm.get("model_id", llm_model)
+                break
+                
+    if "claude" in llm_model.lower() and provider_name == "openai": provider_name = "anthropic"
+    elif "gemini" in llm_model.lower() and provider_name == "openai": provider_name = "google"
+    elif "deepseek" in llm_model.lower() and provider_name == "openai": provider_name = "deepseek"
+    
+    llm = get_provider(provider_name, actual_model_id, temp=0.0, top_p=1.0, max_tokens=8192)
 
     best_score = float(stage2_best_score)
     seed_score = float(stage2_best_score)
@@ -115,7 +125,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     last_ipc = seed_score
 
     for iteration in range(1, max_iter + 1):
-        print(f"--- Iteration {iteration} ---")
+        print(f"\n[{llm_model} | {planner_name} | {domain_name}] --- Starting Iteration {iteration} ---")
         
         history_buffer_str = "\n\n".join(history_buffer)
         
@@ -138,10 +148,10 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
         Path(prompt_log_path).write_text(prompt_text, encoding="utf-8")
 
         try:
-            print("Querying LLM...")
+            print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: Generating reordered domain via LLM...")
             llm_response, elapsed, input_toks, output_toks = llm.generate(prompt_text)
         except Exception as e:
-            print(f"LLM Error: {e}")
+            print(f"[{llm_model} | {planner_name} | {domain_name}] LLM Error: {e}")
             break
 
         rationale = extract_rationale(llm_response)
@@ -149,7 +159,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
         llm_resp_path = os.path.join(llm_resp_dir, f"{domain_name}_{llm_model.replace('/','-')}_{planner_name}_iter{iteration}.txt")
         Path(llm_resp_path).write_text(llm_response, encoding="utf-8")
 
-        print("Validating with Hard Critics...")
+        print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: Running V1-V4 Validation Pipeline (Hard Critics)...")
         tmp_domain_path = os.path.join(run_dir, f"{domain_name}_{llm_model.replace('/','-')}_Feedback_{planner_name}_iter{iteration}.pddl")
         
         idx_pddl = llm_response.lower().find("(define (domain")
@@ -183,7 +193,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
                  history_buffer.append(f"Iteration {iteration}:\n  • Your Strategy: \"{rationale}\"\n  • Result: REJECTED — V1 check failed.\n    Changes detected: Malformed.")
             
             log_to_csv(csv_path, {"Triple_ID": f"{domain_name}_{planner_name}_{llm_model}", "Domain": domain_name, "LLM": llm_model, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": f"INVALID_{failed_stage}", "V4_Failure_Detail": v4_detail, "Coverage": 0.0, "Avg_Run_Wall_s": 0.0, "Avg_StatesExpanded": 0, "IPC_Score": 0.0, "Delta_vs_Baseline": "N/A", "Delta_vs_Previous": "N/A", "Is_Best_So_Far": False, "LLM_Rationale": rationale, "Termination_Reason": "N/A" if iteration < max_iter else "MAX_ITER", "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": "N/A", "Timestamp": datetime.datetime.now().isoformat()})
-            print(f"Validation Failed at {failed_stage}")
+            print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: Validation Failed at {failed_stage}")
             continue
 
         Path(tmp_domain_path).write_text(val_result.extracted_pddl, encoding="utf-8")
@@ -194,7 +204,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
         eval_domain_path = os.path.join(eval_domain_dir, f"domain_iter{iteration}.pddl")
         Path(eval_domain_path).write_text(val_result.extracted_pddl, encoding="utf-8")
         
-        print("Evaluating with Soft Critic...")
+        print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: Executing Target Planner on test instances (Soft Critic)...")
         current_stats = run_soft_critic(eval_domain_path, planner_name, test_instances)
         mean_ipc_gain = calculate_simple_ipc(baseline_stats, current_stats)
         
@@ -263,7 +273,7 @@ IMPROVEMENT DIRECTION:
         log_to_csv(csv_path, {"Triple_ID": f"{domain_name}_{planner_name}_{llm_model}", "Domain": domain_name, "LLM": llm_model, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": "VALID", "V4_Failure_Detail": "N/A", "Coverage": new_cov/15.0, "Avg_Run_Wall_s": stage2_avg_time, "Avg_StatesExpanded": stage2_avg_states, "IPC_Score": iter_ipc_abs, "Delta_vs_Baseline": mean_ipc_gain, "Delta_vs_Previous": delta_prev, "Is_Best_So_Far": is_best, "LLM_Rationale": rationale, "Termination_Reason": term_reason, "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": tmp_domain_path, "Timestamp": datetime.datetime.now().isoformat()})
 
         if all_timeout:
-            print("ALL_TIMEOUT activated. Ending early.")
+            print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration {iteration}: ALL_TIMEOUT activated. Ending loop early.")
             break
 
     # Determine what domains are finally sent out
