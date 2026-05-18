@@ -92,8 +92,17 @@ def resolve_seed_domain(domain, planner, llm):
             
             if 'tokenlimit' in llm_status.lower() or val_status == 'TokenLimitExceeded':
                 # 6A-i TokenLimit
-                init_hist = ["PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — Your response exceeded the maximum token output\n  • No valid PDDL domain was produced."]
+                init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — Your response exceeded the maximum token output\n    limit (4,096 tokens) and was truncated before completion.\n  • No valid PDDL domain was produced."]
                 init_tel = get_6A_telemetry("TokenLimitExceeded", baseline_pddl)
+            elif 'ratelimit' in llm_status.lower():
+                init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — The API rate limit was exceeded.\n  • No valid PDDL domain was produced."]
+                init_tel = get_6A_telemetry("RateLimit", baseline_pddl)
+            elif 'filter' in llm_status.lower() or 'safety' in llm_status.lower():
+                init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — The response was blocked by the provider's\n    content safety filter.\n  • No valid PDDL domain was produced."]
+                init_tel = get_6A_telemetry("Filter", baseline_pddl)
+            elif 'server' in llm_status.lower() or 'timeout' in llm_status.lower():
+                init_hist = [f"PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — The API call failed due to a server/network error.\n    Error: \"{llm_status}\"\n  • No valid PDDL domain was produced."]
+                init_tel = get_6A_telemetry("Server", baseline_pddl)
             elif val_status == 'VALID' and row['Passed Stage V1'] == True and v4_pass == "True":
                 # 6B: Valid Domain
                 is_valid_seed = True
@@ -103,18 +112,59 @@ def resolve_seed_domain(domain, planner, llm):
                 else:
                     seed_domain_path = stage0_path # fallback just in case
                 
-                init_hist = ["PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • No rationale was recorded for this attempt."]
-                
                 imp_csv = os.path.join(REPO_ROOT, "results", "arch_aware", "improvement", "improvement_results.csv")
-                init_tel = build_telemetry_for_valid_full(domain, planner, llm, imp_csv)
+                
+                try:
+                    id_df = pd.read_csv(imp_csv)
+                    llm_map = {
+                        "gpt-5.4-2026-03-05": "gpt-5.4",
+                        "claude-opus-4.6": "claude-opus-4-6",
+                        "gemini-3.1-pro": "gemini-3.1-pro",
+                        "deepseek-r1": "deepseek-reasoner"
+                    }
+                    llm_search_id = llm
+                    for k, v in llm_map.items():
+                        if k in llm or llm in k:
+                            llm_search_id = v
+                            break
+                    m2 = id_df[(id_df['Domain'] == domain) & (id_df['Target_Planner'] == planner) & (id_df['LLM'].str.contains(llm_search_id, regex=False, na=False))]
+                    if not m2.empty:
+                        imp_detected = m2.iloc[0]['IMPROVEMENT_DETECTED'] == True
+                        if imp_detected:
+                            init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • Result: IMPROVEMENT DETECTED (passed all 3 conditions: statistical\n    significance, practical significance, coverage preservation).\n  • No rationale was recorded for this attempt."]
+                        else:
+                            fails = []
+                            if not m2.iloc[0]['Statistical_Significance']: fails.append("Statistical_Significance")
+                            if not m2.iloc[0]['Practical_Significance']: fails.append("Practical_Significance")
+                            if not m2.iloc[0]['Coverage_Preserved']: fails.append("Coverage_Preserved")
+                            f_str = ", ".join(fails)
+                            init_hist = [f"PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • Result: NO IMPROVEMENT detected. Failed conditions: {f_str}\n  • No rationale was recorded for this attempt."]
+                    else:
+                        init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • No rationale was recorded for this attempt."]
+                except Exception:
+                    init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • No rationale was recorded for this attempt."]
                 
                 # Best score gets set to Stage 2 IPC (approx logic: we lookup real later)
                 stage2_ipc = 1.0 # placeholder for valid IPC, will be overwritten by point 5
+                
+                # NOTE: For valid domains, we must DELAY telemetry generation until run_feedback_loop
+                # because we need the Stage 2 and Baseline statistics blocks from soft critics to build it.
+                # We signal this by passing a placeholder list.
+                init_tel = "DELAY_VALID_TELEMETRY"
             else:
                 # 6C: Invalid Domain
                 error_str = str(row['VAL_error_string']) if pd.notna(row['VAL_error_string']) else "Unknown semantic violation"
                 failed_str = "V4" if v4_pass == "False" else "V2"
-                init_hist = [f"PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — {failed_str} Check"]
+                if "V1" in val_status: failed_str = "V1"
+                if "V3" in val_status: failed_str = "V3"
+                
+                det = ""
+                if failed_str == "V4": det = f"  • Detail: Your reordering CHANGED the logical semantics of the\n    domain. The following differences were detected:\n    {error_str}"
+                elif failed_str == "V2": det = f"  • Detail: The VAL validator reported the following syntax errors:\n    \"{error_str}\""
+                elif failed_str == "V3": det = f"  • Detail: Your output was identical to the input domain. No\n    reordering was performed."
+                elif failed_str == "V1": det = f"  • Detail: No valid PDDL block starting with \"(define\" was found in\n    your response. Your output contained conversational text or\n    malformed code that could not be parsed as PDDL."
+                
+                init_hist = [f"PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — {failed_str} Check\n{det}"]
                 init_tel = get_6C_telemetry(failed_str, error_str, baseline_pddl)
                 
     return seed_domain_path, stage0_path, init_hist, init_tel, stage2_ipc, is_valid_seed

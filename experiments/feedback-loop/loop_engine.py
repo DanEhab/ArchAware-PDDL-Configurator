@@ -94,6 +94,29 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration 0: Computing baseline performance on Target Planner...")
     baseline_stats = run_soft_critic(stage0_baseline_path, planner_name, test_instances)
     
+    stage2_stats = None
+    if initial_telemetry_feedback == "DELAY_VALID_TELEMETRY":
+        print(f"[{llm_model} | {planner_name} | {domain_name}] Iteration 0 (Valid seed): Computing Seed performance on Target Planner...")
+        stage2_stats = run_soft_critic(seed_copy_path, planner_name, test_instances)
+        
+        from meta_controller import build_telemetry_for_valid_full
+        imp_csv = os.path.join(REPO_ROOT, "results", "arch_aware", "improvement", "improvement_results.csv")
+        initial_telemetry_feedback = build_telemetry_for_valid_full(domain_name, planner_name, llm_model, imp_csv, stage2_stats, baseline_stats)
+        
+        # Override Stage2 Best Score using the IPC calculated now
+        best_score = 0.0
+        for inst_name, base_data in baseline_stats["instances"].items():
+            t_base = base_data.get("runtime", None)
+            t_cur = stage2_stats["instances"].get(inst_name, {}).get("runtime", None)
+            if t_base is not None and t_cur is not None:
+                t_star = min(t_base, t_cur)
+                if t_star == 0: t_star = 0.001
+                ratio_cur = max(1.0, t_cur / t_star)
+                best_score += 1.0 / (1.0 + np.log10(ratio_cur))
+            elif t_cur is not None:
+                best_score += 1.0
+        seed_score = best_score
+        
     history_buffer = initial_history_buffer.copy()
     telemetry_feedback = str(initial_telemetry_feedback)
     cumulative_failures = 0

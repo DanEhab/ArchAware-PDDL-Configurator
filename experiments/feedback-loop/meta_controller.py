@@ -145,7 +145,7 @@ def build_telemetry_for_valid(row, domain, planner, llm):
     pass
 
 # We will adapt build_telemetry_for_valid to be independent of REPO_ROOT by passing df or path.
-def build_telemetry_for_valid_full(domain, planner, llm, imp_csv_path):
+def build_telemetry_for_valid_full(domain, planner, llm, imp_csv_path, stage2_stats, baseline_stats):
     import os
     import pandas as pd
     
@@ -174,50 +174,66 @@ def build_telemetry_for_valid_full(domain, planner, llm, imp_csv_path):
         
     m = match.iloc[0]
     imp_detected = m['IMPROVEMENT_DETECTED'] == True
-    delta_cov = m['Delta_Coverage']
     mean_ipc = m['Mean_IPC_Gain']
+    failed_conditions = []
+    
+    if not imp_detected:
+        if not m['Statistical_Significance']: failed_conditions.append("Statistical_Significance")
+        if not m['Practical_Significance']: failed_conditions.append("Practical_Significance")
+        if not m['Coverage_Preserved']: failed_conditions.append("Coverage_Preserved")
+    
+    stage2_solved = stage2_stats["coverage"]
+    baseline_solved = baseline_stats["coverage"]
+    
+    stage2_avg_time = stage2_stats["total_search_time"] / stage2_solved if stage2_solved > 0 else 0
+    baseline_avg_time = baseline_stats["total_search_time"] / baseline_solved if baseline_solved > 0 else 0
+    
+    stage2_avg_states = int(stage2_stats["total_expanded_states"] / stage2_solved) if stage2_solved > 0 else 0
+    baseline_avg_states = int(baseline_stats["total_expanded_states"] / baseline_solved) if baseline_solved > 0 else 0
     
     fb = []
-    fb.append("[EXECUTION FEEDBACK]")
-    fb.append(f"Your previous reordering was tested on {planner}. Here are the results compared to the BASELINE:")
+    fb.append("[EXECUTION FEEDBACK]\n")
+    fb.append(f"Your previous reordering was tested on {planner} across all 15")
+    fb.append("problem instances. Here are the results compared to the BASELINE:\n")
     fb.append("OVERALL PERFORMANCE SUMMARY:")
+    fb.append(f"• Instances solved: {stage2_solved}/15 (Baseline: {baseline_solved}/15)")
+    fb.append(f"• Average run wall time (solved): {stage2_avg_time:.2f}s (Baseline: {baseline_avg_time:.2f}s)")
+    fb.append(f"• Average states expanded (solved): {stage2_avg_states} (Baseline: {baseline_avg_states})")
+    fb.append(f"• Mean IPC Gain: {mean_ipc:.3f} (from improvement_results.csv)")
+    
     if imp_detected:
-        fb.append(f"• Verdict: IMPROVEMENT DETECTED (Mean IPC Gain: {mean_ipc})")
+        fb.append(f"• Verdict: IMPROVEMENT DETECTED\n")
     else:
-        fb.append(f"• Verdict: NO IMPROVEMENT (Mean IPC Gain: {mean_ipc})")
+        fails_str = ", ".join(failed_conditions)
+        fb.append(f"• Verdict: NO IMPROVEMENT — Failed: {fails_str}\n")
         
-    fb.append("\nDIAGNOSTIC ANALYSIS:")
-    if delta_cov < 0:
-        fb.append("⚠ WARNING: Your reordering REDUCED coverage. The planner could not find plans for instances it previously solved.")
-    elif delta_cov > 0:
-        fb.append("✓ POSITIVE: Your reordering INCREASED coverage.")
-        
-    if mean_ipc < -0.001:
-        fb.append(f"Mean IPC Gain is negative ({mean_ipc}), indicating overall performance degradation.")
-    elif mean_ipc > 0.001:
-         fb.append(f"✓ POSITIVE: Mean IPC Gain is positive ({mean_ipc}), indicating overall performance improvement.")
-         
-    fb.append("\nIMPROVEMENT DIRECTION:")
-    if imp_detected:
-        fb.append(f"Your previous reordering already shows improvement (Mean IPC Gain: {mean_ipc}). Try to further optimize for the instances that still timed out.")
-    else:
-        if delta_cov < 0:
-            fb.append("Your reordering lost coverage. Prioritize structural orderings that maintain solvability before optimizing speed.")
-        else:
-            fb.append("Your previous reordering did not produce a statistically significant improvement. Try a different structural strategy.")
+    fb.append("PER-INSTANCE BREAKDOWN:")
+    fb.append(build_telemetry_table(baseline_stats, stage2_stats))
+    
+    diag_str, direc_str = meta_controller_diagnostics(baseline_stats, stage2_stats, mean_ipc)
+    fb.append(f"\nDIAGNOSTIC ANALYSIS:\n{diag_str}")
+    fb.append(f"\nIMPROVEMENT DIRECTION:\n{direc_str}")
             
     return "\n".join(fb)
 
 def get_6A_telemetry(error_type, baseline_pddl):
     if "TokenLimitExceeded" in error_type:
-        return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because your previous attempt did not produce a complete PDDL domain file.\n\nThe domain below is the ORIGINAL unmodified baseline. You are starting from scratch. Generate a complete, reordered PDDL domain.\n\nNote: The token output limit has been increased to 8,192 tokens. Output the reordered PDDL efficiently without conversational filler."
+        return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because your previous attempt did not\nproduce a complete PDDL domain file.\n\nThe domain below is the ORIGINAL unmodified baseline. You are starting\nfrom scratch. Generate a complete, reordered PDDL domain.\n\nNote: The token output limit has been increased to 8,192 tokens.\nOutput the reordered PDDL efficiently without conversational filler."
+    elif "RateLimit" in error_type:
+        return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because the previous API call was\nrate-limited.\n\nThe domain below is the ORIGINAL unmodified baseline. Generate a\ncomplete, reordered PDDL domain."
+    elif "Filter" in error_type or "Safety" in error_type:
+        return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because the previous response was\nblocked by safety filters.\n\nThe domain below is the ORIGINAL unmodified baseline. Generate ONLY\nthe reordered PDDL domain file without any additional commentary."
+    elif "Server" in error_type or "Network" in error_type or "Timeout" in error_type:
+        return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because the previous API call failed.\n\nThe domain below is the ORIGINAL unmodified baseline. Generate a\ncomplete, reordered PDDL domain."
     else:
-        return f"[EXECUTION FEEDBACK]\n\nNo execution data is available due to a previous error ({error_type}).\n\nThe domain below is the ORIGINAL unmodified baseline. Generate a complete, reordered PDDL domain."
+        return f"[EXECUTION FEEDBACK]\n\nNo execution data is available due to a previous error.\n\nThe domain below is the ORIGINAL unmodified baseline. Generate a\ncomplete, reordered PDDL domain."
 
 def get_6C_telemetry(failed_stage, error_str, baseline_pddl):
     if failed_stage == "V4":
-        return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because your previous attempt was REJECTED for changing the domain's logical semantics.\nSpecific violations: {error_str}\n\n⚠ CRITICAL: You must ONLY reorder existing elements. Do NOT add or remove preconditions, and do NOT rename predicates or actions.\n\nThe domain below is the ORIGINAL unmodified baseline. Start over and ensure you ONLY change the ORDER of elements, not their content."
+        return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because your previous attempt was\nREJECTED for changing the domain's logical semantics.\n\n⚠ CRITICAL: You must ONLY reorder existing elements. Do NOT:\n  - Add or remove preconditions\n  - Add or remove effects\n  - Change parameter types\n  - Rename predicates or actions\n\nThe domain below is the ORIGINAL unmodified baseline. Start over and\nensure you ONLY change the ORDER of elements, not their content."
     elif failed_stage == "V2":
-         return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because your previous attempt contained syntax errors that prevented planner execution.\nVAL Error Output: {error_str}\n\nThe domain below is the ORIGINAL unmodified baseline. Fix these syntax issues. Remember: you must ONLY reorder elements, not modify them."
+         return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because your previous attempt contained\nsyntax errors that prevented planner execution.\n\nVAL Error Output:\n{error_str}\n\nThe domain below is the ORIGINAL unmodified baseline. Fix these syntax\nissues. Remember: you must ONLY reorder elements, not modify them."
+    elif failed_stage == "V3":
+         return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because your previous attempt produced\nan identical copy of the input domain with no changes.\n\nThe domain below is the ORIGINAL unmodified baseline. You MUST reorder\nthe elements (predicates, actions, preconditions, effects) according\nto the architecture-aware rules above. Do not return the domain\nunchanged."
     else:
-         return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because your previous attempt produced an invalid domain.\n\nThe domain below is the ORIGINAL unmodified baseline. You MUST reorder the elements according to the architecture-aware rules above. Do not return the domain unchanged."
+         return f"[EXECUTION FEEDBACK]\n\nNo execution data is available because your previous attempt did not\nproduce a parseable PDDL domain.\n\nThe domain below is the ORIGINAL unmodified baseline. Output ONLY the\ncomplete reordered PDDL domain file — no explanations, no markdown\nfencing, no commentary. Start your PDDL output directly with\n\"(define (domain ...\"."
