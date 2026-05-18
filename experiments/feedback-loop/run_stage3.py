@@ -74,6 +74,8 @@ from meta_controller import build_telemetry_for_valid_full, get_6A_telemetry, ge
 UI_QUEUE = queue.Queue()
 loop_engine.set_ui_queue(UI_QUEUE)
 
+shutdown_flag = threading.Event()
+
 DOMAINS = ["barman", "depots", "ricochet-robots", "snake", "visitall"]
 PLANNERS = ["lama", "decstar", "bfws", "madagascar"]
 LLMS = ["claude-opus-4.6", "deepseek-r1", "gemini-3.1-pro", "gpt-5.4"]

@@ -1,6 +1,7 @@
 import os
 import sys
 import datetime
+from datetime import timezone
 from pathlib import Path
 
 REPO_ROOT = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -17,7 +18,7 @@ from llms.llm_providers import get_provider  # type: ignore
 import yaml
 import numpy as np
 
-from csv_manager_stage3 import log_to_csv, log_diff_metrics  # type: ignore
+from csv_manager_stage3 import log_to_csv, log_diff_metrics, log_planner_execution  # type: ignore
 from rationale_extractor import extract_rationale  # type: ignore
 from meta_controller import calculate_simple_ipc, build_telemetry_table, meta_controller_diagnostics  # type: ignore
 from prompt_builder import build_feedback_prompt  # type: ignore
@@ -89,8 +90,6 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
         res['LLM_Used'] = llm_model or 'N/A'
         res['Stage'] = stage or 'Feedback_Loop'
         res['PromptID'] = prompt_id or 'N/A'
-        from experiments.base.utils import REPO_ROOT
-        from experiments.feedback_loop.csv_manager_stage3 import log_planner_execution
         log_planner_execution(res, str(REPO_ROOT))
         
         runtime = float(res.get("Runtime_wall_s") or 0.0) if status == "SUCCESS" else None
@@ -242,7 +241,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             # error.csv dump
             error_csv = str(REPO_ROOT / "logs" / "stage3" / "error.csv")
             csv_mod.log_to_csv(error_csv, {
-                "Timestamp": datetime.now(timezone.utc).isoformat(),
+                "Timestamp": datetime.datetime.now(timezone.utc).isoformat(),
                 "Component": "LLM_Generation",
                 "Model": llm_model,
                 "Planner": planner_name,
@@ -255,11 +254,11 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             err_dump_dir.mkdir(parents=True, exist_ok=True)
             err_file = err_dump_dir / f"{domain_name}_{llm_model.replace('/','-')}_{planner_name}_iter{iteration}_error.txt"
             with open(err_file, "w", encoding="utf-8") as ef:
-                ef.write(f"PROMPT:
+                ef.write(f"""PROMPT:
 {prompt_text}
 
 ERROR:
-{llm_error_str}")
+{llm_error_str}""")
                 
             break
 
