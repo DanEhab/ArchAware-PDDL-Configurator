@@ -90,7 +90,7 @@ def resolve_seed_domain(domain, planner, llm):
             llm_status = str(row['LLM_Status'])
             v4_pass = str(row['Passed V4'])
             
-            if 'tokenlimit' in llm_status.lower() or val_status == 'TokenLimitExceeded':
+            if 'token_limit' in llm_status.lower() or 'tokenlimit' in llm_status.lower() or val_status == 'TokenLimitExceeded':
                 # 6A-i TokenLimit
                 init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — Your response exceeded the maximum token output\n    limit (4,096 tokens) and was truncated before completion.\n  • No valid PDDL domain was produced."]
                 init_tel = get_6A_telemetry("TokenLimitExceeded", baseline_pddl)
