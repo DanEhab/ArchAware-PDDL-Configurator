@@ -137,7 +137,7 @@ def load_stage2_stats(domain, planner, llm, repo_root):
 
     return _load_stats_from_csv(
         csv_path, domain, planner,
-        stage_filter="ArchAware",
+        stage_filter="Arch_Aware",
         domain_file_filter=domain_file_key
     )
 
