@@ -250,7 +250,6 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
 
     for iteration in range(1, max_iter + 1):
         push_pipeline(llm_model, iteration, max_iter, f"🔄 {domain_name} + {planner_name} (Iter {iteration})")
-        push_log(llm_model, "LLM_GEN", f"{domain_name}+{planner_name} | Iter {iteration}: Prompt sent, awaiting generation...")
         
         history_buffer_str = "\n\n".join(history_buffer)
         
