@@ -18,16 +18,28 @@ from llms.llm_providers import get_provider  # type: ignore
 import yaml
 import numpy as np
 
-from csv_manager_stage3 import log_to_csv, log_diff_metrics, log_planner_execution  # type: ignore
+from csv_manager_stage3 import log_to_csv, log_diff_metrics, log_planner_execution, log_llm_generation  # type: ignore
 from rationale_extractor import extract_rationale  # type: ignore
 from meta_controller import calculate_simple_ipc, build_telemetry_table, meta_controller_diagnostics  # type: ignore
 from prompt_builder import build_feedback_prompt  # type: ignore
 from validation_and_evaluation.scripts.validation.validation_pipeline import save_validation_json
+from baseline_loader import load_baseline_stats, load_stage2_stats, compute_seed_ipc  # type: ignore
+from error_handler_stage3 import ErrorHandlerStage3  # type: ignore
 
 CONFIG_PATH = REPO_ROOT / "config" / "experiment_config.yaml"
 with open(CONFIG_PATH, "r", encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
 DOCKER_CFG = CONFIG["docker"]
+
+# --- Error handlers (module-level singletons, thread-safe) ---
+PLANNER_ERROR_HANDLER = ErrorHandlerStage3(
+    error_register_path=REPO_ROOT / "logs" / "stage3" / "error_register.csv",
+    error_dumps_dir=REPO_ROOT / "logs" / "stage3" / "error_dumps",
+)
+LLM_ERROR_HANDLER = ErrorHandlerStage3(
+    error_register_path=REPO_ROOT / "logs" / "stage3" / "LLM_run" / "error_register.csv",
+    error_dumps_dir=REPO_ROOT / "logs" / "stage3" / "LLM_run" / "error_dumps",
+)
 
 UI_QUEUE = None
 
@@ -87,10 +99,39 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
         status = res.get("Output_Status", "FAILURE")
         
         results['instance_statuses'].append((inst_name, status))
-        res['LLM_Used'] = llm_model or 'N/A'
-        res['Stage'] = stage or 'Feedback_Loop'
-        res['PromptID'] = prompt_id or 'N/A'
-        log_planner_execution(res, str(REPO_ROOT))
+        
+        # Build proper CSV row with all expected fields (Bug fix #5: Stage column)
+        stage_name = stage or (f"Feedback_Loop{iteration}" if iteration else "Feedback_Loop")
+        domain_file_name = os.path.basename(domain_pddl_path)
+        csv_row = {
+            "Run_ID": f"{d_name}_{planner_name}_{llm_for_log}_iter{iteration}_{inst_name}",
+            "Domain_Name": d_name,
+            "Domain_File": domain_file_name,
+            "Problem_Instance": inst_name,
+            "Planner_Used": planner_name,
+            "Stage": stage_name,
+            "LLM_Used": llm_model or "N/A",
+            "PromptID": prompt_id or "N/A",
+            "PlanCost": res.get("PlanCost"),
+            "Runtime_internal_s": res.get("Runtime_internal_s"),
+            "Runtime_wall_s": res.get("Runtime_wall_s"),
+            "Output_Status": status,
+            "StatesExpanded": res.get("StatesExpanded"),
+            "StatesGenerated": res.get("StatesGenerated"),
+            "StatesEvaluated": res.get("StatesEvaluated"),
+            "PeakMemoryKB": res.get("PeakMemoryKB"),
+            "Timestamp": datetime.datetime.now(timezone.utc).isoformat(),
+        }
+        log_planner_execution(csv_row, str(REPO_ROOT))
+        
+        # Bug fix #10: Log planner errors to error handler
+        if status in ("TIMEOUT", "MEMOUT", "FAILURE"):
+            PLANNER_ERROR_HANDLER.log_planner_error(
+                domain=d_name, problem=inst_name, planner=planner_name,
+                llm=llm_for_log, iteration=iteration or 0,
+                error_type=status,
+                stdout=res.get("_stdout", ""), stderr=res.get("_stderr", ""),
+            )
         
         runtime = float(res.get("Runtime_wall_s") or 0.0) if status == "SUCCESS" else None
         states = int(res.get("StatesExpanded") or 0) if status == "SUCCESS" else None
@@ -99,7 +140,7 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
             push_log(llm_for_log, "SUCCESS", f"{planner_name:<7} | {short_path} | wall={runtime:.1f}s")
         elif status == "TIMEOUT":
             push_log(llm_for_log, "TIMEOUT", f"{planner_name:<7} | {short_path} | wall=360.0s")
-        elif status == "MEMORY_OUT":
+        elif status == "MEMOUT":
             push_log(llm_for_log, "MEMOUT", f"{planner_name:<7} | {short_path} | wall=OOM")
         else:
             push_log(llm_for_log, "ERROR", f"{planner_name:<7} | {short_path} | {status}")
@@ -121,7 +162,8 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
 def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, test_instances, output_dir, stage0_baseline_path, initial_history_buffer, initial_telemetry_feedback, stage2_best_score, is_valid_seed, max_iter=3):
     print(f"\n[{domain_name} | {planner_name} | {llm_model}] Starting Stage 3 Feedback Loop")
     
-    prompt_dir = os.path.join(REPO_ROOT, "experiments", "arch-aware", "prompts")
+    # Bug fix #8: Use feedback-loop/prompts (not arch-aware/prompts)
+    prompt_dir = os.path.join(REPO_ROOT, "experiments", "feedback-loop", "prompts")
 
     # Setup directories
     run_dir = os.path.join(output_dir, "Iteration Domains", llm_model.replace('/','-'), planner_name, domain_name)
@@ -142,30 +184,33 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     seed_copy_path = os.path.join(run_dir, f"{domain_name}_{llm_model.replace('/','-')}_Feedback_{planner_name}_iter0.pddl")
     Path(seed_copy_path).write_text(current_domain_str, encoding="utf-8")
     
-    push_log(llm_model, "RUN", f"Computing baseline performance on Target Planner...")
-    baseline_stats = run_soft_critic(stage0_baseline_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
+    # Bug fix #1: Load baseline from CSV instead of re-running planner
+    push_log(llm_model, "LOAD", f"Loading baseline stats from CSV...")
+    baseline_stats = load_baseline_stats(domain_name, planner_name, str(REPO_ROOT))
+    if baseline_stats["total_instances"] == 0:
+        push_log(llm_model, "WARN", f"No baseline CSV data for {domain_name}+{planner_name}. Falling back to planner run.")
+        baseline_stats = run_soft_critic(stage0_baseline_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
+    else:
+        push_log(llm_model, "LOAD", f"Baseline loaded: {baseline_stats['coverage']}/{baseline_stats['total_instances']} solved")
     
+    # Bug fix #2: Load Stage 2 seed data from CSV instead of re-running planner
     stage2_stats = None
     if initial_telemetry_feedback == "DELAY_VALID_TELEMETRY":
-        push_log(llm_model, "RUN", f"Iteration 0 (Valid seed): Computing Seed performance on Target Planner...")
-        stage2_stats = run_soft_critic(seed_copy_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
+        push_log(llm_model, "LOAD", f"Loading Stage 2 seed stats from CSV...")
+        stage2_stats = load_stage2_stats(domain_name, planner_name, llm_model, str(REPO_ROOT))
+        
+        if stage2_stats["total_instances"] == 0:
+            push_log(llm_model, "WARN", f"No Stage 2 CSV data. Falling back to planner run.")
+            stage2_stats = run_soft_critic(seed_copy_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
+        else:
+            push_log(llm_model, "LOAD", f"Stage 2 seed loaded: {stage2_stats['coverage']}/{stage2_stats['total_instances']} solved")
         
         from meta_controller import build_telemetry_for_valid_full
         imp_csv = os.path.join(REPO_ROOT, "results", "arch_aware", "improvement", "improvement_results.csv")
         initial_telemetry_feedback = build_telemetry_for_valid_full(domain_name, planner_name, llm_model, imp_csv, stage2_stats, baseline_stats)
         
-        # Override Stage2 Best Score using the IPC calculated now
-        best_score = 0.0
-        for inst_name, base_data in baseline_stats["instances"].items():
-            t_base = base_data.get("runtime", None)
-            t_cur = stage2_stats["instances"].get(inst_name, {}).get("runtime", None)
-            if t_base is not None and t_cur is not None:
-                t_star = min(t_base, t_cur)
-                if t_star == 0: t_star = 0.001
-                ratio_cur = max(1.0, t_cur / t_star)
-                best_score += 1.0 / (1.0 + np.log10(ratio_cur))
-            elif t_cur is not None:
-                best_score += 1.0
+        # Bug fix #6: Use compute_seed_ipc() instead of inline calc
+        best_score = compute_seed_ipc(baseline_stats, stage2_stats)
         seed_score = best_score
         
     history_buffer = initial_history_buffer.copy()
@@ -189,14 +234,20 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     
     llm = get_provider(provider_name, actual_model_id, temp=0.0, top_p=1.0, max_tokens=8192)
 
-    best_score = float(stage2_best_score)
-    seed_score = float(stage2_best_score)
+    # Bug fix #6: Only set from stage2_best_score for non-valid seeds.
+    # For valid seeds, best_score was already computed above via compute_seed_ipc().
+    if stage2_stats is None:
+        best_score = float(stage2_best_score)
+        seed_score = float(stage2_best_score)
     best_domain_path = None if not is_valid_seed else base_domain_path
     
     verdict = None # Track across iterations
     best_iter_num = 0
     term_reason = "MAX_ITER"
     last_ipc = seed_score
+    # Bug fix #7: Initialize all_timeout before the loop
+    all_timeout = False
+    iteration = 0  # Safe default for post-loop access
 
     for iteration in range(1, max_iter + 1):
         push_pipeline(llm_model, iteration, max_iter, f"🔄 {domain_name} + {planner_name} (Iter {iteration})")
@@ -232,28 +283,30 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             llm_error_str = str(e)
             push_log(llm_model, "LLM_ERROR", f"{domain_name}+{planner_name} | Iter {iteration}: API Error. {llm_error_str[:100]}")
             
-            # error.csv dump
-            error_csv = str(REPO_ROOT / "logs" / "stage3" / "error.csv")
-            log_to_csv(error_csv, {
-                "Timestamp": datetime.datetime.now(timezone.utc).isoformat(),
-                "Component": "LLM_Generation",
-                "Model": llm_model,
-                "Planner": planner_name,
-                "Domain": domain_name,
-                "Iteration": iteration,
-                "Error": llm_error_str
-            })
-            # textual dump
-            err_dump_dir = REPO_ROOT / "logs" / "stage3" / "errors"
-            err_dump_dir.mkdir(parents=True, exist_ok=True)
-            err_file = err_dump_dir / f"{domain_name}_{llm_model.replace('/','-')}_{planner_name}_iter{iteration}_error.txt"
-            with open(err_file, "w", encoding="utf-8") as ef:
-                ef.write(f"""PROMPT:
-{prompt_text}
-
-ERROR:
-{llm_error_str}""")
-                
+            # Bug fix #4: Use error_handler_stage3 for LLM errors
+            LLM_ERROR_HANDLER.log_llm_error(
+                domain=domain_name, planner=planner_name, llm=llm_model,
+                iteration=iteration, error_type="LLM_API_ERROR",
+                prompt_text=prompt_text, error_message=llm_error_str,
+            )
+            
+            # Bug fix #3: Log LLM generation even on failure
+            log_llm_generation({
+                "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
+                "Domain Name": domain_name, "LLM Model": llm_model,
+                "Prompt ID": f"Feedback_{planner_name}",
+                "LLM_Status": f"Failed: {llm_error_str[:200]}",
+                "LLM API Time S": elapsed,
+                "Input Tokens Consumed": input_toks,
+                "Output Tokens Generated": output_toks,
+                "Path to Raw LLM Response": "N/A",
+                "Passed Stage V1": False, "Path to Extracted PDDL": "N/A",
+                "Passed VAL Syntactic Check (V2)": False,
+                "VAL_error_string": "N/A", "Passed V3": False, "Passed V4": False,
+                "Validation Status": "LLM_ERROR",
+            }, str(REPO_ROOT))
+            
+            term_reason = "LLM_ERROR"
             break
 
         rationale = extract_rationale(llm_response)
@@ -264,11 +317,6 @@ ERROR:
         push_log(llm_model, "VALIDATE", f"{domain_name}+{planner_name} | Iter {iteration}: Running V1-V4 Validation Pipeline (Hard Critics)...")
         tmp_domain_path = os.path.join(run_dir, f"{domain_name}_{llm_model.replace('/','-')}_Feedback_{planner_name}_iter{iteration}.pddl")
         
-        idx_pddl = llm_response.lower().find("(define (domain")
-        if idx_pddl == -1: idx_pddl = llm_response.lower().find("(define(domain")
-        extracted_pddl = llm_response if idx_pddl == -1 else llm_response[idx_pddl:]
-        extracted_pddl = extracted_pddl.replace("```lisp", "").replace("```pddl", "").replace("```", "").strip()
-
         problem_file_path_obj = Path(test_instances[0]) if test_instances else None
         val_result = validate_domain(llm_response, Path(stage0_baseline_path), problem_file_path_obj)
         val_status = val_result.status
@@ -315,6 +363,25 @@ ERROR:
                  history_buffer.append(f"Iteration {iteration}:\n  • Your Strategy: \"{rationale}\"\n  • Result: REJECTED — V1 check failed.\n    Changes detected: Malformed.")
             
             log_to_csv(csv_path, {"Triple_ID": f"{domain_name}_{planner_name}_{llm_model}", "Domain": domain_name, "LLM": llm_model, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": f"INVALID_{failed_stage}", "V4_Failure_Detail": v4_detail, "Coverage": 0.0, "Avg_Run_Wall_s": 0.0, "Avg_StatesExpanded": 0, "IPC_Score": 0.0, "Delta_vs_Baseline": "N/A", "Delta_vs_Previous": "N/A", "Is_Best_So_Far": False, "LLM_Rationale": rationale, "Termination_Reason": "N/A" if iteration < max_iter else "MAX_ITER", "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": "N/A", "Timestamp": datetime.datetime.now().isoformat()})
+            
+            # Bug fix #3: Log LLM generation for failed validation
+            log_llm_generation({
+                "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
+                "Domain Name": domain_name, "LLM Model": llm_model,
+                "Prompt ID": f"Feedback_{planner_name}",
+                "LLM_Status": "Passed", "LLM API Time S": elapsed,
+                "Input Tokens Consumed": input_toks,
+                "Output Tokens Generated": output_toks,
+                "Path to Raw LLM Response": llm_resp_path,
+                "Passed Stage V1": failed_stage != "V1",
+                "Path to Extracted PDDL": "N/A",
+                "Passed VAL Syntactic Check (V2)": failed_stage not in ("V1", "V2"),
+                "VAL_error_string": val_result.reason or "N/A",
+                "Passed V3": failed_stage not in ("V1", "V2", "V3"),
+                "Passed V4": False,
+                "Validation Status": f"INVALID_{failed_stage}",
+            }, str(REPO_ROOT))
+            
             push_log(llm_model, "VALIDATE", f"{domain_name}+{planner_name} | Iter {iteration}: {failed_stage} Failure! ({reason[:60] if failed_stage != 'V4' else v4_detail[:60]})")
             continue
 
@@ -399,9 +466,28 @@ IMPROVEMENT DIRECTION:
         
         log_to_csv(csv_path, {"Triple_ID": f"{domain_name}_{planner_name}_{llm_model}", "Domain": domain_name, "LLM": llm_model, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": "VALID", "V4_Failure_Detail": "N/A", "Coverage": new_cov/15.0, "Avg_Run_Wall_s": stage2_avg_time, "Avg_StatesExpanded": stage2_avg_states, "IPC_Score": iter_ipc_abs, "Delta_vs_Baseline": mean_ipc_gain, "Delta_vs_Previous": delta_prev, "Is_Best_So_Far": is_best, "LLM_Rationale": rationale, "Termination_Reason": term_reason, "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": tmp_domain_path, "Timestamp": datetime.datetime.now().isoformat()})
 
+        # Bug fix #3: Log LLM generation for valid iterations
+        log_llm_generation({
+            "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
+            "Domain Name": domain_name, "LLM Model": llm_model,
+            "Prompt ID": f"Feedback_{planner_name}",
+            "LLM_Status": "Passed", "LLM API Time S": elapsed,
+            "Input Tokens Consumed": input_toks,
+            "Output Tokens Generated": output_toks,
+            "Path to Raw LLM Response": llm_resp_path,
+            "Passed Stage V1": True, "Path to Extracted PDDL": tmp_domain_path,
+            "Passed VAL Syntactic Check (V2)": True,
+            "VAL_error_string": "N/A", "Passed V3": True, "Passed V4": True,
+            "Validation Status": "VALID",
+        }, str(REPO_ROOT))
+
         if all_timeout:
             push_log(llm_model, "TERMINATE", f"{domain_name}+{planner_name} | ALL_TIMEOUT triggered on Iter {iteration}. Ending loop.")
             break
+        
+        # Bug fix #9: Update current_domain_str to this iteration's output
+        # (even if worse), per spec: "Input Domain: The PDDL that Iteration N produced"
+        current_domain_str = val_result.extracted_pddl
 
     # Determine what domains are finally sent out
     final_best_dir = os.path.join(output_dir, "Best Stage 3 Domains", llm_model.replace('/','-'), planner_name, domain_name)
