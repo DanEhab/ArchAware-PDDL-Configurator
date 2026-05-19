@@ -1,63 +1,15 @@
-
-def generate_run_summary():
-    output_dir = os.path.join(REPO_ROOT, "results", "feedback_loop")
-    final_domains_csv = os.path.join(output_dir, "stage3_final_domains.csv")
-    if not os.path.exists(final_domains_csv):
-        return
-    import pandas as pd
-    df = pd.read_csv(final_domains_csv)
-    
-    total_triples = len(df)
-    improved = len(df[df['Validation_Status'] == 'VALID'])
-    
-    summary_txt = "==================================================\n"
-    summary_txt += "           STAGE 3 EXECUTION SUMMARY              \n"
-    summary_txt += "==================================================\n\n"
-    summary_txt += f"Total Triples Processed: {total_triples}\n"
-    summary_txt += f"Total Triples Improved (VALID): {improved} ({(improved/total_triples*100) if total_triples > 0 else 0:.1f}%)\n\n"
-    
-    summary_txt += "BREAKDOWN BY LLM:\n"
-    summary_txt += "-----------------\n"
-    for llm in df['LLM'].unique():
-        llm_df = df[df['LLM'] == llm]
-        llm_imp = len(llm_df[llm_df['Validation_Status'] == 'VALID'])
-        summary_txt += f"- {llm}: {llm_imp}/{len(llm_df)} Improved\n"
-    
-    summary_txt += "\nBREAKDOWN BY PLANNER:\n"
-    summary_txt += "---------------------\n"
-    for planner in df['Target_Planner'].unique():
-        pl_df = df[df['Target_Planner'] == planner]
-        pl_imp = len(pl_df[pl_df['Validation_Status'] == 'VALID'])
-        summary_txt += f"- {planner}: {pl_imp}/{len(pl_df)} Improved\n"
-        
-    summary_txt += "\nBREAKDOWN BY DOMAIN:\n"
-    summary_txt += "--------------------\n"
-    for dom in df['Domain'].unique():
-        dom_df = df[df['Domain'] == dom]
-        dom_imp = len(dom_df[dom_df['Validation_Status'] == 'VALID'])
-        summary_txt += f"- {dom}: {dom_imp}/{len(dom_df)} Improved\n"
-    
-    summary_path = os.path.join(output_dir, "run_summary.txt")
-    with open(summary_path, "w", encoding="utf-8") as f:
-        f.write(summary_txt)
-    print(f"\n[SUMMARY] Saved completed run summary to {summary_path}")
-
 import os
 import sys
 import glob
+import time
 import concurrent.futures
 import pandas as pd
 from pathlib import Path
 import datetime
 import threading
 import queue
-from collections import deque
 
-from rich.live import Live
-from rich.layout import Layout
-from rich.panel import Panel
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
-from rich.console import Group, Console
+from rich.console import Console
 from rich.text import Text
 
 REPO_ROOT = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -73,6 +25,55 @@ from meta_controller import build_telemetry_for_valid_full, get_6A_telemetry, ge
 
 UI_QUEUE = queue.Queue()
 loop_engine.set_ui_queue(UI_QUEUE)
+
+
+def generate_run_summary():
+    """Generate post-run summary to logs/stage3/run_summaries/."""
+    output_dir = os.path.join(REPO_ROOT, "results", "feedback_loop")
+    final_domains_csv = os.path.join(output_dir, "stage3_final_domains.csv")
+    if not os.path.exists(final_domains_csv):
+        return
+    df = pd.read_csv(final_domains_csv)
+    
+    total_triples = len(df)
+    improved = len(df[df['Improvement_vs_Seed'] > 0]) if 'Improvement_vs_Seed' in df.columns else 0
+    
+    summary_txt = "==================================================\n"
+    summary_txt += "           STAGE 3 EXECUTION SUMMARY              \n"
+    summary_txt += "==================================================\n\n"
+    summary_txt += f"Total Triples Processed: {total_triples}\n"
+    summary_txt += f"Total Triples Improved (vs Seed): {improved} ({(improved/total_triples*100) if total_triples > 0 else 0:.1f}%)\n\n"
+    
+    summary_txt += "BREAKDOWN BY LLM:\n"
+    summary_txt += "-----------------\n"
+    for llm in df['LLM'].unique():
+        llm_df = df[df['LLM'] == llm]
+        llm_imp = len(llm_df[llm_df['Improvement_vs_Seed'] > 0]) if 'Improvement_vs_Seed' in llm_df.columns else 0
+        summary_txt += f"- {llm}: {llm_imp}/{len(llm_df)} Improved\n"
+    
+    summary_txt += "\nBREAKDOWN BY PLANNER:\n"
+    summary_txt += "---------------------\n"
+    for planner in df['Target_Planner'].unique():
+        pl_df = df[df['Target_Planner'] == planner]
+        pl_imp = len(pl_df[pl_df['Improvement_vs_Seed'] > 0]) if 'Improvement_vs_Seed' in pl_df.columns else 0
+        summary_txt += f"- {planner}: {pl_imp}/{len(pl_df)} Improved\n"
+        
+    summary_txt += "\nBREAKDOWN BY DOMAIN:\n"
+    summary_txt += "--------------------\n"
+    for dom in df['Domain'].unique():
+        dom_df = df[df['Domain'] == dom]
+        dom_imp = len(dom_df[dom_df['Improvement_vs_Seed'] > 0]) if 'Improvement_vs_Seed' in dom_df.columns else 0
+        summary_txt += f"- {dom}: {dom_imp}/{len(dom_df)} Improved\n"
+    
+    # Save to logs/stage3/run_summaries/ (not results/feedback_loop/)
+    summary_dir = os.path.join(REPO_ROOT, "logs", "stage3", "run_summaries")
+    os.makedirs(summary_dir, exist_ok=True)
+    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    summary_path = os.path.join(summary_dir, f"run_summary_{ts}.txt")
+    with open(summary_path, "w", encoding="utf-8") as f:
+        f.write(summary_txt)
+    print(f"\n[SUMMARY] Saved completed run summary to {summary_path}")
+
 
 shutdown_flag = threading.Event()
 
@@ -291,25 +292,20 @@ def run_pipelines_orchestrator():
     except Exception as e:
         UI_QUEUE.put(("FATAL_ERROR", f"Orchestrator failed: {e}"))
 
-def build_layout():
-    layout = Layout()
-    layout.split_column(
-        Layout(name="header", size=5),
-        Layout(name="pipelines", size=6),
-        Layout(name="log", size=17),
-        Layout(name="completed", size=6)
-    )
-    return layout
-
 def main():
     log_dir = os.path.join(REPO_ROOT, "logs", "stage3", "terminal_output")
     os.makedirs(log_dir, exist_ok=True)
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file = os.path.join(log_dir, f"run_{timestamp}.log")
     
-    # Initialize UI state
-    log_messages = deque(maxlen=15)
-    completed_messages = deque(maxlen=4)
+    heartbeat_path = os.path.join(REPO_ROOT, "logs", "stage3", "pipeline_heartbeat.log")
+    os.makedirs(os.path.dirname(heartbeat_path), exist_ok=True)
+    
+    console = Console()
+    
+    from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
+    from rich.console import Group
+    from rich.live import Live
     
     overall_progress = Progress(
         TextColumn("[progress.description]{task.description}"),
@@ -341,7 +337,6 @@ def main():
         except Exception:
             pass
 
-    layout = build_layout()
     header_text = Text(
         "================================================================================\n"
         "  [PHASE 3] ARCH-AWARE FEEDBACK LOOP EXECUTOR \n"
@@ -349,17 +344,29 @@ def main():
         "================================================================================",
         style="bold bright_blue", justify="center"
     )
-    layout["header"].update(Group(header_text, overall_progress))
-    layout["pipelines"].update(Panel(pipeline_progress, title="[ ⚡ PARALLEL PIPELINE STATUS ]", border_style="cyan"))
-    layout["log"].update(Panel(Text("Waiting for logs..."), title="[ 📜 LIVE EXECUTION LOG ]", border_style="green"))
-    layout["completed"].update(Panel(Text(""), title="[ 🏆 LATEST COMPLETED TRIPLES ]", border_style="yellow"))
+    
+    from rich.panel import Panel
+    render_group = Group(
+        header_text,
+        Panel(overall_progress, border_style="cyan"),
+        Panel(pipeline_progress, title="[ ⚡ PARALLEL PIPELINE STATUS ]", border_style="cyan")
+    )
 
     # Start background thread
     threading.Thread(target=run_pipelines_orchestrator, daemon=True).start()
 
+    last_heartbeat = 0
     with open(log_file, "a", encoding="utf-8") as f_log:
-        with Live(layout, refresh_per_second=4, screen=False):
+        with Live(render_group, console=console, refresh_per_second=4, screen=False) as live:
             while True:
+                now = time.time()
+                if now - last_heartbeat > 60:
+                    last_heartbeat = now
+                    try:
+                        with open(heartbeat_path, "a", encoding="utf-8") as hb:
+                            hb.write(f"[{datetime.datetime.now().isoformat()}] Heartbeat: {overall_progress.tasks[overall_task].completed}/80 triples complete.\n")
+                    except: pass
+
                 try:
                     event = UI_QUEUE.get(timeout=0.25)
                     etype = event[0]
@@ -378,14 +385,16 @@ def main():
                         elif tag == "CRITIQUE": color = "yellow"
                         elif tag == "RESULT": color = "bold green" if "IMPROVEMENT" in msg else "bold yellow"
                         elif tag == "LLM_ERROR" or tag == "FATAL_ERROR": color = "bold red"
+                        elif tag == "TERMINATE": color = "red"
                         
                         ts = datetime.datetime.now().strftime("%H:%M:%S")
                         llm_pad = f"{llm:<10}"[:10]
                         tag_pad = f"[{tag}]"
                         
                         colored_msg = f"[{ts}] [{color}]{llm_pad}[/] [{color}]{tag_pad:<12}[/] {msg}"
-                        log_messages.append(colored_msg)
-                        layout["log"].update(Panel(Text.from_markup("\n".join(log_messages)), title="[ 📜 LIVE EXECUTION LOG ]", border_style="green"))
+                        
+                        # Print scrolling log above the progress bars
+                        live.console.print(colored_msg)
                         
                         # Write raw unformatted log
                         raw_str = raw_msg if raw_msg else f"[{ts}] [{llm_pad}] {tag_pad:<12} {msg}"
@@ -402,8 +411,7 @@ def main():
                         icon = "✔" if verdict == "IMPROVEMENT" else "✖"
                         color = "green" if verdict == "IMPROVEMENT" else "red" if verdict == "ALL_TIMEOUT" else "yellow"
                         comp_msg = f"[{color}]{icon} ({triple_id}) | Total Iters: {total_iters} | Final Result: {verdict} (Best Delta: {delta:+.2f})[/]"
-                        completed_messages.append(comp_msg)
-                        layout["completed"].update(Panel(Text.from_markup("\n".join(completed_messages)), title="[ 🏆 LATEST COMPLETED TRIPLES ]", border_style="yellow"))
+                        live.console.print(comp_msg)
                         
                     elif etype == "OVERALL_PROGRESS":
                         _, current, total = event
@@ -411,14 +419,12 @@ def main():
                         
                     elif etype == "FATAL_ERROR":
                         _, err_msg = event
-                        log_messages.append(f"[bold red]FATAL ERROR: {err_msg}[/]")
-                        layout["log"].update(Panel(Text.from_markup("\n".join(log_messages)), title="[ 📜 LIVE EXECUTION LOG ]", border_style="red"))
+                        live.console.print(f"[bold red]FATAL ERROR: {err_msg}[/]")
                         f_log.write(f"FATAL ERROR: {err_msg}\n")
                         break
                         
                     elif etype == "DONE":
-                        log_messages.append("[bold bright_green]All pipelines completed successfully![/]")
-                        layout["log"].update(Panel(Text.from_markup("\n".join(log_messages)), title="[ 📜 LIVE EXECUTION LOG ]", border_style="green"))
+                        live.console.print("[bold bright_green]All pipelines completed successfully![/]")
                         f_log.write("All pipelines completed successfully.\n")
                         break
                         
