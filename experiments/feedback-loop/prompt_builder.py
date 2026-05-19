@@ -5,7 +5,7 @@ def get_planner_prompt_path(planner_name, prompt_dir):
     for f in os.listdir(prompt_dir):
         if pname in f.lower() and f.endswith(".txt"):
             return os.path.join(prompt_dir, f)
-    raise ValueError(f"Could not find Architecture-Aware prompt for {planner_name}")
+    raise ValueError(f"Could not find Feedback Loop prompt for {planner_name}")
 
 def build_feedback_prompt(planner_name, prompt_dir, current_domain_str, history_buffer_str, telemetry_feedback):
     prompt_path = get_planner_prompt_path(planner_name, prompt_dir)
