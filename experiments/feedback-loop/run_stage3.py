@@ -11,6 +11,7 @@ import queue
 
 from rich.console import Console
 from rich.text import Text
+from collections import deque
 
 REPO_ROOT = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 if str(REPO_ROOT) not in sys.path:
@@ -86,15 +87,28 @@ def get_test_instances(domain):
     domain_benchmark_dir = os.path.join(REPO_ROOT, "benchmarks", domain)
     if not os.path.exists(domain_benchmark_dir):
         domain_benchmark_dir = os.path.join(REPO_ROOT, "benchmark_samples", domain)
-    all_files = glob.glob(os.path.join(domain_benchmark_dir, "**", "*.pddl"), recursive=True)
+        
+    # Prioritize specific problem directories to avoid recursively picking up domain files or duplicate folders
+    if os.path.exists(os.path.join(domain_benchmark_dir, "instances")):
+        all_files = glob.glob(os.path.join(domain_benchmark_dir, "instances", "*.pddl"))
+    elif os.path.exists(os.path.join(domain_benchmark_dir, "all_instances")):
+        all_files = glob.glob(os.path.join(domain_benchmark_dir, "all_instances", "*.pddl"))
+    else:
+        all_files = glob.glob(os.path.join(domain_benchmark_dir, "**", "*.pddl"), recursive=True)
+        
     test_instances = []
+    seen_basenames = set()
     for f in all_files:
         name = os.path.basename(f)
-        if name == "domain.pddl": continue
+        if not name.startswith("instance-"): continue
+        if name in seen_basenames: continue
+        
         num_str = ''.join(filter(str.isdigit, name))
         if num_str and int(num_str) in indices:
             test_instances.append(f)
-    return sorted(list(set(test_instances)))
+            seen_basenames.add(name)
+            
+    return sorted(test_instances)
 
 def resolve_seed_domain(domain, planner, llm):
     # This enforces Point 6: Iteration 1 Routing.
@@ -306,6 +320,8 @@ def main():
     from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
     from rich.console import Group
     from rich.live import Live
+    from rich.layout import Layout
+    from rich.panel import Panel
     
     overall_progress = Progress(
         TextColumn("[progress.description]{task.description}"),
@@ -345,19 +361,46 @@ def main():
         style="bold bright_blue", justify="center"
     )
     
-    from rich.panel import Panel
-    render_group = Group(
-        header_text,
-        Panel(overall_progress, border_style="cyan"),
-        Panel(pipeline_progress, title="[ ⚡ PARALLEL PIPELINE STATUS ]", border_style="cyan")
+    # Define Layout
+    layout = Layout()
+    layout.split_column(
+        Layout(name="header", size=5),
+        Layout(name="progress", size=9),
+        Layout(name="logs")
     )
+    
+    layout["header"].update(header_text)
+    layout["progress"].update(
+        Group(
+            Panel(overall_progress, border_style="cyan"),
+            Panel(pipeline_progress, title="[ ⚡ PARALLEL PIPELINE STATUS ]", border_style="cyan")
+        )
+    )
+    
+    # Split the logs area horizontally into 4 columns
+    llm_layouts = [Layout(name=f"log_{llm}") for llm in LLMS]
+    layout["logs"].split_row(*llm_layouts)
+    
+    llm_logs = {llm: deque(maxlen=25) for llm in LLMS}
+    
+    for llm in LLMS:
+        layout[f"log_{llm}"].update(Panel(Text(""), title=f"[ {llm} ]", border_style="green"))
 
     # Start background thread
     threading.Thread(target=run_pipelines_orchestrator, daemon=True).start()
 
     last_heartbeat = 0
-    with open(log_file, "a", encoding="utf-8") as f_log:
-        with Live(render_group, console=console, refresh_per_second=4, screen=False) as live:
+    
+    # Stream Isolation: Open 5 separate log files
+    master_log_path = os.path.join(log_dir, "master_orchestrator.log")
+    file_handles = {}
+    file_handles["master"] = open(master_log_path, "a", encoding="utf-8")
+    for llm in LLMS:
+        llm_log_path = os.path.join(log_dir, f"{llm}_run.log")
+        file_handles[llm] = open(llm_log_path, "a", encoding="utf-8")
+        
+    try:
+        with Live(layout, console=console, refresh_per_second=4, screen=True):
             while True:
                 now = time.time()
                 if now - last_heartbeat > 60:
@@ -388,18 +431,24 @@ def main():
                         elif tag == "TERMINATE": color = "red"
                         
                         ts = datetime.datetime.now().strftime("%H:%M:%S")
-                        llm_pad = f"{llm:<10}"[:10]
                         tag_pad = f"[{tag}]"
                         
-                        colored_msg = f"[{ts}] [{color}]{llm_pad}[/] [{color}]{tag_pad:<12}[/] {msg}"
+                        colored_msg = f"[{ts}] [{color}]{tag_pad:<12}[/] {msg}"
                         
-                        # Print scrolling log above the progress bars
-                        live.console.print(colored_msg)
+                        # Append to that specific LLM's deque
+                        if llm in llm_logs:
+                            llm_logs[llm].append(colored_msg)
+                            layout[f"log_{llm}"].update(Panel(Text.from_markup("\n".join(llm_logs[llm])), title=f"[ {llm} ]", border_style="green"))
                         
-                        # Write raw unformatted log
+                        # Write raw unformatted log to isolated LLM file
+                        llm_pad = f"{llm:<10}"[:10]
                         raw_str = raw_msg if raw_msg else f"[{ts}] [{llm_pad}] {tag_pad:<12} {msg}"
-                        f_log.write(raw_str + "\n")
-                        f_log.flush()
+                        if llm in file_handles:
+                            file_handles[llm].write(raw_str + "\n")
+                            file_handles[llm].flush()
+                        else:
+                            file_handles["master"].write(raw_str + "\n")
+                            file_handles["master"].flush()
                         
                     elif etype == "PIPELINE_UPDATE":
                         _, llm, current, total, text = event
@@ -410,8 +459,22 @@ def main():
                         _, triple_id, total_iters, verdict, delta = event
                         icon = "✔" if verdict == "IMPROVEMENT" else "✖"
                         color = "green" if verdict == "IMPROVEMENT" else "red" if verdict == "ALL_TIMEOUT" else "yellow"
-                        comp_msg = f"[{color}]{icon} ({triple_id}) | Total Iters: {total_iters} | Final Result: {verdict} (Best Delta: {delta:+.2f})[/]"
-                        live.console.print(comp_msg)
+                        comp_msg = f"[{color}]{icon} ({triple_id}) | Iters: {total_iters} | Result: {verdict} ({delta:+.2f})[/]"
+                        
+                        # Find the corresponding LLM to append the completion message to
+                        llm_match = None
+                        for llm in LLMS:
+                            if llm in triple_id:
+                                llm_match = llm
+                                break
+                        if llm_match:
+                            llm_logs[llm_match].append(comp_msg)
+                            layout[f"log_{llm_match}"].update(Panel(Text.from_markup("\n".join(llm_logs[llm_match])), title=f"[ {llm_match} ]", border_style="green"))
+                            
+                        # Write to master orchestrator log
+                        ts = datetime.datetime.now().strftime("%H:%M:%S")
+                        file_handles["master"].write(f"[{ts}] TRIPLE_COMPLETE | {triple_id} | Result: {verdict} | Delta: {delta:+.2f}\n")
+                        file_handles["master"].flush()
                         
                     elif etype == "OVERALL_PROGRESS":
                         _, current, total = event
@@ -419,17 +482,34 @@ def main():
                         
                     elif etype == "FATAL_ERROR":
                         _, err_msg = event
-                        live.console.print(f"[bold red]FATAL ERROR: {err_msg}[/]")
-                        f_log.write(f"FATAL ERROR: {err_msg}\n")
+                        # Broadcast fatal error to all panels
+                        for llm in LLMS:
+                            llm_logs[llm].append(f"[bold red]FATAL ERROR: {err_msg}[/]")
+                            layout[f"log_{llm}"].update(Panel(Text.from_markup("\n".join(llm_logs[llm])), title=f"[ {llm} ]", border_style="red"))
+                            
+                        # Write to master orchestrator log
+                        ts = datetime.datetime.now().strftime("%H:%M:%S")
+                        file_handles["master"].write(f"[{ts}] FATAL_ERROR | {err_msg}\n")
+                        file_handles["master"].flush()
                         break
                         
                     elif etype == "DONE":
-                        live.console.print("[bold bright_green]All pipelines completed successfully![/]")
-                        f_log.write("All pipelines completed successfully.\n")
+                        # Broadcast success
+                        for llm in LLMS:
+                            llm_logs[llm].append("[bold bright_green]All pipelines completed successfully![/]")
+                            layout[f"log_{llm}"].update(Panel(Text.from_markup("\n".join(llm_logs[llm])), title=f"[ {llm} ]", border_style="green"))
+                            
+                        # Write to master orchestrator log
+                        ts = datetime.datetime.now().strftime("%H:%M:%S")
+                        file_handles["master"].write(f"[{ts}] DONE | All pipelines completed successfully.\n")
+                        file_handles["master"].flush()
                         break
                         
                 except queue.Empty:
                     pass
+    finally:
+        for f in file_handles.values():
+            f.close()
                     
     print("\nOrchestrator Shutdown Complete.")
 

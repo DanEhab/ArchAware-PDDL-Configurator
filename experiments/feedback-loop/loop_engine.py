@@ -160,8 +160,6 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
 
 
 def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, test_instances, output_dir, stage0_baseline_path, initial_history_buffer, initial_telemetry_feedback, stage2_best_score, is_valid_seed, max_iter=3):
-    print(f"\n[{domain_name} | {planner_name} | {llm_model}] Starting Stage 3 Feedback Loop")
-    
     # Bug fix #8: Use feedback-loop/prompts (not arch-aware/prompts)
     prompt_dir = os.path.join(REPO_ROOT, "experiments", "feedback-loop", "prompts")
 
@@ -185,25 +183,26 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     Path(seed_copy_path).write_text(current_domain_str, encoding="utf-8")
     
     # Bug fix #1: Load baseline from CSV instead of re-running planner
-    push_log(llm_model, "LOAD", f"Loading baseline stats from CSV...")
     baseline_stats = load_baseline_stats(domain_name, planner_name, str(REPO_ROOT))
     if baseline_stats["total_instances"] == 0:
         push_log(llm_model, "WARN", f"No baseline CSV data for {domain_name}+{planner_name}. Falling back to planner run.")
         baseline_stats = run_soft_critic(stage0_baseline_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
-    else:
-        push_log(llm_model, "LOAD", f"Baseline loaded: {baseline_stats['coverage']}/{baseline_stats['total_instances']} solved")
     
     # Bug fix #2: Load Stage 2 seed data from CSV instead of re-running planner
     stage2_stats = None
     if initial_telemetry_feedback == "DELAY_VALID_TELEMETRY":
-        push_log(llm_model, "LOAD", f"Loading Stage 2 seed stats from CSV...")
         stage2_stats = load_stage2_stats(domain_name, planner_name, llm_model, str(REPO_ROOT))
         
         if stage2_stats["total_instances"] == 0:
             push_log(llm_model, "WARN", f"No Stage 2 CSV data. Falling back to planner run.")
-            stage2_stats = run_soft_critic(seed_copy_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
-        else:
-            push_log(llm_model, "LOAD", f"Stage 2 seed loaded: {stage2_stats['coverage']}/{stage2_stats['total_instances']} solved")
+            
+            # Put fallback iter0 domain in the benchmark tree so Docker volume mounts correctly (relative_to fix)
+            eval_domain_dir = os.path.join(REPO_ROOT, "benchmarks", domain_name, "tmp_stage3")
+            os.makedirs(eval_domain_dir, exist_ok=True)
+            eval_domain_path = os.path.join(eval_domain_dir, f"domain_iter0.pddl")
+            Path(eval_domain_path).write_text(current_domain_str, encoding="utf-8")
+            
+            stage2_stats = run_soft_critic(eval_domain_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
         
         from meta_controller import build_telemetry_for_valid_full
         imp_csv = os.path.join(REPO_ROOT, "results", "arch_aware", "improvement", "improvement_results.csv")
