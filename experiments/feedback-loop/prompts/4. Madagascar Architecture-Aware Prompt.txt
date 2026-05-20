@@ -83,11 +83,5 @@ earlier, allowing critical invariants to be discovered sooner.
 REASON: Regular grounding patterns produce more uniform CNF clause structures
 that the CDCL solver exploits through learned clause pattern recognition.
 
-[HISTORY BUFFER]
-{history_buffer_str}
-
-[TELEMETRY FEEDBACK]
-{telemetry_feedback_str}
-
 DOMAIN TO REORDER:
 {domain_str}

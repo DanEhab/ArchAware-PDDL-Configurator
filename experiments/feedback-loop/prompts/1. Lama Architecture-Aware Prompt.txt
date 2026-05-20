@@ -78,11 +78,5 @@ schemas (e.g., always agent before object before location).
 REASON: Consistent ordering simplifies FDR translation and supports causal graph
 structural consistency.
 
-[HISTORY BUFFER]
-{history_buffer_str}
-
-[TELEMETRY FEEDBACK]
-{telemetry_feedback_str}
-
 DOMAIN TO REORDER:
 {domain_str}

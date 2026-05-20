@@ -153,16 +153,16 @@ def resolve_seed_domain(domain, planner, llm):
             
             if 'token_limit' in llm_status.lower() or 'tokenlimit' in llm_status.lower() or val_status == 'TokenLimitExceeded':
                 # 6A-i TokenLimit
-                init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — Your response exceeded the maximum token output\n    limit (4,096 tokens) and was truncated before completion.\n  • No valid PDDL domain was produced."]
+                init_hist = ["PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — Your response exceeded the maximum token output\n    limit (4,096 tokens) and was truncated before completion.\n  • No valid PDDL domain was produced."]
                 init_tel = get_6A_telemetry("TokenLimitExceeded", baseline_pddl)
             elif 'ratelimit' in llm_status.lower():
-                init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — The API rate limit was exceeded.\n  • No valid PDDL domain was produced."]
+                init_hist = ["PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — The API rate limit was exceeded.\n  • No valid PDDL domain was produced."]
                 init_tel = get_6A_telemetry("RateLimit", baseline_pddl)
             elif 'filter' in llm_status.lower() or 'safety' in llm_status.lower():
-                init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — The response was blocked by the provider's\n    content safety filter.\n  • No valid PDDL domain was produced."]
+                init_hist = ["PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — The response was blocked by the provider's\n    content safety filter.\n  • No valid PDDL domain was produced."]
                 init_tel = get_6A_telemetry("Filter", baseline_pddl)
             elif 'server' in llm_status.lower() or 'timeout' in llm_status.lower():
-                init_hist = [f"PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — The API call failed due to a server/network error.\n    Error: \"{llm_status}\"\n  • No valid PDDL domain was produced."]
+                init_hist = [f"PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — The API call failed due to a server/network error.\n    Error: \"{llm_status}\"\n  • No valid PDDL domain was produced."]
                 init_tel = get_6A_telemetry("Server", baseline_pddl)
             elif val_status == 'VALID' and row['Passed Stage V1'] == True and v4_pass == "True":
                 # 6B: Valid Domain
@@ -192,18 +192,18 @@ def resolve_seed_domain(domain, planner, llm):
                     if not m2.empty:
                         imp_detected = m2.iloc[0]['IMPROVEMENT_DETECTED'] == True
                         if imp_detected:
-                            init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • Result: IMPROVEMENT DETECTED (passed all 3 conditions: statistical\n    significance, practical significance, coverage preservation).\n  • No rationale was recorded for this attempt."]
+                            init_hist = ["PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • Result: IMPROVEMENT DETECTED (passed all 3 conditions: statistical\n    significance, practical significance, coverage preservation).\n  • No rationale was recorded for this attempt."]
                         else:
                             fails = []
-                            if not m2.iloc[0]['Statistical_Significance']: fails.append("Statistical_Significance")
-                            if not m2.iloc[0]['Practical_Significance']: fails.append("Practical_Significance")
-                            if not m2.iloc[0]['Coverage_Preserved']: fails.append("Coverage_Preserved")
+                            if not m2.iloc[0]['Condition_A_StatSig']: fails.append("Statistical_Significance")
+                            if not m2.iloc[0]['Condition_B_PractSig']: fails.append("Practical_Significance")
+                            if not m2.iloc[0]['Condition_C_Coverage']: fails.append("Coverage_Preserved")
                             f_str = ", ".join(fails)
-                            init_hist = [f"PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • Result: NO IMPROVEMENT detected. Failed conditions: {f_str}\n  • No rationale was recorded for this attempt."]
+                            init_hist = [f"PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • Result: NO IMPROVEMENT detected. Failed conditions: {f_str}\n  • No rationale was recorded for this attempt."]
                     else:
-                        init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • No rationale was recorded for this attempt."]
+                        init_hist = ["PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • No rationale was recorded for this attempt."]
                 except Exception:
-                    init_hist = ["PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • No rationale was recorded for this attempt."]
+                    init_hist = ["PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: VALID — Your reordered domain passed all validation checks.\n  • No rationale was recorded for this attempt."]
                 
                 # Best score gets set to Stage 2 IPC (approx logic: we lookup real later)
                 stage2_ipc = 1.0 # placeholder for valid IPC, will be overwritten by point 5
@@ -225,7 +225,7 @@ def resolve_seed_domain(domain, planner, llm):
                 elif failed_str == "V3": det = f"  • Detail: Your output was identical to the input domain. No\n    reordering was performed."
                 elif failed_str == "V1": det = f"  • Detail: No valid PDDL block starting with \"(define\" was found in\n    your response. Your output contained conversational text or\n    malformed code that could not be parsed as PDDL."
                 
-                init_hist = [f"PREVIOUS ATTEMPTS HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — {failed_str} Check\n{det}"]
+                init_hist = [f"PREVIOUS ATTEMPT HISTORY:\n\nStage 2 Attempt:\n  • Status: FAILED — {failed_str} Check\n{det}"]
                 init_tel = get_6C_telemetry(failed_str, error_str, baseline_pddl)
                 
     return seed_domain_path, stage0_path, init_hist, init_tel, stage2_ipc, is_valid_seed
@@ -245,6 +245,9 @@ def run_pipeline_for_llm(llm):
         except Exception as e:
             pass
     
+    # Per-LLM triple counter for pipeline progress bar
+    triple_counter = 0
+    
     for domain in DOMAINS:
         test_instances = get_test_instances(domain)
         if not test_instances: continue
@@ -255,6 +258,8 @@ def run_pipeline_for_llm(llm):
                 return
             triple_id = f"{domain}_{planner}_{llm}"
             if triple_id in completed_triples:
+                triple_counter += 1
+                UI_QUEUE.put(("PIPELINE_UPDATE", llm, triple_counter, 20, f"⏭ {domain}+{planner} (skipped)"))
                 UI_QUEUE.put(("LOG", llm, "INFO", f"[{triple_id}] Skipping - already completed (checkpoint).", None))
                 continue
                 
@@ -275,21 +280,24 @@ def run_pipeline_for_llm(llm):
                     is_valid_seed=is_valid_seed,
                     max_iter=3
                 )
-                
-                # Update heartbeat count
-                final_domains_csv = os.path.join(output_dir, "stage3_final_domains.csv")
-                comp_count = 0
-                if os.path.exists(final_domains_csv):
-                    import pandas as pd
-                    try:
-                        comp_count = len(pd.read_csv(final_domains_csv))
-                    except:
-                        pass
-                UI_QUEUE.put(("OVERALL_PROGRESS", comp_count, 80))
             except Exception as e:
                 import traceback
                 tb = traceback.format_exc()
                 UI_QUEUE.put(("LOG", llm, "LLM_ERROR", f"Error processing {domain} | {planner} | {llm}: {e}", None))
+            
+            # Update pipeline bar after each triple (whether success or exception)
+            triple_counter += 1
+            UI_QUEUE.put(("PIPELINE_UPDATE", llm, triple_counter, 20, f"✓ {domain}+{planner} done"))
+            
+            # Update overall progress from final_domains CSV
+            final_domains_csv = os.path.join(output_dir, "stage3_final_domains.csv")
+            comp_count = 0
+            if os.path.exists(final_domains_csv):
+                try:
+                    comp_count = len(pd.read_csv(final_domains_csv))
+                except:
+                    pass
+            UI_QUEUE.put(("OVERALL_PROGRESS", comp_count, 80))
 
 def run_pipelines_orchestrator():
     try:

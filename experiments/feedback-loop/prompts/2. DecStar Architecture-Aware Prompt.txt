@@ -85,11 +85,5 @@ translator, mitigating this destructive effect.
 primary manipulated object as the first parameter in all actions.
 REASON: Consistent ordering supports cleaner causal graph construction.
 
-[HISTORY BUFFER]
-{history_buffer_str}
-
-[TELEMETRY FEEDBACK]
-{telemetry_feedback_str}
-
 DOMAIN TO REORDER:
 {domain_str}

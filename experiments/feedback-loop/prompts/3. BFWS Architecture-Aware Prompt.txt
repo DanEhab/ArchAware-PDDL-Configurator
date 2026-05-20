@@ -75,11 +75,5 @@ Downward's pipeline (Engine 2). Static predicates should be identifiable early
 in precondition blocks for FD's invariant synthesis. Add-effects before
 delete-effects for FD's relaxed planning.
 
-[HISTORY BUFFER]
-{history_buffer_str}
-
-[TELEMETRY FEEDBACK]
-{telemetry_feedback_str}
-
 DOMAIN TO REORDER:
 {domain_str}

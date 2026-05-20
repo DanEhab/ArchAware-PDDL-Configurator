@@ -14,8 +14,9 @@ sys.path.insert(0, str(REPO_ROOT / "experiments" / "feedback-loop"))
 
 from validation_and_evaluation.scripts.validation.validation_pipeline import validate_domain
 from experiments.base.planner_runner import execute_planner
-from llms.llm_providers import get_provider  # type: ignore
+from llms.llm_providers import get_provider, TokenLimitError, RateLimitError, LLMProviderError  # type: ignore
 import yaml
+import json
 import numpy as np
 
 from csv_manager_stage3 import log_to_csv, log_diff_metrics, log_planner_execution, log_llm_generation  # type: ignore
@@ -102,6 +103,13 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
         
         # Build proper CSV row with all expected fields (Bug fix #5: Stage column)
         stage_name = stage or (f"Feedback_Loop{iteration}" if iteration else "Feedback_Loop")
+        
+        # Build numeric Prompt ID per spec: 1.iter=lama, 2.iter=decstar, 3.iter=bfws, 4.iter=madagascar
+        PROMPT_ID_NUM_MAP = {"lama": 1, "decstar": 2, "bfws": 3, "madagascar": 4}
+        numeric_prompt_id = prompt_id
+        if prompt_id is None and planner_name and iteration is not None:
+            pnum = PROMPT_ID_NUM_MAP.get(planner_name.lower(), 0)
+            numeric_prompt_id = f"{pnum}.{iteration}" if pnum else prompt_id
         domain_file_name = os.path.basename(domain_pddl_path)
         csv_row = {
             "Run_ID": f"{d_name}_{planner_name}_{llm_for_log}_iter{iteration}_{inst_name}",
@@ -111,7 +119,7 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
             "Planner_Used": planner_name,
             "Stage": stage_name,
             "LLM_Used": llm_model or "N/A",
-            "PromptID": prompt_id or "N/A",
+            "PromptID": numeric_prompt_id or "N/A",
             "PlanCost": res.get("PlanCost"),
             "Runtime_internal_s": res.get("Runtime_internal_s"),
             "Runtime_wall_s": res.get("Runtime_wall_s"),
@@ -248,8 +256,12 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     all_timeout = False
     iteration = 0  # Safe default for post-loop access
 
+    # Prompt ID mapping per spec: 1.x=lama, 2.x=decstar, 3.x=bfws, 4.x=madagascar
+    PROMPT_ID_MAP = {"lama": 1, "decstar": 2, "bfws": 3, "madagascar": 4}
+    planner_num = PROMPT_ID_MAP.get(planner_name.lower(), 0)
+    
     for iteration in range(1, max_iter + 1):
-        push_pipeline(llm_model, iteration, max_iter, f"🔄 {domain_name} + {planner_name} (Iter {iteration})")
+        push_log(llm_model, "INFO", f"{domain_name}+{planner_name} | Starting Iteration {iteration}/{max_iter}")
         
         history_buffer_str = "\n\n".join(history_buffer)
         
@@ -268,6 +280,9 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             planner_name, prompt_dir, current_domain_str, history_buffer_str, telemetry_feedback
         )
 
+        # Numeric Prompt ID per spec: e.g., 1.1 = Lama Iteration 1
+        current_prompt_id = f"{planner_num}.{iteration}"
+        
         prompt_log_path = os.path.join(prompt_save_dir, f"{domain_name}_{llm_model.replace('/','-')}_{planner_name}_iter{iteration}_prompt.txt")
         Path(prompt_log_path).write_text(prompt_text, encoding="utf-8")
 
@@ -277,22 +292,63 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             push_log(llm_model, "LLM_GEN", f"{domain_name}+{planner_name} | Iter {iteration}: Prompt sent, awaiting generation...")
             llm_response, elapsed, input_toks, output_toks = llm.generate(prompt_text)
             push_log(llm_model, "LLM_RECV", f"{domain_name}+{planner_name} | Iter {iteration}: Output received ({output_toks} tokens).")
+        except (TokenLimitError, RateLimitError) as e:
+            # Recoverable LLM error — retry on next iteration instead of aborting
+            llm_error_str = str(e)
+            is_token_error = isinstance(e, TokenLimitError)
+            error_label = "TokenLimitExceeded" if is_token_error else "RateLimit"
+            push_log(llm_model, "LLM_ERROR", f"{domain_name}+{planner_name} | Iter {iteration}: Recoverable {error_label}. Will retry. {llm_error_str[:80]}")
+            
+            LLM_ERROR_HANDLER.log_llm_error(
+                domain=domain_name, planner=planner_name, llm=llm_model,
+                iteration=iteration, error_type=f"LLM_{error_label}",
+                prompt_text=prompt_text, error_message=llm_error_str,
+            )
+            
+            log_llm_generation({
+                "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
+                "Domain Name": domain_name, "LLM Model": llm_model,
+                "Prompt ID": current_prompt_id,
+                "LLM_Status": f"Failed: {llm_error_str[:200]}",
+                "LLM API Time S": elapsed,
+                "Input Tokens Consumed": input_toks,
+                "Output Tokens Generated": output_toks,
+                "Path to Raw LLM Response": "N/A",
+                "Passed Stage V1": False, "Path to Extracted PDDL": "N/A",
+                "Passed VAL Syntactic Check (V2)": False,
+                "VAL_error_string": "N/A", "Passed V3": False, "Passed V4": False,
+                "Validation Status": "LLM_ERROR",
+            }, str(REPO_ROOT))
+            
+            # Add failure to history buffer so next iteration knows what happened
+            if is_token_error:
+                history_buffer.append(f"Iteration {iteration}:\n  • Status: FAILED — Your response exceeded the maximum token output limit and was truncated.\n  • No valid PDDL domain was produced.")
+                telemetry_feedback = f"[EXECUTION FEEDBACK — ITERATION {iteration + 1}]\n\nYour Iteration {iteration} response was truncated because it exceeded the token output limit.\n\nThe domain below is your current working domain. Output the reordered PDDL efficiently without conversational filler.\nNote: The token output limit is 8,192 tokens."
+            else:
+                history_buffer.append(f"Iteration {iteration}:\n  • Status: FAILED — API rate limit was exceeded.\n  • No valid PDDL domain was produced.")
+                telemetry_feedback = f"[EXECUTION FEEDBACK — ITERATION {iteration + 1}]\n\nYour Iteration {iteration} could not be processed due to API rate limiting. This was not your fault.\n\nThe domain below is your current working domain. Generate a complete, reordered PDDL domain."
+            
+            # Log to iteration tracking CSV
+            log_to_csv(csv_path, {"Triple_ID": f"{domain_name}_{planner_name}_{llm_model}", "Domain": domain_name, "LLM": llm_model, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": f"LLM_{error_label}", "V4_Failure_Detail": "N/A", "Coverage": 0.0, "Avg_Run_Wall_s": 0.0, "Avg_StatesExpanded": 0, "IPC_Score": 0.0, "Delta_vs_Baseline": "N/A", "Delta_vs_Previous": "N/A", "Is_Best_So_Far": False, "LLM_Rationale": "N/A", "Termination_Reason": "N/A" if iteration < max_iter else "MAX_ITER", "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": "N/A", "Timestamp": datetime.datetime.now().isoformat()})
+            
+            cumulative_failures += 1
+            verdict = "FAILED_VALIDATION"  # Treat as failed for next-iteration task block
+            continue  # Retry on next iteration
+            
         except Exception as e:
             llm_error_str = str(e)
-            push_log(llm_model, "LLM_ERROR", f"{domain_name}+{planner_name} | Iter {iteration}: API Error. {llm_error_str[:100]}")
+            push_log(llm_model, "LLM_ERROR", f"{domain_name}+{planner_name} | Iter {iteration}: Fatal API Error. {llm_error_str[:100]}")
             
-            # Bug fix #4: Use error_handler_stage3 for LLM errors
             LLM_ERROR_HANDLER.log_llm_error(
                 domain=domain_name, planner=planner_name, llm=llm_model,
                 iteration=iteration, error_type="LLM_API_ERROR",
                 prompt_text=prompt_text, error_message=llm_error_str,
             )
             
-            # Bug fix #3: Log LLM generation even on failure
             log_llm_generation({
                 "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
                 "Domain Name": domain_name, "LLM Model": llm_model,
-                "Prompt ID": f"Feedback_{planner_name}",
+                "Prompt ID": current_prompt_id,
                 "LLM_Status": f"Failed: {llm_error_str[:200]}",
                 "LLM API Time S": elapsed,
                 "Input Tokens Consumed": input_toks,
@@ -319,10 +375,21 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
         val_result = validate_domain(llm_response, Path(stage0_baseline_path), problem_file_path_obj)
         val_status = val_result.status
         
-        # Save Validation JSON and update diff metrics
-        stage_name = f"Feedback_Loop{iteration}"
-        run_id = f"Feedback_{planner_name}_iter{iteration}"
-        json_path = save_validation_json(val_result, domain_name, llm_model.replace('/','-'), stage_name, run_id, REPO_ROOT)
+        # Save Validation JSON to feedback_loop directory (not results/Feedback_Loop{N}/)
+        # The JSON goes to: validation_and_evaluation/data/production/feedback_loop/diffs/{LLM}/Iteration{N}/...
+        json_stage = "feedback_loop"
+        run_id = f"{planner_name}_iter{iteration}"
+        
+        # Override save path to avoid creating spurious results/Feedback_LoopN/ directories
+        json_save_dir = REPO_ROOT / "validation_and_evaluation" / "data" / "production" / "feedback_loop" / "diffs" / llm_model.replace('/','-') / f"Iteration{iteration}" / "validation" / domain_name
+        json_save_dir.mkdir(parents=True, exist_ok=True)
+        json_filename = f"{domain_name}__{llm_model.replace('/','-')}__{json_stage}__{run_id}.validation.json"
+        json_path = json_save_dir / json_filename
+        
+        report = val_result.to_production_dict(domain_name, llm_model.replace('/','-'), json_stage, run_id)
+        with open(json_path, "w", encoding="utf-8") as jf:
+            json.dump(report, jf, indent=2, ensure_ascii=False)
+        
         pddl_len = len(val_result.extracted_pddl) if val_result.extracted_pddl else 0
         
         log_diff_metrics(
@@ -334,7 +401,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             domain=domain_name,
             model_id=llm_model,
             iteration=iteration,
-            json_path=json_path,
+            json_path=str(json_path),
             pddl_length=pddl_len,
             repo_root=REPO_ROOT
         )
@@ -366,7 +433,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             log_llm_generation({
                 "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
                 "Domain Name": domain_name, "LLM Model": llm_model,
-                "Prompt ID": f"Feedback_{planner_name}",
+                "Prompt ID": current_prompt_id,
                 "LLM_Status": "Passed", "LLM API Time S": elapsed,
                 "Input Tokens Consumed": input_toks,
                 "Output Tokens Generated": output_toks,
@@ -468,7 +535,7 @@ IMPROVEMENT DIRECTION:
         log_llm_generation({
             "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
             "Domain Name": domain_name, "LLM Model": llm_model,
-            "Prompt ID": f"Feedback_{planner_name}",
+            "Prompt ID": current_prompt_id,
             "LLM_Status": "Passed", "LLM API Time S": elapsed,
             "Input Tokens Consumed": input_toks,
             "Output Tokens Generated": output_toks,

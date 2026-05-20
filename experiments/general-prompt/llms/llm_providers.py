@@ -121,7 +121,7 @@ class AnthropicProvider(LLMProvider):
             response = self.client.messages.create(
                 model=self.model_id,
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=min(self.max_tokens, 4096),
+                max_tokens=self.max_tokens,
                 temperature=self.temperature
             )
             elapsed = time.time() - start_time

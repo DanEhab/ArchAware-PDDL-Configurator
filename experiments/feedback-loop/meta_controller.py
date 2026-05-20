@@ -178,9 +178,9 @@ def build_telemetry_for_valid_full(domain, planner, llm, imp_csv_path, stage2_st
     failed_conditions = []
     
     if not imp_detected:
-        if not m['Statistical_Significance']: failed_conditions.append("Statistical_Significance")
-        if not m['Practical_Significance']: failed_conditions.append("Practical_Significance")
-        if not m['Coverage_Preserved']: failed_conditions.append("Coverage_Preserved")
+        if not m['Condition_A_StatSig']: failed_conditions.append("Statistical_Significance")
+        if not m['Condition_B_PractSig']: failed_conditions.append("Practical_Significance")
+        if not m['Condition_C_Coverage']: failed_conditions.append("Coverage_Preserved")
     
     stage2_solved = stage2_stats["coverage"]
     baseline_solved = baseline_stats["coverage"]
