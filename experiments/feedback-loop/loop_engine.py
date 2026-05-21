@@ -40,6 +40,7 @@ PLANNER_ERROR_HANDLER = ErrorHandlerStage3(
 LLM_ERROR_HANDLER = ErrorHandlerStage3(
     error_register_path=REPO_ROOT / "logs" / "stage3" / "LLM_run" / "error_register.csv",
     error_dumps_dir=REPO_ROOT / "logs" / "stage3" / "LLM_run" / "error_dumps",
+    is_llm_handler=True,
 )
 
 UI_QUEUE = None
@@ -262,6 +263,8 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     
     for iteration in range(1, max_iter + 1):
         push_log(llm_model, "INFO", f"{domain_name}+{planner_name} | Starting Iteration {iteration}/{max_iter}")
+        # Bug fix #3: Per-iteration pipeline status update (current=-1 = text-only update)
+        push_pipeline(llm_model, -1, max_iter, f"iter{iteration}: {domain_name}+{planner_name} ...")
         
         history_buffer_str = "\n\n".join(history_buffer)
         
@@ -306,7 +309,6 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             )
             
             log_llm_generation({
-                "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
                 "Domain Name": domain_name, "LLM Model": llm_model,
                 "Prompt ID": current_prompt_id,
                 "LLM_Status": f"Failed: {llm_error_str[:200]}",
@@ -319,6 +321,9 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
                 "VAL_error_string": "N/A", "Passed V3": False, "Passed V4": False,
                 "Validation Status": "LLM_ERROR",
             }, str(REPO_ROOT))
+            
+            # Bug fix #3: per-iteration completion status
+            push_pipeline(llm_model, -1, max_iter, f"iter{iteration}: {domain_name}+{planner_name} ✗ (LLM error)")
             
             # Add failure to history buffer so next iteration knows what happened
             if is_token_error:
@@ -346,7 +351,6 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             )
             
             log_llm_generation({
-                "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
                 "Domain Name": domain_name, "LLM Model": llm_model,
                 "Prompt ID": current_prompt_id,
                 "LLM_Status": f"Failed: {llm_error_str[:200]}",
@@ -359,6 +363,9 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
                 "VAL_error_string": "N/A", "Passed V3": False, "Passed V4": False,
                 "Validation Status": "LLM_ERROR",
             }, str(REPO_ROOT))
+            
+            # Bug fix #3: per-iteration completion status
+            push_pipeline(llm_model, -1, max_iter, f"iter{iteration}: {domain_name}+{planner_name} ✗ (fatal LLM error)")
             
             term_reason = "LLM_ERROR"
             break
@@ -431,7 +438,6 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             
             # Bug fix #3: Log LLM generation for failed validation
             log_llm_generation({
-                "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
                 "Domain Name": domain_name, "LLM Model": llm_model,
                 "Prompt ID": current_prompt_id,
                 "LLM_Status": "Passed", "LLM API Time S": elapsed,
@@ -446,6 +452,9 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
                 "Passed V4": False,
                 "Validation Status": f"INVALID_{failed_stage}",
             }, str(REPO_ROOT))
+            
+            # Bug fix #3: per-iteration completion status
+            push_pipeline(llm_model, -1, max_iter, f"iter{iteration}: {domain_name}+{planner_name} ✗ ({failed_stage} fail)")
             
             push_log(llm_model, "VALIDATE", f"{domain_name}+{planner_name} | Iter {iteration}: {failed_stage} Failure! ({reason[:60] if failed_stage != 'V4' else v4_detail[:60]})")
             continue
@@ -533,7 +542,6 @@ IMPROVEMENT DIRECTION:
 
         # Bug fix #3: Log LLM generation for valid iterations
         log_llm_generation({
-            "ID": f"{domain_name}_{planner_name}_{llm_model}_iter{iteration}",
             "Domain Name": domain_name, "LLM Model": llm_model,
             "Prompt ID": current_prompt_id,
             "LLM_Status": "Passed", "LLM API Time S": elapsed,
@@ -545,6 +553,9 @@ IMPROVEMENT DIRECTION:
             "VAL_error_string": "N/A", "Passed V3": True, "Passed V4": True,
             "Validation Status": "VALID",
         }, str(REPO_ROOT))
+        
+        # Bug fix #3: per-iteration completion status
+        push_pipeline(llm_model, -1, max_iter, f"iter{iteration}: {domain_name}+{planner_name} ✓ ({verdict})")
 
         if all_timeout:
             push_log(llm_model, "TERMINATE", f"{domain_name}+{planner_name} | ALL_TIMEOUT triggered on Iter {iteration}. Ending loop.")

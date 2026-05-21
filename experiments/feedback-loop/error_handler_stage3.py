@@ -19,8 +19,8 @@ import csv
 from pathlib import Path
 from datetime import datetime, timezone
 
-# Columns for the error register CSV
-ERROR_REGISTER_COLUMNS = [
+# Columns for the planner error register CSV
+PLANNER_ERROR_COLUMNS = [
     "Timestamp",
     "Component",
     "Run_ID",
@@ -33,28 +33,48 @@ ERROR_REGISTER_COLUMNS = [
     "Dump_Path",
 ]
 
+# Columns for the LLM error register CSV (no Problem column)
+LLM_ERROR_COLUMNS = [
+    "Timestamp",
+    "Component",
+    "Run_ID",
+    "Domain",
+    "Planner",
+    "LLM",
+    "Iteration",
+    "Error_Type",
+    "Dump_Path",
+]
+
 
 class ErrorHandlerStage3:
     """Thread-safe error logging to CSV register and text dump files."""
 
-    def __init__(self, error_register_path: Path, error_dumps_dir: Path):
+    def __init__(self, error_register_path: Path, error_dumps_dir: Path,
+                 is_llm_handler: bool = False):
         self.register_path = error_register_path
         self.dumps_dir = error_dumps_dir
+        self.is_llm_handler = is_llm_handler
         self._lock = threading.Lock()
 
         # Create directories
         self.register_path.parent.mkdir(parents=True, exist_ok=True)
         self.dumps_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create subfolders for each error type
-        for subdir in ("TIMEOUT", "MEMOUT", "FAILURE", "LLM_API"):
-            (self.dumps_dir / subdir).mkdir(parents=True, exist_ok=True)
+        # For planner errors, create subfolders for each error type
+        if not is_llm_handler:
+            for subdir in ("TIMEOUT", "MEMOUT", "FAILURE"):
+                (self.dumps_dir / subdir).mkdir(parents=True, exist_ok=True)
+        # LLM errors: flat structure (no sub-folders)
+
+        # Determine which column set to use
+        columns = LLM_ERROR_COLUMNS if is_llm_handler else PLANNER_ERROR_COLUMNS
 
         # Write CSV header if file doesn't exist yet
         if not self.register_path.exists():
             with open(self.register_path, "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow(ERROR_REGISTER_COLUMNS)
+                writer.writerow(columns)
 
     def log_planner_error(
         self,
@@ -71,8 +91,7 @@ class ErrorHandlerStage3:
         run_id = f"{domain}_{planner}_{llm}_iter{iteration}_{problem}"
         dump_path = self._save_error_dump(run_id, error_type, stdout, stderr)
 
-        self._append_register_row(
-            component="PLANNER",
+        self._append_planner_row(
             run_id=run_id,
             domain=domain,
             problem=problem,
@@ -94,16 +113,16 @@ class ErrorHandlerStage3:
         error_message: str,
     ) -> None:
         """Log an LLM API error."""
-        run_id = f"{domain}_{planner}_{llm}_iter{iteration}"
+        # Run_ID is the LLM name as requested by user
+        run_id = llm
         dump_path = self._save_llm_error_dump(
-            run_id, error_type, prompt_text, error_message
+            f"{domain}_{planner}_{llm}_iter{iteration}",
+            error_type, prompt_text, error_message
         )
 
-        self._append_register_row(
-            component="LLM_API",
+        self._append_llm_row(
             run_id=run_id,
             domain=domain,
-            problem="N/A",
             planner=planner,
             llm=llm,
             iteration=iteration,
@@ -114,7 +133,7 @@ class ErrorHandlerStage3:
     def _save_error_dump(
         self, run_id: str, error_type: str, stdout: str, stderr: str
     ) -> Path:
-        """Save verbose stdout+stderr to a text dump file."""
+        """Save verbose stdout+stderr to a text dump file (planner errors use sub-folders)."""
         subfolder = self.dumps_dir / error_type
         subfolder.mkdir(parents=True, exist_ok=True)
         dump_file = subfolder / f"{run_id}_{error_type}.txt"
@@ -137,31 +156,31 @@ class ErrorHandlerStage3:
     def _save_llm_error_dump(
         self, run_id: str, error_type: str, prompt_text: str, error_message: str
     ) -> Path:
-        """Save LLM error details to a text dump file."""
-        subfolder = self.dumps_dir / "LLM_API"
-        subfolder.mkdir(parents=True, exist_ok=True)
-        dump_file = subfolder / f"{run_id}_{error_type}.txt"
+        """Save LLM error details to a text dump file (flat — no sub-folders).
+        Full prompt and error message are saved without truncation."""
+        # Flat structure: save directly in dumps_dir
+        dump_file = self.dumps_dir / f"{run_id}_{error_type}.txt"
 
         content_parts = [
             f"=== LLM ERROR DUMP -- {run_id} ===",
             f"Error Type: {error_type}",
             f"Timestamp: {datetime.now(timezone.utc).isoformat()}",
             "",
-            "=== PROMPT (first 2000 chars) ===",
-            prompt_text[:2000] if prompt_text else "(empty)",
+            "=== FULL PROMPT ===",
+            prompt_text if prompt_text else "(empty)",
             "",
-            "=== ERROR MESSAGE ===",
+            "=== FULL ERROR MESSAGE ===",
             error_message if error_message else "(empty)",
         ]
 
         dump_file.write_text("\n".join(content_parts), encoding="utf-8")
         return dump_file
 
-    def _append_register_row(self, **kwargs) -> None:
-        """Thread-safe append of a single row to the error register CSV."""
+    def _append_planner_row(self, **kwargs) -> None:
+        """Thread-safe append of a planner error row to the CSV register."""
         row = {
             "Timestamp": datetime.now(timezone.utc).isoformat(),
-            "Component": kwargs.get("component", "UNKNOWN"),
+            "Component": "PLANNER",
             "Run_ID": kwargs.get("run_id", "N/A"),
             "Domain": kwargs.get("domain", "N/A"),
             "Problem": kwargs.get("problem", "N/A"),
@@ -176,5 +195,26 @@ class ErrorHandlerStage3:
             with open(
                 self.register_path, "a", newline="", encoding="utf-8"
             ) as f:
-                writer = csv.DictWriter(f, fieldnames=ERROR_REGISTER_COLUMNS)
+                writer = csv.DictWriter(f, fieldnames=PLANNER_ERROR_COLUMNS)
+                writer.writerow(row)
+
+    def _append_llm_row(self, **kwargs) -> None:
+        """Thread-safe append of an LLM error row to the CSV register (no Problem column)."""
+        row = {
+            "Timestamp": datetime.now(timezone.utc).isoformat(),
+            "Component": "LLM_API",
+            "Run_ID": kwargs.get("run_id", "N/A"),
+            "Domain": kwargs.get("domain", "N/A"),
+            "Planner": kwargs.get("planner", "N/A"),
+            "LLM": kwargs.get("llm", "N/A"),
+            "Iteration": kwargs.get("iteration", -1),
+            "Error_Type": kwargs.get("error_type", "UNKNOWN"),
+            "Dump_Path": kwargs.get("dump_path", "N/A"),
+        }
+
+        with self._lock:
+            with open(
+                self.register_path, "a", newline="", encoding="utf-8"
+            ) as f:
+                writer = csv.DictWriter(f, fieldnames=LLM_ERROR_COLUMNS)
                 writer.writerow(row)

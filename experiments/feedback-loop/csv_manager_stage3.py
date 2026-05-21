@@ -17,6 +17,44 @@ from datetime import datetime, timezone
 # Global lock for thread-safe CSV writes
 csv_lock = threading.Lock()
 
+# ── LLM Name Normalisation ──────────────────────────────────────────
+# Stage 3 friendly names  →  names already used in the global CSVs
+LLM_NAME_MAP = {
+    "gpt-5.4":        "gpt-5.4-2026-03-05",
+    "claude-opus-4.6": "claude-opus-4-6",
+    "gemini-3.1-pro":  "gemini-3.1-pro-preview-customtools",
+    "deepseek-r1":     "deepseek-reasoner",
+}
+
+def _normalise_llm_name(raw_name: str) -> str:
+    """Map a Stage-3 friendly LLM name to the canonical name used in
+    the global results CSVs so that every file is consistent."""
+    for key, canonical in LLM_NAME_MAP.items():
+        if key in raw_name or raw_name in key:
+            return canonical
+    return raw_name
+
+
+def _get_next_numeric_id(global_csv_path: Path) -> int:
+    """Read the global CSV and return max(existing numeric ID) + 1."""
+    max_id = 0
+    if global_csv_path.exists():
+        try:
+            with open(global_csv_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    raw = row.get("ID", "0")
+                    try:
+                        val = int(raw)
+                        if val > max_id:
+                            max_id = val
+                    except (ValueError, TypeError):
+                        pass
+        except Exception:
+            pass
+    return max_id + 1
+
+
 def log_to_csv(csv_path, row_data):
     """
     Appends a row of data to the specified CSV file.
@@ -37,19 +75,17 @@ def log_diff_metrics(diff_features, status, reason, failed_stage, llm_id, domain
     and production/pddl_diff_metrics.csv (global)
     """
     stage_name = f"Feedback_Loop{iteration}"
+    canonical_model = _normalise_llm_name(model_id)
     
     row = {
         "LLM_ID": llm_id,
         "domain": domain,
-        "LLM_Model": model_id,
+        "LLM_Model": canonical_model,
         "stage": stage_name,
         "validation_status": status,
         "rejection_reason": reason if reason else "N/A",
         "failed_stage": failed_stage if failed_stage else "N/A",
         "has_semantic_change": diff_features.get("has_semantic_change", "N/A") if diff_features else "N/A",
-        "json_report_path": str(Path(json_path).relative_to(repo_root)).replace("\\", "/") if json_path else "N/A",
-        "extracted_pddl_length": pddl_length if pddl_length is not None else "N/A",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     
     flag_keys = [
@@ -67,6 +103,11 @@ def log_diff_metrics(diff_features, status, reason, failed_stage, llm_id, domain
     default_val = 0 if diff_features else "N/A"
     for key in flag_keys:
         row[key] = diff_features.get(key, default_val) if diff_features else "N/A"
+
+    # These two fields must come AFTER the flag columns (matching global CSV column order)
+    row["json_report_path"] = str(Path(json_path).relative_to(repo_root)).replace("\\", "/") if json_path else "N/A"
+    row["extracted_pddl_length"] = pddl_length if pddl_length is not None else "N/A"
+    row["timestamp"] = datetime.now(timezone.utc).isoformat()
         
     diff_csv_relative = Path("validation_and_evaluation/data/production/feedback_loop/feedback_loop_pddl_diff_metrics.csv")
     global_diff_csv_relative = Path("validation_and_evaluation/data/production/pddl_diff_metrics.csv")
@@ -96,6 +137,9 @@ def log_llm_generation(row_data, repo_root):
     Append an LLM generation record to both local and global CSVs.
     Local:  results/feedback_loop/feedback_loop_llm_generation_data.csv
     Global: results/llm_generation_data.csv
+    
+    The ID is auto-incremented from the global CSV's max numeric ID.
+    The LLM Model name is normalised to match existing CSV conventions.
     """
     local_path = Path(repo_root) / "results/feedback_loop/feedback_loop_llm_generation_data.csv"
     global_path = Path(repo_root) / "results/llm_generation_data.csv"
@@ -113,8 +157,16 @@ def log_llm_generation(row_data, repo_root):
     filled_row = {k: row_data.get(k, "N/A") for k in expected_keys}
     if "Timestamp" not in row_data or row_data["Timestamp"] == "N/A":
         filled_row["Timestamp"] = datetime.now(timezone.utc).isoformat()
-        
+
+    # Normalise the LLM Model name
+    if "LLM Model" in filled_row:
+        filled_row["LLM Model"] = _normalise_llm_name(str(filled_row["LLM Model"]))
+
     with csv_lock:
+        # Auto-increment numeric ID from global CSV
+        next_id = _get_next_numeric_id(global_path)
+        filled_row["ID"] = next_id
+
         local_hdr = not local_path.exists()
         with local_path.open("a", newline="", encoding="utf-8") as lf:
             w = csv.DictWriter(lf, fieldnames=expected_keys)
@@ -150,6 +202,10 @@ def log_planner_execution(row_data, repo_root):
     filled_row = {k: row_data.get(k, "N/A") for k in expected_keys}
     if "Timestamp" not in row_data or row_data["Timestamp"] == "N/A":
         filled_row["Timestamp"] = datetime.now(timezone.utc).isoformat()
+
+    # Normalise the LLM_Used name
+    if "LLM_Used" in filled_row:
+        filled_row["LLM_Used"] = _normalise_llm_name(str(filled_row["LLM_Used"]))
         
     with csv_lock:
         local_hdr = not local_path.exists()

@@ -167,11 +167,73 @@ def resolve_seed_domain(domain, planner, llm):
             elif val_status == 'VALID' and row['Passed Stage V1'] == True and v4_pass == "True":
                 # 6B: Valid Domain
                 is_valid_seed = True
+                
+                # Bug fix #1: Cross-platform domain path resolution.
+                # CSV paths may use macOS paths that don't exist on Windows.
+                # Try multiple resolution strategies:
                 extracted_path = str(row['Path to Extracted PDDL'])
+                resolved = False
+                
+                # Strategy 1: Direct path (works if same machine)
                 if os.path.exists(extracted_path):
                     seed_domain_path = extracted_path
-                else:
-                    seed_domain_path = stage0_path # fallback just in case
+                    resolved = True
+                
+                # Strategy 2: Extract relative path and resolve against REPO_ROOT
+                if not resolved:
+                    for marker in ["results/arch_aware/", "results\\arch_aware\\"]:
+                        if marker in extracted_path.replace("\\", "/") or marker.replace("/", "\\") in extracted_path:
+                            # Extract relative portion
+                            norm = extracted_path.replace("\\", "/")
+                            idx = norm.find("results/arch_aware/")
+                            if idx >= 0:
+                                rel = norm[idx:]
+                                candidate = os.path.join(REPO_ROOT, rel)
+                                if os.path.exists(candidate):
+                                    seed_domain_path = candidate
+                                    resolved = True
+                                    break
+                
+                # Strategy 3: Known directory structure lookup
+                # Validated Domains: results/arch_aware/Validated Domains/{domain}/{planner}/{domain}_{llm_short}_Arch_Aware_{planner}.pddl
+                if not resolved:
+                    llm_short_map = {
+                        "gpt-5.4": "gpt-5.4",
+                        "claude-opus-4.6": "claude-opus-4.6",
+                        "gemini-3.1-pro": "gemini-3.1-pro",
+                        "deepseek-r1": "deepseek-r1",
+                    }
+                    llm_short = llm
+                    for k, v in llm_short_map.items():
+                        if k in llm or llm in k:
+                            llm_short = v
+                            break
+                    
+                    # Try Validated Domains first (only contains V1-V4 passed files)
+                    validated_path = os.path.join(REPO_ROOT, "results", "arch_aware", "Validated Domains",
+                                                  domain, planner, f"{domain}_{llm_short}_Arch_Aware_{planner}.pddl")
+                    if os.path.exists(validated_path):
+                        seed_domain_path = validated_path
+                        resolved = True
+                    else:
+                        # Try "ArchAware" variant naming
+                        validated_path2 = os.path.join(REPO_ROOT, "results", "arch_aware", "Validated Domains",
+                                                       domain, planner, f"{domain}_{llm_short}_ArchAware_{planner}.pddl")
+                        if os.path.exists(validated_path2):
+                            seed_domain_path = validated_path2
+                            resolved = True
+                    
+                    # Try Extracted PDDL as fallback (has more files but includes invalid ones)
+                    if not resolved:
+                        extracted_dir = os.path.join(REPO_ROOT, "results", "arch_aware", "Extracted PDDL",
+                                                     domain, f"{domain}_{llm_short}_Arch_Aware_{planner}.pddl")
+                        if os.path.exists(extracted_dir):
+                            seed_domain_path = extracted_dir
+                            resolved = True
+                
+                if not resolved:
+                    # Last resort: use baseline
+                    seed_domain_path = stage0_path
                 
                 imp_csv = os.path.join(REPO_ROOT, "results", "arch_aware", "improvement", "improvement_results.csv")
                 
@@ -461,7 +523,11 @@ def main():
                     elif etype == "PIPELINE_UPDATE":
                         _, llm, current, total, text = event
                         if llm in pipeline_tasks:
-                            pipeline_progress.update(pipeline_tasks[llm], completed=current, status=text)
+                            if current >= 0:
+                                pipeline_progress.update(pipeline_tasks[llm], completed=current, status=text)
+                            else:
+                                # Text-only update (per-iteration status)
+                                pipeline_progress.update(pipeline_tasks[llm], status=text)
                             
                     elif etype == "TRIPLE_COMPLETE":
                         _, triple_id, total_iters, verdict, delta = event
