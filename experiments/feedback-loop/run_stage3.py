@@ -138,6 +138,8 @@ def resolve_seed_domain(domain, planner, llm):
         llm_search = llm
         if 'gpt' in llm.lower() and '5.4' in llm:
             llm_search = 'gpt-5.4'
+        elif 'deepseek' in llm.lower():
+            llm_search = 'deepseek-reasoner'
             
         match = df[(df['Domain Name'] == domain) & (df['Prompt ID'] == pid) & (df['LLM Model'].str.contains(llm_search))]
         
