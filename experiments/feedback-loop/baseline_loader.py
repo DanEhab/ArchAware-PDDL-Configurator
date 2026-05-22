@@ -143,17 +143,20 @@ def load_stage2_stats(domain, planner, llm, repo_root):
 
 
 def _llm_to_short(llm):
-    """Convert an LLM friendly name to the short form used in file names."""
-    mapping = {
-        "gpt-5.4": "gpt-5.4",
-        "claude-opus-4.6": "claude-opus-4.6",
-        "gemini-3.1-pro": "gemini-3.1-pro",
-        "deepseek-r1": "deepseek-r1",
-    }
-    for key, short in mapping.items():
-        if key in llm or llm in key:
-            return short
-    return llm.replace("/", "-")
+    """
+    Convert full LLM name to the short version used in domain filenames.
+    E.g. gpt-5.4-2026-03-05 -> gpt-5.4
+         claude-opus-4-6 -> claude-opus-4.6
+    """
+    if "gpt" in llm.lower():
+        return "gpt-5.4"
+    elif "claude" in llm.lower():
+        return "claude-opus-4.6"
+    elif "gemini" in llm.lower():
+        return "gemini-3.1-pro"
+    elif "deepseek" in llm.lower():
+        return "deepseek-r1"
+    return llm
 
 
 def compute_seed_ipc(baseline_stats, seed_stats):
