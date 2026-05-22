@@ -35,24 +35,6 @@ def _normalise_llm_name(raw_name: str) -> str:
     return raw_name
 
 
-def _get_next_numeric_id(global_csv_path: Path) -> int:
-    """Read the global CSV and return max(existing numeric ID) + 1."""
-    max_id = 0
-    if global_csv_path.exists():
-        try:
-            with open(global_csv_path, "r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    raw = row.get("ID", "0")
-                    try:
-                        val = int(raw)
-                        if val > max_id:
-                            max_id = val
-                    except (ValueError, TypeError):
-                        pass
-        except Exception:
-            pass
-    return max_id + 1
 
 
 def log_to_csv(csv_path, row_data):
@@ -78,7 +60,7 @@ def log_diff_metrics(diff_features, status, reason, failed_stage, llm_id, domain
     canonical_model = _normalise_llm_name(model_id)
     
     row = {
-        "LLM_ID": llm_id,
+        "LLM_ID": "N/A",  # Placeholder, will be auto-incremented
         "domain": domain,
         "LLM_Model": canonical_model,
         "stage": stage_name,
@@ -119,6 +101,9 @@ def log_diff_metrics(diff_features, status, reason, failed_stage, llm_id, domain
     global_diff_csv_path.parent.mkdir(parents=True, exist_ok=True)
     
     with csv_lock:
+        new_llm_id = _get_next_numeric_id(global_diff_csv_path, "LLM_ID")
+        row["LLM_ID"] = new_llm_id
+        
         write_header_local = not diff_csv_path.exists()
         with diff_csv_path.open("a", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=row.keys())
@@ -164,7 +149,7 @@ def log_llm_generation(row_data, repo_root):
 
     with csv_lock:
         # Auto-increment numeric ID from global CSV
-        next_id = _get_next_numeric_id(global_path)
+        next_id = _get_next_numeric_id(global_path, "ID")
         filled_row["ID"] = next_id
 
         local_hdr = not local_path.exists()
@@ -180,11 +165,34 @@ def log_llm_generation(row_data, repo_root):
             w.writerow(filled_row)
 
 
-def log_planner_execution(row_data, repo_root):
+def _get_next_numeric_id(global_csv_path: Path, id_col: str) -> int:
+    """Read the global CSV and return max(existing numeric ID) + 1."""
+    max_id = 0
+    if global_csv_path.exists():
+        try:
+            with open(global_csv_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    raw = row.get(id_col, "0")
+                    try:
+                        val = int(raw)
+                        if val > max_id:
+                            max_id = val
+                    except (ValueError, TypeError):
+                        pass
+        except Exception:
+            pass
+    return max_id + 1
+
+
+def log_planner_execution(row_data, repo_root) -> int:
     """
     Append a planner execution record to both local and global CSVs.
     Local:  results/feedback_loop/feedback_loop_planner_execution_data.csv
     Global: results/planner_execution_data.csv
+    
+    Run_ID is auto-incremented from the global CSV's max numeric Run_ID.
+    Returns the newly assigned Run_ID.
     """
     local_path = Path(repo_root) / "results/feedback_loop/feedback_loop_planner_execution_data.csv"
     global_path = Path(repo_root) / "results/planner_execution_data.csv"
@@ -208,6 +216,10 @@ def log_planner_execution(row_data, repo_root):
         filled_row["LLM_Used"] = _normalise_llm_name(str(filled_row["LLM_Used"]))
         
     with csv_lock:
+        # Auto-increment numeric Run_ID from global CSV
+        new_run_id = _get_next_numeric_id(global_path, "Run_ID")
+        filled_row["Run_ID"] = new_run_id
+        
         local_hdr = not local_path.exists()
         with local_path.open("a", newline="", encoding="utf-8") as lf:
             w = csv.DictWriter(lf, fieldnames=expected_keys)
@@ -219,3 +231,5 @@ def log_planner_execution(row_data, repo_root):
             w = csv.DictWriter(gf, fieldnames=expected_keys)
             if global_hdr: w.writeheader()
             w.writerow(filled_row)
+
+    return new_run_id

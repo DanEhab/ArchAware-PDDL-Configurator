@@ -318,6 +318,7 @@ def run_pipeline_for_llm(llm):
             if shutdown_flag.is_set():
                 UI_QUEUE.put(("LOG", llm, "INFO", "[Shutdown] Stopping thread...", None))
                 return
+            
             triple_id = f"{domain}_{planner}_{llm}"
             if triple_id in completed_triples:
                 triple_counter += 1

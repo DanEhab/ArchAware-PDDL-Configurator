@@ -19,7 +19,7 @@ import yaml
 import json
 import numpy as np
 
-from csv_manager_stage3 import log_to_csv, log_diff_metrics, log_planner_execution, log_llm_generation  # type: ignore
+from csv_manager_stage3 import log_to_csv, log_diff_metrics, log_planner_execution, log_llm_generation, _normalise_llm_name, _get_next_numeric_id  # type: ignore
 from rationale_extractor import extract_rationale  # type: ignore
 from meta_controller import calculate_simple_ipc, build_telemetry_table, meta_controller_diagnostics  # type: ignore
 from prompt_builder import build_feedback_prompt  # type: ignore
@@ -131,11 +131,12 @@ def run_soft_critic(domain_pddl_path, planner_name, test_instances, llm_model=No
             "PeakMemoryKB": res.get("PeakMemoryKB"),
             "Timestamp": datetime.datetime.now(timezone.utc).isoformat(),
         }
-        log_planner_execution(csv_row, str(REPO_ROOT))
+        assigned_run_id = log_planner_execution(csv_row, str(REPO_ROOT))
         
         # Bug fix #10: Log planner errors to error handler
         if status in ("TIMEOUT", "MEMOUT", "FAILURE"):
             PLANNER_ERROR_HANDLER.log_planner_error(
+                run_id=assigned_run_id,
                 domain=d_name, problem=inst_name, planner=planner_name,
                 llm=llm_for_log, iteration=iteration or 0,
                 error_type=status,
@@ -184,6 +185,9 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     
     csv_path = os.path.join(output_dir, "iteration_tracking.csv")
     final_domains_csv = os.path.join(output_dir, "stage3_final_domains.csv")
+    
+    # Canonical LLM name for all CSV logging
+    canonical_llm = _normalise_llm_name(llm_model)
 
     current_domain_str = Path(base_domain_path).read_text(encoding="utf-8")
     
@@ -240,7 +244,9 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     elif "gemini" in llm_model.lower() and provider_name == "openai": provider_name = "google"
     elif "deepseek" in llm_model.lower() and provider_name == "openai": provider_name = "deepseek"
     
-    llm = get_provider(provider_name, actual_model_id, temp=0.0, top_p=1.0, max_tokens=8192)
+    # Determine max_tokens: Gemini needs 16K to avoid frequent truncation
+    llm_max_tokens = 16384 if provider_name == "google" else 8192
+    llm = get_provider(provider_name, actual_model_id, temp=0.0, top_p=1.0, max_tokens=llm_max_tokens)
 
     # Bug fix #6: Only set from stage2_best_score for non-valid seeds.
     # For valid seeds, best_score was already computed above via compute_seed_ipc().
@@ -334,7 +340,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
                 telemetry_feedback = f"[EXECUTION FEEDBACK — ITERATION {iteration + 1}]\n\nYour Iteration {iteration} could not be processed due to API rate limiting. This was not your fault.\n\nThe domain below is your current working domain. Generate a complete, reordered PDDL domain."
             
             # Log to iteration tracking CSV
-            log_to_csv(csv_path, {"Triple_ID": f"{domain_name}_{planner_name}_{llm_model}", "Domain": domain_name, "LLM": llm_model, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": f"LLM_{error_label}", "V4_Failure_Detail": "N/A", "Coverage": 0.0, "Avg_Run_Wall_s": 0.0, "Avg_StatesExpanded": 0, "IPC_Score": 0.0, "Delta_vs_Baseline": "N/A", "Delta_vs_Previous": "N/A", "Is_Best_So_Far": False, "LLM_Rationale": "N/A", "Termination_Reason": "N/A" if iteration < max_iter else "MAX_ITER", "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": "N/A", "Timestamp": datetime.datetime.now().isoformat()})
+            log_to_csv(csv_path, {"ID": _get_next_numeric_id(Path(csv_path), "ID"), "Domain": domain_name, "LLM": canonical_llm, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": f"LLM_{error_label}", "V4_Failure_Detail": "N/A", "Coverage": 0.0, "Avg_Run_Wall_s": 0.0, "Avg_StatesExpanded": 0, "IPC_Score": 0.0, "Delta_vs_Baseline": "N/A", "Delta_vs_Previous": "N/A", "Is_Best_So_Far": False, "LLM_Rationale": "N/A", "Termination_Reason": "N/A" if iteration < max_iter else "MAX_ITER", "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": "N/A", "Timestamp": datetime.datetime.now().isoformat()})
             
             cumulative_failures += 1
             verdict = "FAILED_VALIDATION"  # Treat as failed for next-iteration task block
@@ -434,7 +440,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
                  telemetry_feedback = f"[EXECUTION FEEDBACK — ITERATION {iteration + 1}]\n\nYour Iteration {iteration} output was REJECTED because it failed V1 extraction.\n\n⚠ You must ONLY reorder elements. Do NOT modify preconditions, effects, or parameters. Analyze the domain below and try a different structural reordering strategy."
                  history_buffer.append(f"Iteration {iteration}:\n  • Your Strategy: \"{rationale}\"\n  • Result: REJECTED — V1 check failed.\n    Changes detected: Malformed.")
             
-            log_to_csv(csv_path, {"Triple_ID": f"{domain_name}_{planner_name}_{llm_model}", "Domain": domain_name, "LLM": llm_model, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": f"INVALID_{failed_stage}", "V4_Failure_Detail": v4_detail, "Coverage": 0.0, "Avg_Run_Wall_s": 0.0, "Avg_StatesExpanded": 0, "IPC_Score": 0.0, "Delta_vs_Baseline": "N/A", "Delta_vs_Previous": "N/A", "Is_Best_So_Far": False, "LLM_Rationale": rationale, "Termination_Reason": "N/A" if iteration < max_iter else "MAX_ITER", "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": "N/A", "Timestamp": datetime.datetime.now().isoformat()})
+            log_to_csv(csv_path, {"ID": _get_next_numeric_id(Path(csv_path), "ID"), "Domain": domain_name, "LLM": canonical_llm, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": f"INVALID_{failed_stage}", "V4_Failure_Detail": v4_detail, "Coverage": 0.0, "Avg_Run_Wall_s": 0.0, "Avg_StatesExpanded": 0, "IPC_Score": 0.0, "Delta_vs_Baseline": "N/A", "Delta_vs_Previous": "N/A", "Is_Best_So_Far": False, "LLM_Rationale": rationale, "Termination_Reason": "N/A" if iteration < max_iter else "MAX_ITER", "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": "N/A", "Timestamp": datetime.datetime.now().isoformat()})
             
             # Bug fix #3: Log LLM generation for failed validation
             log_llm_generation({
@@ -538,7 +544,7 @@ IMPROVEMENT DIRECTION:
         all_timeout = current_stats["coverage"] == 0 and baseline_stats["coverage"] == 0
         term_reason = "ALL_TIMEOUT" if all_timeout else ("MAX_ITER" if iteration == max_iter else "N/A")
         
-        log_to_csv(csv_path, {"Triple_ID": f"{domain_name}_{planner_name}_{llm_model}", "Domain": domain_name, "LLM": llm_model, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": "VALID", "V4_Failure_Detail": "N/A", "Coverage": new_cov/15.0, "Avg_Run_Wall_s": stage2_avg_time, "Avg_StatesExpanded": stage2_avg_states, "IPC_Score": iter_ipc_abs, "Delta_vs_Baseline": mean_ipc_gain, "Delta_vs_Previous": delta_prev, "Is_Best_So_Far": is_best, "LLM_Rationale": rationale, "Termination_Reason": term_reason, "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": tmp_domain_path, "Timestamp": datetime.datetime.now().isoformat()})
+        log_to_csv(csv_path, {"ID": _get_next_numeric_id(Path(csv_path), "ID"), "Domain": domain_name, "LLM": canonical_llm, "Target_Planner": planner_name, "Iteration": iteration, "Validation_Status": "VALID", "V4_Failure_Detail": "N/A", "Coverage": new_cov/15.0, "Avg_Run_Wall_s": stage2_avg_time, "Avg_StatesExpanded": stage2_avg_states, "IPC_Score": iter_ipc_abs, "Delta_vs_Baseline": mean_ipc_gain, "Delta_vs_Previous": delta_prev, "Is_Best_So_Far": is_best, "LLM_Rationale": rationale, "Termination_Reason": term_reason, "LLM_Input_Tokens": input_toks, "LLM_Output_Tokens": output_toks, "Domain_File_Path": tmp_domain_path, "Timestamp": datetime.datetime.now().isoformat()})
 
         # Bug fix #3: Log LLM generation for valid iterations
         log_llm_generation({
@@ -587,9 +593,9 @@ IMPROVEMENT DIRECTION:
     push_complete(f"{domain_name}, {llm_model}, {planner_name}", iteration, vstr, imp_vs_seed)
     
     log_to_csv(final_domains_csv, {
-        "Triple_ID": f"{domain_name}_{planner_name}_{llm_model}",
+        "ID": _get_next_numeric_id(Path(final_domains_csv), "ID"),
         "Domain": domain_name,
-        "LLM": llm_model,
+        "LLM": canonical_llm,
         "Target_Planner": planner_name,
         "Best_Iteration": best_iter_num,
         "Total_Iterations_Run": iteration,

@@ -18,6 +18,7 @@ import threading
 import csv
 from pathlib import Path
 from datetime import datetime, timezone
+from csv_manager_stage3 import _normalise_llm_name  # type: ignore
 
 # Columns for the planner error register CSV
 PLANNER_ERROR_COLUMNS = [
@@ -37,7 +38,6 @@ PLANNER_ERROR_COLUMNS = [
 LLM_ERROR_COLUMNS = [
     "Timestamp",
     "Component",
-    "Run_ID",
     "Domain",
     "Planner",
     "LLM",
@@ -78,6 +78,7 @@ class ErrorHandlerStage3:
 
     def log_planner_error(
         self,
+        run_id: int,
         domain: str,
         problem: str,
         planner: str,
@@ -88,15 +89,15 @@ class ErrorHandlerStage3:
         stderr: str,
     ) -> None:
         """Log a planner error (TIMEOUT, MEMOUT, FAILURE)."""
-        run_id = f"{domain}_{planner}_{llm}_iter{iteration}_{problem}"
-        dump_path = self._save_error_dump(run_id, error_type, stdout, stderr)
+        canonical_llm = _normalise_llm_name(llm)
+        dump_path = self._save_error_dump(str(run_id), error_type, stdout, stderr)
 
         self._append_planner_row(
             run_id=run_id,
             domain=domain,
             problem=problem,
             planner=planner,
-            llm=llm,
+            llm=canonical_llm,
             iteration=iteration,
             error_type=error_type,
             dump_path=str(dump_path),
@@ -113,18 +114,18 @@ class ErrorHandlerStage3:
         error_message: str,
     ) -> None:
         """Log an LLM API error."""
-        # Run_ID is the LLM name as requested by user
-        run_id = llm
+        canonical_llm = _normalise_llm_name(llm)
+        # Run_ID is the canonical LLM name
+        run_id = canonical_llm
         dump_path = self._save_llm_error_dump(
-            f"{domain}_{planner}_{llm}_iter{iteration}",
+            f"{domain}_{planner}_{canonical_llm}_iter{iteration}",
             error_type, prompt_text, error_message
         )
 
         self._append_llm_row(
-            run_id=run_id,
             domain=domain,
             planner=planner,
-            llm=llm,
+            llm=canonical_llm,
             iteration=iteration,
             error_type=error_type,
             dump_path=str(dump_path),
@@ -203,7 +204,6 @@ class ErrorHandlerStage3:
         row = {
             "Timestamp": datetime.now(timezone.utc).isoformat(),
             "Component": "LLM_API",
-            "Run_ID": kwargs.get("run_id", "N/A"),
             "Domain": kwargs.get("domain", "N/A"),
             "Planner": kwargs.get("planner", "N/A"),
             "LLM": kwargs.get("llm", "N/A"),
