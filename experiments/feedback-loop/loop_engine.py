@@ -2,6 +2,7 @@ import os
 import sys
 import datetime
 from datetime import timezone
+import time
 from pathlib import Path
 
 REPO_ROOT = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -213,6 +214,7 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             os.makedirs(eval_domain_dir, exist_ok=True)
             eval_domain_path = os.path.join(eval_domain_dir, f"domain_{llm_model.replace('/','-')}_{planner_name}_iter0.pddl")
             Path(eval_domain_path).write_text(current_domain_str, encoding="utf-8")
+            time.sleep(0.5) # Allow Mac VirtioFS to sync to Docker VM
             
             stage2_stats = run_soft_critic(eval_domain_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
             try:
@@ -473,9 +475,9 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
         # Create a temporary file in the benchmark directory for Docker mount compatibility
         eval_domain_dir = os.path.join(REPO_ROOT, "benchmarks", domain_name, "tmp_stage3")
         os.makedirs(eval_domain_dir, exist_ok=True)
-        # Fix Race Condition: ensure filename is unique per LLM and Planner
         eval_domain_path = os.path.join(eval_domain_dir, f"domain_{llm_model.replace('/','-')}_{planner_name}_iter{iteration}.pddl")
         Path(eval_domain_path).write_text(val_result.extracted_pddl, encoding="utf-8")
+        time.sleep(0.5) # Allow Mac VirtioFS to sync to Docker VM
         
         push_log(llm_model, "VALIDATE", f"{domain_name}+{planner_name} | Iter {iteration}: V1-V4 passed successfully.")
         current_stats = run_soft_critic(eval_domain_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=iteration)
