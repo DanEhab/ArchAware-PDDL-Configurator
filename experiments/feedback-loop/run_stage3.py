@@ -305,7 +305,19 @@ def run_pipeline_for_llm(llm):
     if os.path.exists(final_domains_csv):
         try:
             df = pd.read_csv(final_domains_csv)
-            completed_triples = set(df['Triple_ID'].unique())
+            # Reverse-map canonical LLM names back to the friendly names used in LLMS
+            CANONICAL_TO_FRIENDLY = {
+                "gpt-5.4-2026-03-05": "gpt-5.4",
+                "claude-opus-4-6": "claude-opus-4.6",
+                "gemini-3.1-pro-preview-customtools": "gemini-3.1-pro",
+                "deepseek-reasoner": "deepseek-r1",
+            }
+            for _, row in df.iterrows():
+                dom = row['Domain']
+                plnr = row['Target_Planner']
+                canonical_llm = str(row['LLM'])
+                friendly_llm = CANONICAL_TO_FRIENDLY.get(canonical_llm, canonical_llm)
+                completed_triples.add(f"{dom}_{plnr}_{friendly_llm}")
         except Exception as e:
             pass
     

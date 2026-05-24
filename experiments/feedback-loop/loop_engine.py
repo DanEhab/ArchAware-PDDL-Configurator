@@ -23,7 +23,6 @@ from csv_manager_stage3 import log_to_csv, log_diff_metrics, log_planner_executi
 from rationale_extractor import extract_rationale  # type: ignore
 from meta_controller import calculate_simple_ipc, build_telemetry_table, meta_controller_diagnostics  # type: ignore
 from prompt_builder import build_feedback_prompt  # type: ignore
-from validation_and_evaluation.scripts.validation.validation_pipeline import save_validation_json
 from baseline_loader import load_baseline_stats, load_stage2_stats, compute_seed_ipc  # type: ignore
 from error_handler_stage3 import ErrorHandlerStage3  # type: ignore
 
@@ -212,10 +211,14 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
             # Put fallback iter0 domain in the benchmark tree so Docker volume mounts correctly (relative_to fix)
             eval_domain_dir = os.path.join(REPO_ROOT, "benchmarks", domain_name, "tmp_stage3")
             os.makedirs(eval_domain_dir, exist_ok=True)
-            eval_domain_path = os.path.join(eval_domain_dir, f"domain_iter0.pddl")
+            eval_domain_path = os.path.join(eval_domain_dir, f"domain_{llm_model.replace('/','-')}_{planner_name}_iter0.pddl")
             Path(eval_domain_path).write_text(current_domain_str, encoding="utf-8")
             
             stage2_stats = run_soft_critic(eval_domain_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=0)
+            try:
+                os.remove(eval_domain_path)
+            except Exception:
+                pass
         
         from meta_controller import build_telemetry_for_valid_full
         imp_csv = os.path.join(REPO_ROOT, "results", "arch_aware", "improvement", "improvement_results.csv")
@@ -470,11 +473,16 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
         # Create a temporary file in the benchmark directory for Docker mount compatibility
         eval_domain_dir = os.path.join(REPO_ROOT, "benchmarks", domain_name, "tmp_stage3")
         os.makedirs(eval_domain_dir, exist_ok=True)
-        eval_domain_path = os.path.join(eval_domain_dir, f"domain_iter{iteration}.pddl")
+        # Fix Race Condition: ensure filename is unique per LLM and Planner
+        eval_domain_path = os.path.join(eval_domain_dir, f"domain_{llm_model.replace('/','-')}_{planner_name}_iter{iteration}.pddl")
         Path(eval_domain_path).write_text(val_result.extracted_pddl, encoding="utf-8")
         
         push_log(llm_model, "VALIDATE", f"{domain_name}+{planner_name} | Iter {iteration}: V1-V4 passed successfully.")
         current_stats = run_soft_critic(eval_domain_path, planner_name, test_instances, llm_model=llm_model, domain_name=domain_name, iteration=iteration)
+        try:
+            os.remove(eval_domain_path)
+        except Exception:
+            pass
         mean_ipc_gain = calculate_simple_ipc(baseline_stats, current_stats)
         
         verdict = "IMPROVEMENT" if mean_ipc_gain > 0 else "REGRESSION"
