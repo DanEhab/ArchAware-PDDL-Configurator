@@ -37,34 +37,48 @@ def generate_run_summary():
     df = pd.read_csv(final_domains_csv)
     
     total_triples = len(df)
-    improved = len(df[df['Improvement_vs_Seed'] > 0]) if 'Improvement_vs_Seed' in df.columns else 0
+    timeout_df = df[df['Termination_Reason'] == 'ALL_TIMEOUT']
+    num_timeouts = len(timeout_df)
+    df_contestable = df[df['Termination_Reason'] != 'ALL_TIMEOUT']
+    total_contestable = len(df_contestable)
+    
+    improved = len(df_contestable[df_contestable['Improvement_vs_Seed'] > 0]) if 'Improvement_vs_Seed' in df_contestable.columns else 0
+    improved_pct = (improved / total_contestable * 100) if total_contestable > 0 else 0.0
     
     summary_txt = "==================================================\n"
     summary_txt += "           STAGE 3 EXECUTION SUMMARY              \n"
     summary_txt += "==================================================\n\n"
     summary_txt += f"Total Triples Processed: {total_triples}\n"
-    summary_txt += f"Total Triples Improved (vs Seed): {improved} ({(improved/total_triples*100) if total_triples > 0 else 0:.1f}%)\n\n"
+    summary_txt += f"Always-Timeout Triples (Excluded): {num_timeouts}\n"
+    summary_txt += f"Contestable Triples: {total_contestable}\n"
+    summary_txt += f"Total Triples Improved (vs Seed): {improved} ({improved_pct:.1f}% of contestable)\n\n"
     
-    summary_txt += "BREAKDOWN BY LLM:\n"
+    summary_txt += "BREAKDOWN BY LLM (Contestable Triples):\n"
     summary_txt += "-----------------\n"
     for llm in df['LLM'].unique():
-        llm_df = df[df['LLM'] == llm]
+        llm_df = df_contestable[df_contestable['LLM'] == llm]
         llm_imp = len(llm_df[llm_df['Improvement_vs_Seed'] > 0]) if 'Improvement_vs_Seed' in llm_df.columns else 0
-        summary_txt += f"- {llm}: {llm_imp}/{len(llm_df)} Improved\n"
+        llm_tot = len(llm_df)
+        pct = (llm_imp / llm_tot * 100) if llm_tot > 0 else 0.0
+        summary_txt += f"- {llm}: {llm_imp}/{llm_tot} Improved ({pct:.1f}%)\n"
     
-    summary_txt += "\nBREAKDOWN BY PLANNER:\n"
+    summary_txt += "\nBREAKDOWN BY PLANNER (Contestable Triples):\n"
     summary_txt += "---------------------\n"
     for planner in df['Target_Planner'].unique():
-        pl_df = df[df['Target_Planner'] == planner]
+        pl_df = df_contestable[df_contestable['Target_Planner'] == planner]
         pl_imp = len(pl_df[pl_df['Improvement_vs_Seed'] > 0]) if 'Improvement_vs_Seed' in pl_df.columns else 0
-        summary_txt += f"- {planner}: {pl_imp}/{len(pl_df)} Improved\n"
+        pl_tot = len(pl_df)
+        pct = (pl_imp / pl_tot * 100) if pl_tot > 0 else 0.0
+        summary_txt += f"- {planner}: {pl_imp}/{pl_tot} Improved ({pct:.1f}%)\n"
         
-    summary_txt += "\nBREAKDOWN BY DOMAIN:\n"
+    summary_txt += "\nBREAKDOWN BY DOMAIN (Contestable Triples):\n"
     summary_txt += "--------------------\n"
     for dom in df['Domain'].unique():
-        dom_df = df[df['Domain'] == dom]
+        dom_df = df_contestable[df_contestable['Domain'] == dom]
         dom_imp = len(dom_df[dom_df['Improvement_vs_Seed'] > 0]) if 'Improvement_vs_Seed' in dom_df.columns else 0
-        summary_txt += f"- {dom}: {dom_imp}/{len(dom_df)} Improved\n"
+        dom_tot = len(dom_df)
+        pct = (dom_imp / dom_tot * 100) if dom_tot > 0 else 0.0
+        summary_txt += f"- {dom}: {dom_imp}/{dom_tot} Improved ({pct:.1f}%)\n"
     
     # Save to logs/stage3/run_summaries/ (not results/feedback_loop/)
     summary_dir = os.path.join(REPO_ROOT, "logs", "stage3", "run_summaries")
