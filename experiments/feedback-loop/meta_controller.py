@@ -138,13 +138,6 @@ def meta_controller_diagnostics(baseline_stats, current_stats, mean_ipc_gain):
 
     return "\n".join(diag), "\n".join(direc)
 
-def build_telemetry_for_valid(row, domain, planner, llm):
-    # This retrieves improvement data, but expects a pre-loaded pandas row 
-    # Because of dependency, we pass the row data directly if possible.
-    # Actually, the logic looks up CSV directly, so we can keep the CSV lookup here if we pass REPO_ROOT.
-    pass
-
-# We will adapt build_telemetry_for_valid to be independent of REPO_ROOT by passing df or path.
 def build_telemetry_for_valid_full(domain, planner, llm, imp_csv_path, stage2_stats, baseline_stats):
     import os
     import pandas as pd
