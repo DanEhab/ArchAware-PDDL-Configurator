@@ -1,0 +1,83 @@
+I reorder around the domain’s actual bottleneck by keeping robot-local state predicates first, pushing the globally coupling motion-control predicate to the end, and placing the pure position-update action before the start/stop coordination actions so DecStar sees local transition structure before synchronization structure. I also avoid the previously harmful emphasis on movement-control actions first, and instead order preconditions and effects to foreground the manipulated robot/cell state while demoting shared topology and global gating literals within each action.
+
+(define (domain ricochet-robots)
+(:requirements :strips :typing :negative-preconditions)
+
+(:types
+    robot - object
+    cell - object
+    direction - object
+)
+
+(:predicates
+    (at ?r - robot ?c - cell)
+    (free ?c - cell)
+    (is-moving ?r - robot ?dir - direction)
+    (BLOCKED ?c - cell ?dir - direction)
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
+    (nothing-is-moving)
+)
+
+(:action step
+    :parameters (?r - robot ?cfrom - cell ?cto - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cfrom)
+            (is-moving ?r ?dir)
+            (free ?cto)
+            (NEXT ?cfrom ?cto ?dir)
+            (not (BLOCKED ?cfrom ?dir))
+        )
+    :effect
+        (and
+            (not (at ?r ?cfrom))
+            (at ?r ?cto)
+            (free ?cfrom)
+            (not (free ?cto))
+        )
+)
+
+(:action stop-at-barrier
+    :parameters (?r - robot ?cat - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cat)
+            (is-moving ?r ?dir)
+            (BLOCKED ?cat ?dir)
+        )
+    :effect
+        (and
+            (not (is-moving ?r ?dir))
+            (nothing-is-moving)
+        )
+)
+
+(:action stop-at-robot
+    :parameters (?r - robot ?cat - cell ?cnext - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cat)
+            (is-moving ?r ?dir)
+            (not (free ?cnext))
+            (NEXT ?cat ?cnext ?dir)
+        )
+    :effect
+        (and
+            (not (is-moving ?r ?dir))
+            (nothing-is-moving)
+        )
+)
+
+(:action go
+    :parameters (?r - robot ?dir - direction)
+    :precondition
+        (and
+            (nothing-is-moving)
+        )
+    :effect
+        (and
+            (is-moving ?r ?dir)
+            (not (nothing-is-moving))
+        )
+)
+)

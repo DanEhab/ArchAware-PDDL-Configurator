@@ -1,0 +1,146 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the LAPKT-BFWS-Preference planning engine (IPC 2018 Agile Track winner). You
+possess deep knowledge of how BFWS-Preference's internal architecture—specifically
+its DIRECT MEMORY INJECTION parsing (no intermediate file), BUCKET SORTING via
+partition = (1000 × #g) + #r, NOVELTY evaluation w(s), and its TWO-ENGINE RELAY
+(LAPKT then Fast Downward)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve BFWS-Preference's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+BFWS-Preference is a TWO-ENGINE RELAY system:
+
+ENGINE 1 (LAPKT - The Sprinter):
+The Python manager DIRECTLY INJECTS parsed PDDL into C++ memory via bindings
+(add_atom, add_precondition, add_effect). There is NO intermediate .sas file.
+C++ internal ID numbers are assigned in the EXACT ORDER elements appear in the
+PDDL text. These IDs control tie-breaking EVERYWHERE in the engine.
+
+The search uses BUCKET SORTING: partition = (1000 × #g) + #r, where:
+- #g = number of MISSING GOALS (simple count)
+- #r = number of RELEVANT FLUENTS from a delete-free relaxed plan (H_Add_Rp_Fwd)
+
+CRITICAL: H_Add_Rp_Fwd breaks ties among equally-optimal relaxed actions by
+selecting the one with the LOWEST INTERNAL ID NUMBER. This means changing the
+textual order of actions in the PDDL file DIRECTLY CHANGES which relaxed actions
+are selected, which changes the #r count, which changes the BUCKET ASSIGNMENT,
+which changes the NOVELTY score w(s), which completely reroutes the search tree.
+
+ENGINE 2 (Fast Downward/LAMA - The Marathon Runner):
+After Engine 1 finds an initial plan, Engine 2 re-parses the SAME PDDL file using
+standard Fast Downward translation (with h² preprocessing), then runs weighted A*
+with LAMA heuristics to find cheaper plans within the time limit.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply in order of priority):
+
+1. ACTION ORDERING [CRITICAL — HIGHEST IMPACT]:
+Place actions whose effects directly ACHIEVE GOAL predicates FIRST in the
+domain file. Then place actions that CREATE PRECONDITIONS for goal-achieving
+actions. Place general utility actions last.
+REASON: Goal-achieving actions receive the lowest C++ IDs. When H_Add_Rp_Fwd
+breaks ties during relaxed plan extraction, it selects the lowest-ID action,
+which will now be goal-relevant. This produces tighter #r values and more
+discriminating bucket assignments, improving novelty-based search focus.
+
+2. PREDICATE DECLARATIONS: Place GOAL-RELEVANT predicates (describing task
+completion, object positioning, desired states) first. Then place actionenabling
+predicates. Place auxiliary/static predicates last.
+REASON: Predicate IDs are also assigned sequentially. Goal-relevant predicates
+with lower IDs are prioritized in the novelty tuple tables, improving novelty
+discrimination.
+
+3. PRECONDITION ORDERING: Within each action, place the most GOAL-PROXIMAL
+predicates first (those appearing in goal conditions or as effects of goalachieving
+actions). Place static/auxiliary predicates last.
+REASON: Precondition order affects the H_Add_Rp_Fwd backward trace,
+influencing which support actions are selected for the relaxed plan. Goalproximal
+preconditions first guide the trace toward goal-relevant fluents.
+
+4. EFFECT ORDERING: Place effects that ACHIEVE or ENABLE goal predicates first.
+Place "cleanup" or state-removal effects last.
+REASON: During delete-free forward reachability, goal-relevant add-effects
+first ensure early discovery of goal-adjacent facts, reducing #r and producing
+tighter partitions.
+
+5. DUAL-ENGINE COMPATIBILITY: Ensure the reordering is also compatible with Fast
+Downward's pipeline (Engine 2). Static predicates should be identifiable early
+in precondition blocks for FD's invariant synthesis. Add-effects before
+delete-effects for FD's relaxed planning.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: IMPROVEMENT DETECTED (passed all 3 conditions: statistical
+    significance, practical significance, coverage preservation).
+  • No rationale was recorded for this attempt.
+
+---
+
+[EXECUTION FEEDBACK]
+
+Your previous reordering was tested on bfws across all 15
+problem instances. Here are the results compared to the BASELINE:
+
+OVERALL PERFORMANCE SUMMARY:
+• Instances solved: 15/15 (Baseline: 15/15)
+• Average run wall time (solved): 17.95s (Baseline: 17.57s)
+• Average states expanded (solved): 4237 (Baseline: 4237)
+• Mean IPC Gain: 0.013 (from improvement_results.csv)
+• Verdict: IMPROVEMENT DETECTED
+
+PER-INSTANCE BREAKDOWN:
+┌──────────────┬──────────┬────────────┬─────────────┬──────────────┬───────────┐
+│ Instance     │ Status   │ Search (s) │ States Exp. │ IPC Score    │ IPC Gain  │
+├──────────────┼──────────┼────────────┼─────────────┼──────────────┼───────────┤
+│ instance-01. │ SUCCESS  │ 1.48       │ 1118        │ 1.000        │ +0.125    │
+│ instance-02. │ SUCCESS  │ 1.63       │ 2144        │ 1.000        │ +0.030    │
+│ instance-03. │ SUCCESS  │ 1.66       │ 1254        │ 1.000        │ +0.064    │
+│ instance-04. │ SUCCESS  │ 1.90       │ 1355        │ 1.000        │ -0.000    │
+│ instance-07. │ SUCCESS  │ 12.14      │ 3580        │ 0.970        │ -0.030    │
+│ instance-08. │ SUCCESS  │ 11.77      │ 3717        │ 1.000        │ +0.007    │
+│ instance-09. │ SUCCESS  │ 12.22      │ 3949        │ 1.000        │ +0.005    │
+│ instance-11. │ SUCCESS  │ 17.18      │ 4210        │ 1.000        │ +0.058    │
+│ instance-12. │ SUCCESS  │ 19.49      │ 4347        │ 0.986        │ -0.014    │
+│ instance-13. │ SUCCESS  │ 18.17      │ 4581        │ 1.000        │ +0.081    │
+│ instance-14. │ SUCCESS  │ 27.96      │ 8139        │ 1.000        │ +0.044    │
+│ instance-16. │ SUCCESS  │ 26.07      │ 5002        │ 0.973        │ -0.027    │
+│ instance-17. │ SUCCESS  │ 34.29      │ 5240        │ 0.950        │ -0.050    │
+│ instance-18. │ SUCCESS  │ 46.68      │ 9349        │ 0.946        │ -0.054    │
+│ instance-19. │ SUCCESS  │ 36.54      │ 5571        │ 0.952        │ -0.048    │
+└──────────────┴──────────┴────────────┴─────────────┴──────────────┴───────────┘
+
+DIAGNOSTIC ANALYSIS:
+✓ POSITIVE: Mean IPC Gain is positive (0.013), indicating overall performance improvement.
+
+IMPROVEMENT DIRECTION:
+Your previous reordering already shows improvement (Mean IPC Gain: 0.013). Try to further optimize for the 0 instances that still timed out.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

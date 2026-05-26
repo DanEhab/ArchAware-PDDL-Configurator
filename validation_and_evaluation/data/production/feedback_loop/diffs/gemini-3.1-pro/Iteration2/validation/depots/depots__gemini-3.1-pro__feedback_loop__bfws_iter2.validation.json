@@ -1,0 +1,173 @@
+{
+  "domain": "depots",
+  "model": "gemini-3.1-pro",
+  "stage": "feedback_loop",
+  "run_id": "bfws_iter2",
+  "timestamp": "2026-05-24T23:56:18.523910+00:00",
+  "validation_status": "VALID",
+  "rejection_reason": null,
+  "failed_stage": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "eff_del_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(at ?x - locatable ?y - place)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)",
+          "(clear ?x - surface)"
+        ],
+        "candidate": [
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(clear ?x - surface)",
+          "(at ?x - locatable ?y - place)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Load",
+          "Unload"
+        ],
+        "candidate": [
+          "Drop",
+          "Unload",
+          "Load",
+          "Lift",
+          "Drive"
+        ]
+      },
+      {
+        "type": "Load-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(lifting ?x ?y)",
+          "(at ?z ?p)",
+          "(at ?x ?p)"
+        ]
+      },
+      {
+        "type": "Unload-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(available ?x)",
+          "(in ?y ?z)"
+        ],
+        "candidate": [
+          "(in ?y ?z)",
+          "(available ?x)",
+          "(at ?z ?p)",
+          "(at ?x ?p)"
+        ]
+      },
+      {
+        "type": "Drop-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(clear ?z)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(clear ?z)",
+          "(lifting ?x ?y)",
+          "(at ?z ?p)",
+          "(at ?x ?p)"
+        ]
+      },
+      {
+        "type": "Drop-eff-add-order",
+        "original": [
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(clear ?y)",
+          "(on ?y ?z)"
+        ],
+        "candidate": [
+          "(on ?y ?z)",
+          "(clear ?y)",
+          "(at ?y ?p)",
+          "(available ?x)"
+        ]
+      },
+      {
+        "type": "Drop-eff-del-order",
+        "original": [
+          "(not (lifting ?x ?y))",
+          "(not (clear ?z))"
+        ],
+        "candidate": [
+          "(not (clear ?z))",
+          "(not (lifting ?x ?y))"
+        ]
+      },
+      {
+        "type": "Lift-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(on ?y ?z)",
+          "(clear ?y)"
+        ],
+        "candidate": [
+          "(on ?y ?z)",
+          "(clear ?y)",
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(at ?x ?p)"
+        ]
+      },
+      {
+        "type": "Lift-eff-add-order",
+        "original": [
+          "(lifting ?x ?y)",
+          "(clear ?z)"
+        ],
+        "candidate": [
+          "(clear ?z)",
+          "(lifting ?x ?y)"
+        ]
+      },
+      {
+        "type": "Lift-eff-del-order",
+        "original": [
+          "(not (at ?y ?p))",
+          "(not (clear ?y))",
+          "(not (available ?x))",
+          "(not (on ?y ?z))"
+        ],
+        "candidate": [
+          "(not (on ?y ?z))",
+          "(not (clear ?y))",
+          "(not (at ?y ?p))",
+          "(not (available ?x))"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1491,
+  "val_output": ""
+}

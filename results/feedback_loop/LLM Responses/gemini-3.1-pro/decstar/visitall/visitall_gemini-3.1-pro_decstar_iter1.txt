@@ -1,0 +1,17 @@
+By promoting the highly active `at-robot` predicate to the top of the predicates list and placing it first in preconditions and effects, we align the variable ordering with the central hub of the causal graph. This structural adjustment improves cache locality and heuristic evaluation speed during DecStar's center-action branching, mitigating the overhead in domains lacking pure leaf actions.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (at-robot ?x - place)
+	     (visited ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (not (at-robot ?curpos)) (at-robot ?nextpos) (visited ?nextpos))
+)
+
+)

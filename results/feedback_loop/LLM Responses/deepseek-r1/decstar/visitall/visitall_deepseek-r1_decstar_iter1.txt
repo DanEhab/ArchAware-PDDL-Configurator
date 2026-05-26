@@ -1,0 +1,17 @@
+I reordered the predicate declarations to list unary predicates first (at-robot, visited) followed by the binary predicate (connected), and within the action's precondition and effect, I placed the unary precondition (at-robot) before the binary one, and the unary effect (visited) before the robot location changes. This focuses the causal graph on local leaf-like variables (visited status for each place) before the global connectivity, helping DecStar's factoring engine identify a cleaner star topology with the robot location as the hub and each place's visited status as an independent leaf.
+
+```lisp
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (at-robot ?x - place)
+	     (visited ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+```

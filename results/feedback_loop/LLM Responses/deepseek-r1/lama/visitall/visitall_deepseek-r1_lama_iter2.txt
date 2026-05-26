@@ -1,0 +1,17 @@
+By placing the dynamic precondition 'at-robot' before the static 'connected' in the move action, LAMA's early failure detection is accelerated because the robot's location changes frequently, reducing the evaluation of static edges for inapplicable actions. This reordering also improves the FF heuristic's backward trace by prioritizing the most restrictive condition first, leading to better preferred operator selection.
+
+```pddl
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+```

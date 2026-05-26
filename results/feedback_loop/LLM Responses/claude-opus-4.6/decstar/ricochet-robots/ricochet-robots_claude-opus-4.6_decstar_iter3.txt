@@ -1,0 +1,83 @@
+Looking at the performance data, both my previous attempts caused slight regressions by changing predicate and action ordering. Since the baseline states expanded are identical (530587) and only search time differs, the issue is purely preprocessing overhead—my reorderings are adding ~4-5s of overhead without changing the search topology. My new strategy is to match the baseline's exact original ordering as closely as possible, making only minimal changes: reordering effects within `step` to place the primary robot's local effects (`at ?r ?cto`, `not (at ?r ?cfrom)`) before the shared `free` effects, and reordering preconditions within `step` to group robot-local predicates before cell-interaction predicates, which may marginally help pricing function computation without disrupting the causal graph structure.
+
+(define (domain ricochet-robots)
+(:requirements :strips :typing :negative-preconditions)
+
+(:types
+    robot - object
+    cell - object
+    direction - object
+)
+
+(:predicates
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
+    (BLOCKED ?c - cell ?dir - direction)
+    (at ?r - robot ?c - cell)
+    (is-moving ?r - robot ?dir - direction)
+    (free ?c - cell)
+    (nothing-is-moving)
+)
+
+(:action go
+    :parameters (?r - robot ?dir - direction)
+    :precondition
+        (and
+            (nothing-is-moving)
+        )
+    :effect
+        (and
+            (is-moving ?r ?dir)
+            (not (nothing-is-moving))
+        )
+)
+
+(:action step
+    :parameters (?r - robot ?cfrom - cell ?cto - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cfrom)
+            (NEXT ?cfrom ?cto ?dir)
+            (not (BLOCKED ?cfrom ?dir))
+            (free ?cto)
+        )
+    :effect
+        (and
+            (at ?r ?cto)
+            (not (at ?r ?cfrom))
+            (free ?cfrom)
+            (not (free ?cto))
+        )
+)
+
+(:action stop-at-barrier
+    :parameters (?r - robot ?cat - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cat)
+            (BLOCKED ?cat ?dir)
+        )
+    :effect
+        (and
+            (not (is-moving ?r ?dir))
+            (nothing-is-moving)
+        )
+)
+
+(:action stop-at-robot
+    :parameters (?r - robot ?cat - cell ?cnext - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cat)
+            (NEXT ?cat ?cnext ?dir)
+            (not (free ?cnext))
+        )
+    :effect
+        (and
+            (not (is-moving ?r ?dir))
+            (nothing-is-moving)
+        )
+)
+)

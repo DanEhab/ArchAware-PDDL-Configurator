@@ -1,0 +1,17 @@
+My reordering strategy places the `visited` predicate first (as it is the goal predicate), followed by `at-robot` (action-enabling), then `connected` (static), and within the move action, I order preconditions with the static `connected` last and effects with the goal-achieving `visited` first, followed by the positive `at-robot` effect before the negative delete effect, to optimize H_Add_Rp_Fwd tie-breaking and novelty discrimination. Since this domain has only one action, the key leverage points are predicate ordering and precondition/effect ordering within that action to ensure goal-relevant fluents get the lowest internal IDs.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

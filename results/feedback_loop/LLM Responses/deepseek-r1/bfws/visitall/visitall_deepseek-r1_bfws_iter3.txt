@@ -1,0 +1,18 @@
+I reorder predicates to place the dynamic fluent 'at-robot' first, giving it the lowest internal ID, which makes it the primary discriminator in novelty evaluation, improving search focus on robot location changes. I also reorder preconditions and effects to prioritize 'at-robot' over static and goal predicates, guiding tie-breaking in relaxed plan extraction toward the most state-discriminating fluent.
+
+```pddl
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (at-robot ?x - place)
+	     (visited ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (at-robot ?nextpos) (visited ?nextpos) (not (at-robot ?curpos)))
+)
+)
+```

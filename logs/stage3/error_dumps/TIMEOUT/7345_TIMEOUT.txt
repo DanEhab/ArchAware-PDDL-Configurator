@@ -1,0 +1,21 @@
+=== ERROR DUMP -- 7345 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-26T06:15:56.134717+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl/tmp_stage3/domain_claude-opus-4.6_madagascar_iter1.pddl
+[INFO]   Problem: /pddl/instances/instance-14.pddl
+
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 359.992538
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

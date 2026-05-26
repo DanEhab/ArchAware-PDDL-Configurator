@@ -1,0 +1,193 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the DecStar planning engine. You possess deep knowledge of how DecStar's
+internal architecture—specifically its h² preprocessing, Star Topology factoring
+engine (Center/Leaf assignment via Causal Graph and InteractionGraph analysis),
+and Decoupled Search (Center Actions vs. silent Leaf Actions with Pricing
+Functions)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve DecStar's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+DecStar extends Fast Downward with DECOUPLED STATE-SPACE SEARCH. After standard
+FD translation (grounding + FDR) and aggressive h² mutex pruning, DecStar builds
+a STAR TOPOLOGY that separates state variables into:
+- A CENTRAL HUB ("Center"): highly-connected, entangled variables
+- Independent LEAF modules: isolated subsystems that can only interact through
+the Center
+
+The factoring engine enforces a GOLDEN RULE: Leaves cannot interact with other
+Leaves directly. It uses the Causal Graph to identify Strongly Connected
+Components (SCCs), strips off isolated "tips" as Leaves, and whatever tangled
+mass remains becomes the Center.
+
+CRITICAL PERFORMANCE MECHANISM:
+- CENTER ACTIONS (affecting any Center variable): Branch the main search tree,
+generating new states in the open list — EXPENSIVE.
+- LEAF ACTIONS (affecting only one Leaf): Handled silently by localized Dijkstra
+within the current state — CHEAP.
+
+The MORE actions that qualify as Leaf-only operators, the greater the combinatorial
+compression. Actions with preconditions/effects spanning multiple subsystems force
+Center classification and defeat decoupling.
+
+SAFETY CONSTRAINTS: Factoring has a 30-second timer and a maximum leaf size limit.
+If the topology cannot be built, DecStar falls back to standard explicit-state
+search, losing all decoupling benefits.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply these in order of priority):
+
+1. PREDICATE DECLARATIONS: Group predicates by the object types they describe.
+Place predicates involving SINGLE object types first (these become candidate
+leaf variables). Place predicates describing INTERACTIONS between different
+object types last (these likely become center variables).
+REASON: Cleaner predicate grouping leads to more efficient mutex group
+construction, which feeds directly into the SCC analysis that determines
+the Center/Leaf partition.
+
+2. ACTION ORDERING: Place actions that operate on a SINGLE independent subsystem
+(e.g., manipulating one package, one block, one room) FIRST. Place actions
+that COORDINATE across multiple subsystems (e.g., loading a package onto a
+truck, connecting two rooms) LAST.
+REASON: This ordering emphasizes the hub-and-spoke structure that DecStar's
+Fork/Inverted-Fork factoring algorithms are designed to detect, helping the
+factoring engine identify valid topologies within the 30-second timer.
+
+3. PRECONDITION ORDERING: Within each action, place preconditions referencing
+the action's PRIMARY manipulated object first. Place preconditions referencing
+SHARED or COORDINATING state (hub variables, transport vehicles, etc.) last.
+REASON: The InteractionGraph analyzes precondition-effect dependencies to
+detect cross-leaf violations. Local-first ordering makes this analysis more
+efficient.
+
+4. EFFECT ORDERING: Place effects modifying the action's PRIMARY (local) object
+first. Place effects modifying shared or coordinating state last.
+REASON: Leaf-local effects first enables faster pricing function computation
+during silent Dijkstra execution within leaf notebooks.
+
+5. GLOBAL PREDICATE DEMOTION: If any predicates appear in preconditions or effects
+of nearly ALL actions (e.g., total-cost counters, phase flags), place them at
+the END of the :predicates block and at the END within each precondition/effect
+block where they appear.
+REASON: Global predicates draw causal edges connecting all objects, potentially
+collapsing the entire task into one SCC and destroying the Star Topology.
+Demoting their textual position may influence variable ordering in the
+translator, mitigating this destructive effect.
+
+6. PARAMETER CONSISTENCY: Maintain consistent parameter ordering, with the
+primary manipulated object as the first parameter in all actions.
+REASON: Consistent ordering supports cleaner causal graph construction.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: FAILED — Your response exceeded the maximum token output
+    limit (4,096 tokens) and was truncated before completion.
+  • No valid PDDL domain was produced.
+
+Iteration 1:
+  • Your Strategy: "This reordering strategy prioritizes the isolation of crate-manipulation subsystems by placing single-object predicates and localized actions (Lift, Drop) first, while demoting cross-subsystem interactions and truck movements (Drive) to the end. Preconditions and effects within each action are also sorted to evaluate leaf-variable (crate) states before shared center-variable (truck, hoist, location) states, optimizing DecStar's Causal Graph analysis and accelerating leaf-local Dijkstra pricing."
+  • Result: 14/15 solved, avg search time 5.70s, avg states expanded 50056, Mean IPC Gain vs baseline: -0.019.
+    Verdict: REGRESSION.
+
+Iteration 2:
+  • Your Strategy: "This reordering strategy prioritizes the isolation of trucks as independent leaf subsystems by placing the truck-exclusive `Drive` action and truck-related predicates first, while demoting highly entangled crate-stacking actions (`Lift`, `Drop`) and predicates (`on`, `clear`) to the end. By structuring preconditions and effects to evaluate leaf-variable (truck) states before shared center-variable (hoist, crate) states, it ensures DecStar's factoring engine correctly identifies trucks as leaves, maximizing combinatorial compression and accelerating leaf-local Dijkstra pricing."
+  • Result: 14/15 solved, avg search time 5.72s, avg states expanded 50056, Mean IPC Gain vs baseline: -0.024.
+    Verdict: REGRESSION.
+
+CURRENT TASK (Iteration 3):
+Your strategy in Iteration 2 actively harmed performance. Do not repeat these changes. Analyze the current domain and propose a NEW strategy.
+
+---
+
+[EXECUTION FEEDBACK — ITERATION 3]
+
+Your Iteration 2 reordering was tested on decstar across all 15
+problem instances. Here are the results compared to the BASELINE:
+
+OVERALL PERFORMANCE SUMMARY:
+• Instances solved: 14/15 (Baseline: 14/15)
+• Average run wall time (solved): 5.72s (Baseline: 5.35s)
+• Average states expanded (solved): 50056 (Baseline: 50056)
+• Mean IPC Gain vs Baseline: -0.024
+• Verdict: REGRESSION
+
+PER-INSTANCE BREAKDOWN:
+┌──────────────┬──────────┬────────────┬─────────────┬──────────────┬───────────┐
+│ Instance     │ Status   │ Search (s) │ States Exp. │ IPC Score    │ IPC Gain  │
+├──────────────┼──────────┼────────────┼─────────────┼──────────────┼───────────┤
+│ instance-01. │ SUCCESS  │ 0.88       │ 10          │ 0.991        │ -0.009    │
+│ instance-02. │ SUCCESS  │ 1.02       │ 17          │ 0.986        │ -0.014    │
+│ instance-03. │ SUCCESS  │ 1.29       │ 385         │ 0.944        │ -0.056    │
+│ instance-04. │ SUCCESS  │ 1.92       │ 18837       │ 0.971        │ -0.029    │
+│ instance-07. │ SUCCESS  │ 1.31       │ 191         │ 0.956        │ -0.044    │
+│ instance-08. │ SUCCESS  │ 1.80       │ 3514        │ 0.969        │ -0.031    │
+│ instance-09. │ SUCCESS  │ 56.92      │ 658269      │ 0.970        │ -0.030    │
+│ instance-11. │ SUCCESS  │ 2.69       │ 9857        │ 0.957        │ -0.043    │
+│ instance-12. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-13. │ SUCCESS  │ 1.59       │ 37          │ 0.986        │ -0.014    │
+│ instance-14. │ SUCCESS  │ 2.02       │ 2012        │ 0.993        │ -0.007    │
+│ instance-16. │ SUCCESS  │ 1.74       │ 70          │ 0.993        │ -0.007    │
+│ instance-17. │ SUCCESS  │ 1.97       │ 73          │ 0.980        │ -0.020    │
+│ instance-18. │ SUCCESS  │ 2.33       │ 222         │ 0.979        │ -0.021    │
+│ instance-19. │ SUCCESS  │ 2.64       │ 7301        │ 0.968        │ -0.032    │
+└──────────────┴──────────┴────────────┴─────────────┴──────────────┴───────────┘
+
+DIAGNOSTIC ANALYSIS:
+Mean IPC Gain is negative (-0.024), indicating overall performance degradation.
+
+IMPROVEMENT DIRECTION:
+Your previous reordering did not produce a statistically significant improvement. Try a different structural strategy.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	depot distributor - place
+        truck hoist surface - locatable
+        pallet crate - surface)
+
+(:predicates (at ?x - locatable ?y - place)
+             (in ?x - crate ?y - truck)
+             (available ?x - hoist)
+             (lifting ?x - hoist ?y - crate)
+             (clear ?x - surface)
+             (on ?x - crate ?y - surface))
+
+(:action Drive
+:parameters (?x - truck ?y - place ?z - place) 
+:precondition (and (at ?x ?y))
+:effect (and (not (at ?x ?y)) (at ?x ?z)))
+
+(:action Load
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (at ?z ?p) (at ?x ?p) (lifting ?x ?y))
+:effect (and (in ?y ?z) (not (lifting ?x ?y)) (available ?x)))
+
+(:action Unload 
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (at ?z ?p) (in ?y ?z) (at ?x ?p) (available ?x))
+:effect (and (not (in ?y ?z)) (lifting ?x ?y) (not (available ?x))))
+
+(:action Lift
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (at ?x ?p) (available ?x) (at ?y ?p) (clear ?y) (on ?y ?z))
+:effect (and (not (available ?x)) (lifting ?x ?y) (not (at ?y ?p)) (not (clear ?y)) (not (on ?y ?z)) (clear ?z)))
+
+(:action Drop 
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (at ?x ?p) (lifting ?x ?y) (at ?z ?p) (clear ?z))
+:effect (and (not (lifting ?x ?y)) (available ?x) (at ?y ?p) (clear ?y) (on ?y ?z) (not (clear ?z))))
+
+)

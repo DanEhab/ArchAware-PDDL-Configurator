@@ -1,0 +1,178 @@
+{
+  "domain": "snake",
+  "model": "gpt-5.4",
+  "stage": "feedback_loop",
+  "run_id": "decstar_iter3",
+  "timestamp": "2026-05-25T19:03:49.239372+00:00",
+  "validation_status": "VALID",
+  "rejection_reason": null,
+  "failed_stage": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "eff_del_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(ISADJACENT ?x ?y)",
+          "(tailsnake ?x)",
+          "(headsnake ?x)",
+          "(nextsnake ?x ?y)",
+          "(blocked ?x)",
+          "(spawn ?x)",
+          "(NEXTSPAWN ?x ?y)",
+          "(ispoint ?x)"
+        ],
+        "candidate": [
+          "(tailsnake ?x)",
+          "(headsnake ?x)",
+          "(blocked ?x)",
+          "(ispoint ?x)",
+          "(spawn ?x)",
+          "(nextsnake ?x ?y)",
+          "(ISADJACENT ?x ?y)",
+          "(NEXTSPAWN ?x ?y)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "move",
+          "move-and-eat-spawn",
+          "move-and-eat-no-spawn"
+        ],
+        "candidate": [
+          "move",
+          "move-and-eat-no-spawn",
+          "move-and-eat-spawn"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn ?spawnpoint)",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)",
+          "(not (= ?spawnpoint dummypoint))"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(ISADJACENT ?head ?newhead)",
+          "(spawn ?spawnpoint)",
+          "(not (= ?spawnpoint dummypoint))",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(ispoint ?spawnpoint)",
+          "(spawn ?nextspawnpoint)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(blocked ?newhead)",
+          "(ispoint ?spawnpoint)",
+          "(spawn ?nextspawnpoint)"
+        ]
+      },
+      {
+        "type": "move-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))",
+          "(ISADJACENT ?head ?newhead)"
+        ]
+      },
+      {
+        "type": "move-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(tailsnake ?newtail)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(tailsnake ?newtail)",
+          "(blocked ?newhead)"
+        ]
+      },
+      {
+        "type": "move-eff-del-order",
+        "original": [
+          "(not (headsnake ?head))",
+          "(not (blocked ?tail))",
+          "(not (tailsnake ?tail))",
+          "(not (nextsnake ?newtail ?tail))"
+        ],
+        "candidate": [
+          "(not (headsnake ?head))",
+          "(not (tailsnake ?tail))",
+          "(not (nextsnake ?newtail ?tail))",
+          "(not (blocked ?tail))"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn dummypoint)"
+        ],
+        "candidate": [
+          "(headsnake ?head)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(ISADJACENT ?head ?newhead)",
+          "(spawn dummypoint)"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-eff-add-order",
+        "original": [
+          "(blocked ?newhead)",
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)"
+        ],
+        "candidate": [
+          "(headsnake ?newhead)",
+          "(nextsnake ?newhead ?head)",
+          "(blocked ?newhead)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1925,
+  "val_output": ""
+}

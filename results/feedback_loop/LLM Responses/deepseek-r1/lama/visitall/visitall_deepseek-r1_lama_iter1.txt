@@ -1,0 +1,17 @@
+The domain already follows all architecture-aware ordering rules: goal-relevant predicates are first, static predicates last, preconditions list static conditions before restrictive conditions, and effects list add-effects before delete-effects with goal-relevant add-effects first. Therefore, no reordering is required to achieve optimal performance.
+
+```pddl
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+```

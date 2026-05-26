@@ -1,0 +1,226 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the LAPKT-BFWS-Preference planning engine (IPC 2018 Agile Track winner). You
+possess deep knowledge of how BFWS-Preference's internal architecture—specifically
+its DIRECT MEMORY INJECTION parsing (no intermediate file), BUCKET SORTING via
+partition = (1000 × #g) + #r, NOVELTY evaluation w(s), and its TWO-ENGINE RELAY
+(LAPKT then Fast Downward)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve BFWS-Preference's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+BFWS-Preference is a TWO-ENGINE RELAY system:
+
+ENGINE 1 (LAPKT - The Sprinter):
+The Python manager DIRECTLY INJECTS parsed PDDL into C++ memory via bindings
+(add_atom, add_precondition, add_effect). There is NO intermediate .sas file.
+C++ internal ID numbers are assigned in the EXACT ORDER elements appear in the
+PDDL text. These IDs control tie-breaking EVERYWHERE in the engine.
+
+The search uses BUCKET SORTING: partition = (1000 × #g) + #r, where:
+- #g = number of MISSING GOALS (simple count)
+- #r = number of RELEVANT FLUENTS from a delete-free relaxed plan (H_Add_Rp_Fwd)
+
+CRITICAL: H_Add_Rp_Fwd breaks ties among equally-optimal relaxed actions by
+selecting the one with the LOWEST INTERNAL ID NUMBER. This means changing the
+textual order of actions in the PDDL file DIRECTLY CHANGES which relaxed actions
+are selected, which changes the #r count, which changes the BUCKET ASSIGNMENT,
+which changes the NOVELTY score w(s), which completely reroutes the search tree.
+
+ENGINE 2 (Fast Downward/LAMA - The Marathon Runner):
+After Engine 1 finds an initial plan, Engine 2 re-parses the SAME PDDL file using
+standard Fast Downward translation (with h² preprocessing), then runs weighted A*
+with LAMA heuristics to find cheaper plans within the time limit.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply in order of priority):
+
+1. ACTION ORDERING [CRITICAL — HIGHEST IMPACT]:
+Place actions whose effects directly ACHIEVE GOAL predicates FIRST in the
+domain file. Then place actions that CREATE PRECONDITIONS for goal-achieving
+actions. Place general utility actions last.
+REASON: Goal-achieving actions receive the lowest C++ IDs. When H_Add_Rp_Fwd
+breaks ties during relaxed plan extraction, it selects the lowest-ID action,
+which will now be goal-relevant. This produces tighter #r values and more
+discriminating bucket assignments, improving novelty-based search focus.
+
+2. PREDICATE DECLARATIONS: Place GOAL-RELEVANT predicates (describing task
+completion, object positioning, desired states) first. Then place actionenabling
+predicates. Place auxiliary/static predicates last.
+REASON: Predicate IDs are also assigned sequentially. Goal-relevant predicates
+with lower IDs are prioritized in the novelty tuple tables, improving novelty
+discrimination.
+
+3. PRECONDITION ORDERING: Within each action, place the most GOAL-PROXIMAL
+predicates first (those appearing in goal conditions or as effects of goalachieving
+actions). Place static/auxiliary predicates last.
+REASON: Precondition order affects the H_Add_Rp_Fwd backward trace,
+influencing which support actions are selected for the relaxed plan. Goalproximal
+preconditions first guide the trace toward goal-relevant fluents.
+
+4. EFFECT ORDERING: Place effects that ACHIEVE or ENABLE goal predicates first.
+Place "cleanup" or state-removal effects last.
+REASON: During delete-free forward reachability, goal-relevant add-effects
+first ensure early discovery of goal-adjacent facts, reducing #r and producing
+tighter partitions.
+
+5. DUAL-ENGINE COMPATIBILITY: Ensure the reordering is also compatible with Fast
+Downward's pipeline (Engine 2). Static predicates should be identifiable early
+in precondition blocks for FD's invariant synthesis. Add-effects before
+delete-effects for FD's relaxed planning.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: NO IMPROVEMENT detected. Failed conditions: Statistical_Significance, Practical_Significance
+  • No rationale was recorded for this attempt.
+
+Iteration 1:
+  • Your Strategy: "Looking at the domain and results, I notice the previous attempt lost performance on early instances while gaining on later ones. The key insight is that in Ricochet Robots, the goal is typically `(at ?r ?c)` — achieving a robot's position. The `step` action achieves `at` and `free` (goal predicates), while `stop-at-barrier` and `stop-at-robot` achieve `nothing-is-moving` which enables `go`. I'll reorder actions so `step` (goal-achieving) comes first, then `go` (which initiates movement sequences), then the stop actions — placing `stop-at-robot` before `stop-at-barrier` since robot-blocking is more common and contextually richer, potentially producing tighter relaxed plans. I'll also reorder predicates to put goal-relevant ones (`at`, `free`) first, and reorder preconditions/effects to prioritize goal-proximal fluents."
+  • Result: 10/15 solved, avg search time 180.09s, avg states expanded 85763, Mean IPC Gain vs baseline: -0.103.
+    Verdict: REGRESSION.
+
+Iteration 2:
+  • Your Strategy: "Looking at the results, my Iteration 1 strategy of putting `step` first caused a regression by losing instance-04 (previously solved). The baseline domain already has `step` first, so the issue was likely my reordering of predicates and preconditions/effects within actions. For Iteration 2, I will return to the baseline's exact predicate and action ordering but make targeted changes only to precondition ordering within actions—placing goal-proximal predicates (`at`, `free`) before static/auxiliary ones, and reordering effects to put add-effects before delete-effects consistently—which should help H_Add_Rp_Fwd's backward trace without disrupting the critical action ID assignments that maintained baseline coverage."
+  • Result: 10/15 solved, avg search time 184.88s, avg states expanded 79638, Mean IPC Gain vs baseline: -0.102.
+    Verdict: REGRESSION.
+
+CURRENT TASK (Iteration 3):
+Your strategy in Iteration 2 actively harmed performance. Do not repeat these changes. Analyze the current domain and propose a NEW strategy.
+
+---
+
+[EXECUTION FEEDBACK — ITERATION 3]
+
+Your Iteration 2 reordering was tested on bfws across all 15
+problem instances. Here are the results compared to the BASELINE:
+
+OVERALL PERFORMANCE SUMMARY:
+• Instances solved: 10/15 (Baseline: 11/15)
+• Average run wall time (solved): 184.88s (Baseline: 183.12s)
+• Average states expanded (solved): 79638 (Baseline: 95824)
+• Mean IPC Gain vs Baseline: -0.102
+• Verdict: REGRESSION
+
+PER-INSTANCE BREAKDOWN:
+┌──────────────┬──────────┬────────────┬─────────────┬──────────────┬───────────┐
+│ Instance     │ Status   │ Search (s) │ States Exp. │ IPC Score    │ IPC Gain  │
+├──────────────┼──────────┼────────────┼─────────────┼──────────────┼───────────┤
+│ instance-01. │ SUCCESS  │ 150.64     │ 72344       │ 0.962        │ -0.038    │
+│ instance-02. │ SUCCESS  │ 247.27     │ 117737      │ 0.941        │ -0.059    │
+│ instance-03. │ SUCCESS  │ 12.79      │ 4543        │ 0.940        │ -0.060    │
+│ instance-04. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ -1.000    │
+│ instance-07. │ SUCCESS  │ 192.49     │ 81837       │ 0.910        │ -0.090    │
+│ instance-08. │ SUCCESS  │ 40.68      │ 16803       │ 0.884        │ -0.116    │
+│ instance-09. │ SUCCESS  │ 37.10      │ 15681       │ 0.968        │ -0.032    │
+│ instance-11. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ -1.000    │
+│ instance-12. │ SUCCESS  │ 166.84     │ 71885       │ 0.926        │ -0.074    │
+│ instance-13. │ SUCCESS  │ 318.25     │ 145487      │ 0.940        │ -0.060    │
+│ instance-14. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-16. │ SUCCESS  │ 337.94     │ 154594      │ 0.995        │ -0.005    │
+│ instance-17. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-18. │ SUCCESS  │ 344.80     │ 115477      │ 1.000        │ +1.000    │
+│ instance-19. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+└──────────────┴──────────┴────────────┴─────────────┴──────────────┴───────────┘
+
+DIAGNOSTIC ANALYSIS:
+⚠ WARNING: Your reordering REDUCED coverage from 11/15 to 10/15. The planner could not find plans for instances it previously solved.
+✓ POSITIVE: Fewer states expanded (79638 vs 95824), indicating improved heuristic pruning.
+Mean IPC Gain is negative (-0.102), indicating overall performance degradation.
+
+IMPROVEMENT DIRECTION:
+Your reordering lost coverage. Prioritize structural orderings that maintain solvability before optimizing speed.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain ricochet-robots)
+(:requirements :strips :typing :negative-preconditions)
+
+(:types
+    robot - object
+    cell - object
+    direction - object
+)
+
+(:predicates
+    (at ?r - robot ?c - cell)
+    (free ?c - cell)
+    (nothing-is-moving)
+    (is-moving ?r - robot ?dir - direction)
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
+    (BLOCKED ?c - cell ?dir - direction)
+)
+
+(:action step
+    :parameters (?r - robot ?cfrom - cell ?cto - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cfrom)
+            (free ?cto)
+            (is-moving ?r ?dir)
+            (NEXT ?cfrom ?cto ?dir)
+            (not (BLOCKED ?cfrom ?dir))
+        )
+    :effect
+        (and
+            (at ?r ?cto)
+            (free ?cfrom)
+            (not (at ?r ?cfrom))
+            (not (free ?cto))
+        )
+)
+
+(:action go
+    :parameters (?r - robot ?dir - direction)
+    :precondition
+        (and
+            (nothing-is-moving)
+        )
+    :effect
+        (and
+            (is-moving ?r ?dir)
+            (not (nothing-is-moving))
+        )
+)
+
+(:action stop-at-robot
+    :parameters (?r - robot ?cat - cell ?cnext - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cat)
+            (is-moving ?r ?dir)
+            (NEXT ?cat ?cnext ?dir)
+            (not (free ?cnext))
+        )
+    :effect
+        (and
+            (nothing-is-moving)
+            (not (is-moving ?r ?dir))
+        )
+)
+
+(:action stop-at-barrier
+    :parameters (?r - robot ?cat - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cat)
+            (is-moving ?r ?dir)
+            (BLOCKED ?cat ?dir)
+        )
+    :effect
+        (and
+            (nothing-is-moving)
+            (not (is-moving ?r ?dir))
+        )
+)
+)

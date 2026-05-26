@@ -1,0 +1,42 @@
+My reordering strategy targets instance-11 (the persistent outlier at -0.418 IPC gain, 5.65s with only 611 states expanded, indicating the search is trapped in poor bucket partitions) by swapping Unload before Lift to give Unload a lower ID than Lift, since instance-11 likely involves heavy truck-based logistics where the relaxed plan should preferentially select Unload over Lift when both produce `lifting`; I also reorder Drop's preconditions to place `clear ?z` before `at` predicates to better guide the H_Add_Rp_Fwd backward trace toward surface-clearing subgoals, and reorder Lift's preconditions to place `clear ?y` and `on ?y ?z` first as the most goal-proximal conditions. This change specifically targets the tie-breaking in H_Add_Rp_Fwd where both Unload and Lift achieve `lifting ?x ?y`—by giving Unload the lower ID, the relaxed plan for truck-heavy instances will select Unload, producing different #r counts and bucket assignments that should unstick instance-11's search.
+
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	depot distributor - place
+        truck hoist surface - locatable
+        pallet crate - surface)
+
+(:predicates (on ?x - crate ?y - surface)
+             (at ?x - locatable ?y - place)
+             (clear ?x - surface)
+             (in ?x - crate ?y - truck)
+             (lifting ?x - hoist ?y - crate)
+             (available ?x - hoist))
+
+(:action Drop 
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (lifting ?x ?y) (clear ?z) (at ?x ?p) (at ?z ?p))
+:effect (and (on ?y ?z) (at ?y ?p) (clear ?y) (available ?x) (not (lifting ?x ?y)) (not (clear ?z))))
+
+(:action Unload 
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (in ?y ?z) (at ?x ?p) (at ?z ?p) (available ?x))
+:effect (and (lifting ?x ?y) (not (in ?y ?z)) (not (available ?x))))
+
+(:action Lift
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (clear ?y) (on ?y ?z) (at ?y ?p) (at ?x ?p) (available ?x))
+:effect (and (clear ?z) (lifting ?x ?y) (not (on ?y ?z)) (not (at ?y ?p)) (not (clear ?y)) (not (available ?x))))
+
+(:action Load
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (lifting ?x ?y) (at ?x ?p) (at ?z ?p))
+:effect (and (in ?y ?z) (available ?x) (not (lifting ?x ?y))))
+
+(:action Drive
+:parameters (?x - truck ?y - place ?z - place) 
+:precondition (and (at ?x ?y))
+:effect (and (at ?x ?z) (not (at ?x ?y))))
+
+)

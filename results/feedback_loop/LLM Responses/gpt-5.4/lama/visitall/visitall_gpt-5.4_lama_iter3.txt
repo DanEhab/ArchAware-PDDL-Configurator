@@ -1,0 +1,17 @@
+I keep the dynamic positional and progress predicates before the static connectivity predicate to preserve strong invariant synthesis, and I retain the single enabling action first because it is the sole source of all goal progress. Within the action, I order the static applicability test before the dynamic location test and keep the goal-relevant add-effects before the delete-effect so LAMA’s translator and relaxed-plan heuristics encounter useful facts as early as possible.
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates
+	(at-robot ?x - place)
+	(visited ?x - place)
+	(connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

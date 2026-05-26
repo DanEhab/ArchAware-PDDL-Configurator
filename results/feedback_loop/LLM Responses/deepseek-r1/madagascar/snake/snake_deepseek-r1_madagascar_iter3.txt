@@ -1,0 +1,87 @@
+**Strategy:** Keep the predicate and action ordering unchanged to preserve the variable ID assignment that yielded the baseline coverage of 6/15. Reorder preconditions within each action to place the most easily satisfiable—i.e., those true in many states or established by simple actions—first, and effects to list add-effects before delete-effects as before, to maximize unit propagation during SAT solving without risking loss of solvability.
+
+```lisp
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (headsnake ?x)
+    (tailsnake ?x)
+    (ispoint ?x)
+    (spawn ?x)
+    (blocked ?x)
+    (nextsnake ?x ?y)
+    (NEXTSPAWN ?x ?y)
+    (ISADJACENT ?x ?y)
+)
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (headsnake ?head)
+        (ISADJACENT ?head ?newhead)
+        (not (blocked ?newhead))
+        (not (= ?spawnpoint dummypoint))
+        (ispoint ?newhead)
+        (spawn ?spawnpoint)
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (ispoint ?spawnpoint)
+        (spawn ?nextspawnpoint)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+        (not (spawn ?spawnpoint))
+    )
+)
+
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (headsnake ?head)
+        (ISADJACENT ?head ?newhead)
+        (not (blocked ?newhead))
+        (ispoint ?newhead)
+        (spawn dummypoint)
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (ISADJACENT ?head ?newhead)
+        (not (blocked ?newhead))
+        (not (ispoint ?newhead))
+        (nextsnake ?newtail ?tail)
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (tailsnake ?newtail)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (blocked ?tail))
+        (not (tailsnake ?tail))
+        (not (nextsnake ?newtail ?tail))
+    )
+)
+```

@@ -1,0 +1,220 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the LAPKT-BFWS-Preference planning engine (IPC 2018 Agile Track winner). You
+possess deep knowledge of how BFWS-Preference's internal architecture—specifically
+its DIRECT MEMORY INJECTION parsing (no intermediate file), BUCKET SORTING via
+partition = (1000 × #g) + #r, NOVELTY evaluation w(s), and its TWO-ENGINE RELAY
+(LAPKT then Fast Downward)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve BFWS-Preference's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+BFWS-Preference is a TWO-ENGINE RELAY system:
+
+ENGINE 1 (LAPKT - The Sprinter):
+The Python manager DIRECTLY INJECTS parsed PDDL into C++ memory via bindings
+(add_atom, add_precondition, add_effect). There is NO intermediate .sas file.
+C++ internal ID numbers are assigned in the EXACT ORDER elements appear in the
+PDDL text. These IDs control tie-breaking EVERYWHERE in the engine.
+
+The search uses BUCKET SORTING: partition = (1000 × #g) + #r, where:
+- #g = number of MISSING GOALS (simple count)
+- #r = number of RELEVANT FLUENTS from a delete-free relaxed plan (H_Add_Rp_Fwd)
+
+CRITICAL: H_Add_Rp_Fwd breaks ties among equally-optimal relaxed actions by
+selecting the one with the LOWEST INTERNAL ID NUMBER. This means changing the
+textual order of actions in the PDDL file DIRECTLY CHANGES which relaxed actions
+are selected, which changes the #r count, which changes the BUCKET ASSIGNMENT,
+which changes the NOVELTY score w(s), which completely reroutes the search tree.
+
+ENGINE 2 (Fast Downward/LAMA - The Marathon Runner):
+After Engine 1 finds an initial plan, Engine 2 re-parses the SAME PDDL file using
+standard Fast Downward translation (with h² preprocessing), then runs weighted A*
+with LAMA heuristics to find cheaper plans within the time limit.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply in order of priority):
+
+1. ACTION ORDERING [CRITICAL — HIGHEST IMPACT]:
+Place actions whose effects directly ACHIEVE GOAL predicates FIRST in the
+domain file. Then place actions that CREATE PRECONDITIONS for goal-achieving
+actions. Place general utility actions last.
+REASON: Goal-achieving actions receive the lowest C++ IDs. When H_Add_Rp_Fwd
+breaks ties during relaxed plan extraction, it selects the lowest-ID action,
+which will now be goal-relevant. This produces tighter #r values and more
+discriminating bucket assignments, improving novelty-based search focus.
+
+2. PREDICATE DECLARATIONS: Place GOAL-RELEVANT predicates (describing task
+completion, object positioning, desired states) first. Then place actionenabling
+predicates. Place auxiliary/static predicates last.
+REASON: Predicate IDs are also assigned sequentially. Goal-relevant predicates
+with lower IDs are prioritized in the novelty tuple tables, improving novelty
+discrimination.
+
+3. PRECONDITION ORDERING: Within each action, place the most GOAL-PROXIMAL
+predicates first (those appearing in goal conditions or as effects of goalachieving
+actions). Place static/auxiliary predicates last.
+REASON: Precondition order affects the H_Add_Rp_Fwd backward trace,
+influencing which support actions are selected for the relaxed plan. Goalproximal
+preconditions first guide the trace toward goal-relevant fluents.
+
+4. EFFECT ORDERING: Place effects that ACHIEVE or ENABLE goal predicates first.
+Place "cleanup" or state-removal effects last.
+REASON: During delete-free forward reachability, goal-relevant add-effects
+first ensure early discovery of goal-adjacent facts, reducing #r and producing
+tighter partitions.
+
+5. DUAL-ENGINE COMPATIBILITY: Ensure the reordering is also compatible with Fast
+Downward's pipeline (Engine 2). Static predicates should be identifiable early
+in precondition blocks for FD's invariant synthesis. Add-effects before
+delete-effects for FD's relaxed planning.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: NO IMPROVEMENT detected. Failed conditions: Statistical_Significance, Practical_Significance
+  • No rationale was recorded for this attempt.
+
+Iteration 1:
+  • Your Strategy: "Looking at this domain, I need to understand the goal structure: the snake game typically has goals related to consuming all points (making `ispoint` false or `spawn dummypoint` true). The key insight is that `move-and-eat-no-spawn` and `move-and-eat-spawn` achieve goal-relevant effects (consuming points, reaching final spawn state), while `move` is a utility action. My previous attempt likely failed because the action ordering wasn't sufficiently differentiated; this time I'll prioritize `move-and-eat-spawn` first (it handles the common case of eating points with spawns), reorder predicates to put goal-relevant ones first (`ispoint`, `spawn`), and carefully reorder preconditions/effects to place goal-proximal fluents before auxiliary ones."
+  • Result: 8/15 solved, avg search time 145.61s, avg states expanded 3365, Mean IPC Gain vs baseline: -0.006.
+    Verdict: REGRESSION.
+
+CURRENT TASK (Iteration 2):
+Your strategy in Iteration 1 actively harmed performance. Do not repeat these changes. Analyze the current domain and propose a NEW strategy.
+
+---
+
+[EXECUTION FEEDBACK — ITERATION 2]
+
+Your Iteration 1 reordering was tested on bfws across all 15
+problem instances. Here are the results compared to the BASELINE:
+
+OVERALL PERFORMANCE SUMMARY:
+• Instances solved: 8/15 (Baseline: 8/15)
+• Average run wall time (solved): 145.61s (Baseline: 145.42s)
+• Average states expanded (solved): 3365 (Baseline: 3266)
+• Mean IPC Gain vs Baseline: -0.006
+• Verdict: REGRESSION
+
+PER-INSTANCE BREAKDOWN:
+┌──────────────┬──────────┬────────────┬─────────────┬──────────────┬───────────┐
+│ Instance     │ Status   │ Search (s) │ States Exp. │ IPC Score    │ IPC Gain  │
+├──────────────┼──────────┼────────────┼─────────────┼──────────────┼───────────┤
+│ instance-01. │ SUCCESS  │ 3.65       │ 4079        │ 0.979        │ -0.021    │
+│ instance-02. │ SUCCESS  │ 46.01      │ 1955        │ 0.912        │ -0.088    │
+│ instance-03. │ SUCCESS  │ 54.15      │ 2393        │ 0.972        │ -0.028    │
+│ instance-04. │ SUCCESS  │ 79.39      │ 3302        │ 1.000        │ +0.030    │
+│ instance-07. │ SUCCESS  │ 160.97     │ 3078        │ 1.000        │ +0.009    │
+│ instance-08. │ SUCCESS  │ 202.77     │ 3729        │ 1.000        │ +0.033    │
+│ instance-09. │ SUCCESS  │ 273.64     │ 4845        │ 1.000        │ -0.000    │
+│ instance-11. │ SUCCESS  │ 344.27     │ 3544        │ 0.982        │ -0.018    │
+│ instance-12. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-13. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-14. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-16. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-17. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-18. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-19. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+└──────────────┴──────────┴────────────┴─────────────┴──────────────┴───────────┘
+
+DIAGNOSTIC ANALYSIS:
+Mean IPC Gain is negative (-0.006), indicating overall performance degradation.
+
+IMPROVEMENT DIRECTION:
+Your previous reordering did not produce a statistically significant improvement. Try a different structural strategy.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (ispoint ?x)
+    (spawn ?x)
+    (headsnake ?x)
+    (tailsnake ?x)
+    (nextsnake ?x ?y)
+    (blocked ?x)
+    (NEXTSPAWN ?x ?y)
+    (ISADJACENT ?x ?y)
+)
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (ispoint ?newhead)
+        (spawn ?spawnpoint)
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (not (= ?spawnpoint dummypoint))
+        (headsnake ?head)
+        (ISADJACENT ?head ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (not (ispoint ?newhead))
+        (ispoint ?spawnpoint)
+        (spawn ?nextspawnpoint)
+        (not (spawn ?spawnpoint))
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+    )
+)
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (ispoint ?newhead)
+        (spawn dummypoint)
+        (headsnake ?head)
+        (ISADJACENT ?head ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (not (ispoint ?newhead))
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+    )
+)
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
+        (ISADJACENT ?head ?newhead)
+        (not (blocked ?newhead))
+        (not (ispoint ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (tailsnake ?newtail)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (tailsnake ?tail))
+        (not (nextsnake ?newtail ?tail))
+        (not (blocked ?tail))
+    )
+)
+)

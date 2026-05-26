@@ -1,0 +1,34 @@
+{
+  "domain": "visitall",
+  "model": "gemini-3.1-pro",
+  "stage": "feedback_loop",
+  "run_id": "bfws_iter1",
+  "timestamp": "2026-05-26T00:39:27.221195+00:00",
+  "validation_status": "VALID",
+  "rejection_reason": null,
+  "failed_stage": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)",
+          "(visited ?x - place)"
+        ],
+        "candidate": [
+          "(at-robot ?x - place)",
+          "(visited ?x - place)",
+          "(connected ?x ?y - place)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 388,
+  "val_output": ""
+}

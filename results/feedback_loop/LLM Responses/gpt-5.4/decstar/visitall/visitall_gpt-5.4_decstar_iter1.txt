@@ -1,0 +1,17 @@
+I reordered the predicates to place single-place state before relational connectivity, and within the action I kept the robot-local condition and effects before the shared graph relation to align with DecStar’s locality-sensitive translation and factoring heuristics. Because this domain has only one action and one interacting predicate, the best available optimization is to emphasize the unary state variables and local robot updates as strongly as possible while preserving semantics exactly.
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates
+	(at-robot ?x - place)
+	(visited ?x - place)
+	(connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

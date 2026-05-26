@@ -1,0 +1,173 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the LAPKT-BFWS-Preference planning engine (IPC 2018 Agile Track winner). You
+possess deep knowledge of how BFWS-Preference's internal architecture—specifically
+its DIRECT MEMORY INJECTION parsing (no intermediate file), BUCKET SORTING via
+partition = (1000 × #g) + #r, NOVELTY evaluation w(s), and its TWO-ENGINE RELAY
+(LAPKT then Fast Downward)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve BFWS-Preference's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+BFWS-Preference is a TWO-ENGINE RELAY system:
+
+ENGINE 1 (LAPKT - The Sprinter):
+The Python manager DIRECTLY INJECTS parsed PDDL into C++ memory via bindings
+(add_atom, add_precondition, add_effect). There is NO intermediate .sas file.
+C++ internal ID numbers are assigned in the EXACT ORDER elements appear in the
+PDDL text. These IDs control tie-breaking EVERYWHERE in the engine.
+
+The search uses BUCKET SORTING: partition = (1000 × #g) + #r, where:
+- #g = number of MISSING GOALS (simple count)
+- #r = number of RELEVANT FLUENTS from a delete-free relaxed plan (H_Add_Rp_Fwd)
+
+CRITICAL: H_Add_Rp_Fwd breaks ties among equally-optimal relaxed actions by
+selecting the one with the LOWEST INTERNAL ID NUMBER. This means changing the
+textual order of actions in the PDDL file DIRECTLY CHANGES which relaxed actions
+are selected, which changes the #r count, which changes the BUCKET ASSIGNMENT,
+which changes the NOVELTY score w(s), which completely reroutes the search tree.
+
+ENGINE 2 (Fast Downward/LAMA - The Marathon Runner):
+After Engine 1 finds an initial plan, Engine 2 re-parses the SAME PDDL file using
+standard Fast Downward translation (with h² preprocessing), then runs weighted A*
+with LAMA heuristics to find cheaper plans within the time limit.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply in order of priority):
+
+1. ACTION ORDERING [CRITICAL — HIGHEST IMPACT]:
+Place actions whose effects directly ACHIEVE GOAL predicates FIRST in the
+domain file. Then place actions that CREATE PRECONDITIONS for goal-achieving
+actions. Place general utility actions last.
+REASON: Goal-achieving actions receive the lowest C++ IDs. When H_Add_Rp_Fwd
+breaks ties during relaxed plan extraction, it selects the lowest-ID action,
+which will now be goal-relevant. This produces tighter #r values and more
+discriminating bucket assignments, improving novelty-based search focus.
+
+2. PREDICATE DECLARATIONS: Place GOAL-RELEVANT predicates (describing task
+completion, object positioning, desired states) first. Then place actionenabling
+predicates. Place auxiliary/static predicates last.
+REASON: Predicate IDs are also assigned sequentially. Goal-relevant predicates
+with lower IDs are prioritized in the novelty tuple tables, improving novelty
+discrimination.
+
+3. PRECONDITION ORDERING: Within each action, place the most GOAL-PROXIMAL
+predicates first (those appearing in goal conditions or as effects of goalachieving
+actions). Place static/auxiliary predicates last.
+REASON: Precondition order affects the H_Add_Rp_Fwd backward trace,
+influencing which support actions are selected for the relaxed plan. Goalproximal
+preconditions first guide the trace toward goal-relevant fluents.
+
+4. EFFECT ORDERING: Place effects that ACHIEVE or ENABLE goal predicates first.
+Place "cleanup" or state-removal effects last.
+REASON: During delete-free forward reachability, goal-relevant add-effects
+first ensure early discovery of goal-adjacent facts, reducing #r and producing
+tighter partitions.
+
+5. DUAL-ENGINE COMPATIBILITY: Ensure the reordering is also compatible with Fast
+Downward's pipeline (Engine 2). Static predicates should be identifiable early
+in precondition blocks for FD's invariant synthesis. Add-effects before
+delete-effects for FD's relaxed planning.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: IMPROVEMENT DETECTED (passed all 3 conditions: statistical
+    significance, practical significance, coverage preservation).
+  • No rationale was recorded for this attempt.
+
+---
+
+[EXECUTION FEEDBACK]
+
+Your previous reordering was tested on bfws across all 15
+problem instances. Here are the results compared to the BASELINE:
+
+OVERALL PERFORMANCE SUMMARY:
+• Instances solved: 15/15 (Baseline: 15/15)
+• Average run wall time (solved): 1.64s (Baseline: 3.13s)
+• Average states expanded (solved): 3497 (Baseline: 3894)
+• Mean IPC Gain: 0.085 (from improvement_results.csv)
+• Verdict: IMPROVEMENT DETECTED
+
+PER-INSTANCE BREAKDOWN:
+┌──────────────┬──────────┬────────────┬─────────────┬──────────────┬───────────┐
+│ Instance     │ Status   │ Search (s) │ States Exp. │ IPC Score    │ IPC Gain  │
+├──────────────┼──────────┼────────────┼─────────────┼──────────────┼───────────┤
+│ instance-01. │ SUCCESS  │ 0.48       │ 81          │ 1.000        │ +0.074    │
+│ instance-02. │ SUCCESS  │ 0.48       │ 138         │ 1.000        │ +0.099    │
+│ instance-03. │ SUCCESS  │ 0.67       │ 311         │ 1.000        │ +0.078    │
+│ instance-04. │ SUCCESS  │ 0.53       │ 439         │ 1.000        │ +0.103    │
+│ instance-07. │ SUCCESS  │ 0.53       │ 946         │ 1.000        │ +0.095    │
+│ instance-08. │ SUCCESS  │ 0.63       │ 3738        │ 1.000        │ +0.088    │
+│ instance-09. │ SUCCESS  │ 0.86       │ 5700        │ 1.000        │ +0.590    │
+│ instance-11. │ SUCCESS  │ 5.25       │ 611         │ 0.593        │ -0.407    │
+│ instance-12. │ SUCCESS  │ 1.62       │ 14522       │ 1.000        │ +0.061    │
+│ instance-13. │ SUCCESS  │ 0.59       │ 349         │ 1.000        │ +0.095    │
+│ instance-14. │ SUCCESS  │ 1.02       │ 7807        │ 1.000        │ +0.086    │
+│ instance-16. │ SUCCESS  │ 0.67       │ 1578        │ 1.000        │ +0.084    │
+│ instance-17. │ SUCCESS  │ 1.12       │ 4640        │ 1.000        │ +0.087    │
+│ instance-18. │ SUCCESS  │ 1.89       │ 10583       │ 1.000        │ +0.085    │
+│ instance-19. │ SUCCESS  │ 8.24       │ 1024        │ 1.000        │ +0.062    │
+└──────────────┴──────────┴────────────┴─────────────┴──────────────┴───────────┘
+
+DIAGNOSTIC ANALYSIS:
+✓ POSITIVE: Fewer states expanded (3497 vs 3894), indicating improved heuristic pruning.
+✓ POSITIVE: Average run wall time decreased from 3.13s to 1.64s.
+✓ POSITIVE: Mean IPC Gain is positive (0.085), indicating overall performance improvement.
+
+IMPROVEMENT DIRECTION:
+Your previous reordering already shows improvement (Mean IPC Gain: 0.085). Try to further optimize for the 0 instances that still timed out.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	depot distributor - place
+        truck hoist surface - locatable
+        pallet crate - surface)
+
+(:predicates (on ?x - crate ?y - surface)
+             (at ?x - locatable ?y - place)
+             (clear ?x - surface)
+             (in ?x - crate ?y - truck)
+             (lifting ?x - hoist ?y - crate)
+             (available ?x - hoist))
+
+(:action Drop 
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (lifting ?x ?y) (at ?x ?p) (at ?z ?p) (clear ?z))
+:effect (and (on ?y ?z) (at ?y ?p) (clear ?y) (available ?x) (not (lifting ?x ?y)) (not (clear ?z))))
+
+(:action Lift
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (on ?y ?z) (at ?x ?p) (at ?y ?p) (available ?x) (clear ?y))
+:effect (and (clear ?z) (lifting ?x ?y) (not (on ?y ?z)) (not (at ?y ?p)) (not (clear ?y)) (not (available ?x))))
+
+(:action Unload 
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (in ?y ?z) (at ?x ?p) (at ?z ?p) (available ?x))
+:effect (and (lifting ?x ?y) (not (in ?y ?z)) (not (available ?x))))
+
+(:action Load
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (lifting ?x ?y) (at ?x ?p) (at ?z ?p))
+:effect (and (in ?y ?z) (available ?x) (not (lifting ?x ?y))))
+
+(:action Drive
+:parameters (?x - truck ?y - place ?z - place) 
+:precondition (and (at ?x ?y))
+:effect (and (at ?x ?z) (not (at ?x ?y))))
+
+)

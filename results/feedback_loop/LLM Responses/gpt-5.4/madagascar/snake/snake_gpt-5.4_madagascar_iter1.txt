@@ -1,0 +1,88 @@
+I prioritize the likely goal predicate and its direct support chain first, while keeping tightly related occupancy and snake-position predicates adjacent so Madagascar assigns low IDs to goal-relevant variables and discovers mutex structure early without disturbing solvability-critical regularities. I also order actions from direct goal achievement through subgoal support, and within each action place simpler, broadly propagating preconditions first and add effects before deletes to better align CNF generation with backward-chaining and unit propagation.
+
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (ispoint ?x)
+    (spawn ?x)
+    (NEXTSPAWN ?x ?y)
+    (headsnake ?x)
+    (tailsnake ?x)
+    (nextsnake ?x ?y)
+    (blocked ?x)
+    (ISADJACENT ?x ?y)
+)
+
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (headsnake ?head)
+        (ispoint ?newhead)
+        (spawn ?spawnpoint)
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (ISADJACENT ?head ?newhead)
+        (not (blocked ?newhead))
+        (not (= ?spawnpoint dummypoint))
+    )
+    :effect
+    (and
+        (ispoint ?spawnpoint)
+        (spawn ?nextspawnpoint)
+        (blocked ?newhead)
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+        (not (spawn ?spawnpoint))
+    )
+)
+
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (headsnake ?head)
+        (ispoint ?newhead)
+        (spawn dummypoint)
+        (ISADJACENT ?head ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (blocked ?newhead)
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
+        (ISADJACENT ?head ?newhead)
+        (not (blocked ?newhead))
+        (not (ispoint ?newhead))
+    )
+    :effect
+    (and
+        (blocked ?newhead)
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (tailsnake ?newtail)
+        (not (headsnake ?head))
+        (not (blocked ?tail))
+        (not (tailsnake ?tail))
+        (not (nextsnake ?newtail ?tail))
+    )
+)
+
+)

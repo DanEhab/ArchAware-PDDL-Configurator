@@ -1,0 +1,17 @@
+My reordering strategy maintains the Iteration 2 structure that proved successful but swaps the two add-effects to place `at-robot ?nextpos` before `visited ?nextpos`, since `at-robot` is the key enabling effect that satisfies preconditions of subsequent move actions, which should improve FF's forward cost propagation by making the enabling fact available earlier during relaxed-plan extraction, leading to better preferred operator selection especially on larger instances. The predicate order, precondition order, and delete-effect-last placement remain unchanged from the successful Iteration 2 configuration.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (at-robot ?nextpos) (visited ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

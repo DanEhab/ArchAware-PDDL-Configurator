@@ -1,0 +1,83 @@
+Looking at the iteration history, both attempts that modified predicate ordering, precondition ordering, or effect ordering within actions caused regressions by losing instance-04 (and sometimes instance-11). The baseline domain already has a reasonable action order with `step` first. My new strategy is to try reordering only the stop actions—placing `stop-at-barrier` before `stop-at-robot`—since barrier stops have fewer preconditions (3 vs 4) and giving them lower IDs may produce tighter relaxed plans in H_Add_Rp_Fwd, while keeping everything else exactly as the baseline to preserve coverage.
+
+(define (domain ricochet-robots)
+(:requirements :strips :typing :negative-preconditions)
+
+(:types
+    robot - object
+    cell - object
+    direction - object
+)
+
+(:predicates
+    (at ?r - robot ?c - cell)
+    (free ?c - cell)
+    (nothing-is-moving)
+    (is-moving ?r - robot ?dir - direction)
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
+    (BLOCKED ?c - cell ?dir - direction)
+)
+
+(:action step
+    :parameters (?r - robot ?cfrom - cell ?cto - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cfrom)
+            (free ?cto)
+            (is-moving ?r ?dir)
+            (NEXT ?cfrom ?cto ?dir)
+            (not (BLOCKED ?cfrom ?dir))
+        )
+    :effect
+        (and
+            (at ?r ?cto)
+            (free ?cfrom)
+            (not (at ?r ?cfrom))
+            (not (free ?cto))
+        )
+)
+
+(:action go
+    :parameters (?r - robot ?dir - direction)
+    :precondition
+        (and
+            (nothing-is-moving)
+        )
+    :effect
+        (and
+            (is-moving ?r ?dir)
+            (not (nothing-is-moving))
+        )
+)
+
+(:action stop-at-barrier
+    :parameters (?r - robot ?cat - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cat)
+            (is-moving ?r ?dir)
+            (BLOCKED ?cat ?dir)
+        )
+    :effect
+        (and
+            (nothing-is-moving)
+            (not (is-moving ?r ?dir))
+        )
+)
+
+(:action stop-at-robot
+    :parameters (?r - robot ?cat - cell ?cnext - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cat)
+            (is-moving ?r ?dir)
+            (NEXT ?cat ?cnext ?dir)
+            (not (free ?cnext))
+        )
+    :effect
+        (and
+            (nothing-is-moving)
+            (not (is-moving ?r ?dir))
+        )
+)
+)

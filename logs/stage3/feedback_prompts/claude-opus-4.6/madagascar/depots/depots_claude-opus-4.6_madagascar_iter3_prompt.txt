@@ -1,0 +1,192 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the Madagascar (MpC configuration) planning engine. You possess deep knowledge
+of how Madagascar's internal architecture—specifically its CNF encoding of PDDL
+into Boolean SAT formulas using ∃-step parallel plans, its fixpoint binary mutex
+(invariant) discovery, its backward-chaining variable selection heuristic, and its
+CDCL (Conflict-Driven Clause Learning) solver with Unit Propagation—processes
+PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve Madagascar's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+Madagascar is a SAT-BASED planner. It does NOT search through states like
+traditional planners. Instead, it:
+1. ENCODES the entire PDDL problem into a massive Boolean formula (Φₜ) in
+Conjunctive Normal Form (CNF). Each PDDL predicate at each time step becomes
+a True/False variable. Each PDDL action at each time step becomes a True/False
+variable. The formula represents ALL constraints simultaneously.
+2. Discovers BINARY MUTEXES (invariants) via fixpoint computation — rules like
+"package cannot be at LocationA AND LocationB simultaneously." These are stored
+ONCE in memory and dynamically linked across time steps, providing massive
+memory savings.
+3. Uses ∃-step (existential-step) PARALLEL PLANS that allow multiple noninterfering
+actions in the same time step, dramatically shrinking formula size.
+4. Runs CONCURRENT SAT SOLVERS at multiple time horizons (Algorithm C for MpC:
+exponential steps with equal CPU allocation).
+5. Each SAT solver uses CDCL with a BACKWARD-CHAINING HEURISTIC: instead of
+generic conflict-driven guessing, it starts from GOAL variables, identifies
+which action variables directly achieve those goals, and prioritizes evaluating
+them first. Sub-goals then dynamically become the next priority.
+
+CRITICAL: The order of PDDL elements determines the internal SAT variable IDs.
+The backward-chaining heuristic's priority queue processes variables by their IDs.
+Goal-achieving actions and goal predicates with LOWER IDs are evaluated FIRST.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply in order of priority):
+
+1. PREDICATE DECLARATIONS: Place GOAL predicates (those describing desired end
+states) FIRST. Then place predicates that are effects of goal-achieving actions.
+Group mutually exclusive predicates together (e.g., all positional predicates
+for the same object type adjacently, like at-locA, at-locB, at-locC).
+REASON: Goal predicates receive the lowest SAT variable IDs, placing them first
+in the backward-chaining priority queue. Adjacent mutually-exclusive predicates
+are discovered as binary mutex pairs sooner during fixpoint iteration.
+
+2. ACTION ORDERING: Place actions that DIRECTLY ACHIEVE goal predicates FIRST.
+Then place actions that achieve subgoals (preconditions of goal-achieving
+actions). Place auxiliary/setup actions last.
+REASON: The backward-chaining heuristic starts from goal variables and
+identifies their causal actions. Lower SAT variable IDs for goal-achieving
+actions place them higher in the priority queue, focusing the CDCL solver's
+initial guesses on the most productive variables.
+
+3. PRECONDITION ORDERING: Place EASILY SATISFIABLE preconditions first (those
+true in many states or established by simple actions). Place preconditions
+requiring complex multi-step setup last.
+REASON: Preconditions are encoded as CNF implications. Easily-satisfiable
+conditions trigger longer UNIT PROPAGATION domino chains, forcing more
+variables automatically and reducing the number of explicit guesses needed.
+
+4. EFFECT ORDERING: Place ADD-EFFECTS first, then DELETE-EFFECTS. Within
+add-effects, place GOAL-RELEVANT effects first.
+REASON: Although SAT treats literals symmetrically, add-effects placed first
+align with the backward-chaining heuristic's goal-focused search direction
+and produce frame axiom clauses in an order that supports faster propagation.
+
+5. MUTUAL EXCLUSION ALIGNMENT: In the :predicates block, place predicates
+describing the SAME PROPERTY of the same object type ADJACENTLY (e.g., group
+all location predicates for trucks together, all status predicates for
+packages together).
+REASON: Madagascar's fixpoint invariant finder discovers binary mutexes by
+checking predicate pairs. Adjacent same-property predicates are checked
+earlier, allowing critical invariants to be discovered sooner.
+
+6. PARAMETER CONSISTENCY: Use consistent parameter ordering across all actions.
+REASON: Regular grounding patterns produce more uniform CNF clause structures
+that the CDCL solver exploits through learned clause pattern recognition.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: IMPROVEMENT DETECTED (passed all 3 conditions: statistical
+    significance, practical significance, coverage preservation).
+  • No rationale was recorded for this attempt.
+
+Iteration 1:
+  • Your Strategy: "My reordering strategy focuses on placing goal-achieving predicates (`on`, `at`, `clear`) first and grouping mutually exclusive predicates adjacently, then ordering actions so that `Drop` (which directly achieves `on`, `at`, `clear` goals) comes first, followed by `Drive` (achieves `at` subgoals), then `Lift` and `Unload` (which set up preconditions for Drop/Load), and finally `Load`; within each action, preconditions are ordered from easily satisfiable to complex, and effects place add-effects (especially goal-relevant ones) before delete-effects. I expect this to further improve performance by better aligning SAT variable IDs with the backward-chaining heuristic's goal-focused search, enabling longer unit propagation chains and earlier mutex discovery for the harder instances (9 and 12) that showed slight regressions."
+  • Result: 15/15 solved, avg search time 0.59s, avg states expanded 0, Mean IPC Gain vs baseline: -0.001.
+    Verdict: REGRESSION.
+
+Iteration 2:
+  • Your Strategy: "My reordering strategy returns to the successful Stage 2 approach by placing goal predicates (`on`, `clear`, `at`) first with mutual-exclusion-friendly grouping, but critically reorders actions differently from Iteration 1: `Lift` and `Drop` first (the core goal-achieving pair for `on`/`clear`), then `Unload`/`Load` (supporting truck operations), and finally `Drive`, since the backward-chaining heuristic benefits from having the direct `on`-achieving `Drop` and its immediate precondition-provider `Lift` with the lowest action variable IDs. Within each action, I reorder preconditions so static/easily-satisfied conditions (like `at ?x ?p` for hoists which rarely change) come first to maximize unit propagation, and place add-effects before delete-effects with goal-relevant effects first."
+  • Result: 15/15 solved, avg search time 0.59s, avg states expanded 0, Mean IPC Gain vs baseline: -0.007.
+    Verdict: REGRESSION.
+
+CURRENT TASK (Iteration 3):
+Your strategy in Iteration 2 actively harmed performance. Do not repeat these changes. Analyze the current domain and propose a NEW strategy.
+
+---
+
+[EXECUTION FEEDBACK — ITERATION 3]
+
+Your Iteration 2 reordering was tested on madagascar across all 15
+problem instances. Here are the results compared to the BASELINE:
+
+OVERALL PERFORMANCE SUMMARY:
+• Instances solved: 15/15 (Baseline: 15/15)
+• Average run wall time (solved): 0.59s (Baseline: 0.58s)
+• Average states expanded (solved): 0 (Baseline: 0)
+• Mean IPC Gain vs Baseline: -0.007
+• Verdict: REGRESSION
+
+PER-INSTANCE BREAKDOWN:
+┌──────────────┬──────────┬────────────┬─────────────┬──────────────┬───────────┐
+│ Instance     │ Status   │ Search (s) │ States Exp. │ IPC Score    │ IPC Gain  │
+├──────────────┼──────────┼────────────┼─────────────┼──────────────┼───────────┤
+│ instance-01. │ SUCCESS  │ 0.40       │ 0           │ 1.000        │ +0.010    │
+│ instance-02. │ SUCCESS  │ 0.42       │ 0           │ 0.996        │ -0.004    │
+│ instance-03. │ SUCCESS  │ 0.42       │ 0           │ 0.998        │ -0.002    │
+│ instance-04. │ SUCCESS  │ 0.50       │ 0           │ 0.958        │ -0.042    │
+│ instance-07. │ SUCCESS  │ 0.45       │ 0           │ 0.988        │ -0.012    │
+│ instance-08. │ SUCCESS  │ 0.54       │ 0           │ 0.957        │ -0.043    │
+│ instance-09. │ SUCCESS  │ 0.67       │ 0           │ 1.000        │ +0.007    │
+│ instance-11. │ SUCCESS  │ 0.54       │ 0           │ 1.000        │ +0.024    │
+│ instance-12. │ SUCCESS  │ 1.08       │ 0           │ 0.901        │ -0.099    │
+│ instance-13. │ SUCCESS  │ 0.54       │ 0           │ 0.951        │ -0.049    │
+│ instance-14. │ SUCCESS  │ 0.56       │ 0           │ 1.000        │ +0.015    │
+│ instance-16. │ SUCCESS  │ 0.48       │ 0           │ 1.000        │ +0.063    │
+│ instance-17. │ SUCCESS  │ 0.64       │ 0           │ 0.998        │ -0.002    │
+│ instance-18. │ SUCCESS  │ 1.07       │ 0           │ 0.995        │ -0.005    │
+│ instance-19. │ SUCCESS  │ 0.59       │ 0           │ 1.000        │ +0.028    │
+└──────────────┴──────────┴────────────┴─────────────┴──────────────┴───────────┘
+
+DIAGNOSTIC ANALYSIS:
+Mean IPC Gain is negative (-0.007), indicating overall performance degradation.
+
+IMPROVEMENT DIRECTION:
+Your previous reordering did not produce a statistically significant improvement. Try a different structural strategy.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	depot distributor - place
+        truck hoist surface - locatable
+        pallet crate - surface)
+
+(:predicates (on ?x - crate ?y - surface)
+             (clear ?x - surface)
+             (at ?x - locatable ?y - place)
+             (in ?x - crate ?y - truck)
+             (available ?x - hoist)
+             (lifting ?x - hoist ?y - crate))
+
+(:action Lift
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (at ?x ?p) (available ?x) (at ?y ?p) (on ?y ?z) (clear ?y))
+:effect (and (lifting ?x ?y) (clear ?z) (not (at ?y ?p)) (not (clear ?y)) (not (available ?x)) (not (on ?y ?z))))
+
+(:action Drop
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (at ?x ?p) (lifting ?x ?y) (at ?z ?p) (clear ?z))
+:effect (and (on ?y ?z) (at ?y ?p) (clear ?y) (available ?x) (not (lifting ?x ?y)) (not (clear ?z))))
+
+(:action Unload
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (at ?x ?p) (available ?x) (at ?z ?p) (in ?y ?z))
+:effect (and (lifting ?x ?y) (not (in ?y ?z)) (not (available ?x))))
+
+(:action Load
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (at ?x ?p) (lifting ?x ?y) (at ?z ?p))
+:effect (and (in ?y ?z) (available ?x) (not (lifting ?x ?y))))
+
+(:action Drive
+:parameters (?x - truck ?y - place ?z - place)
+:precondition (and (at ?x ?y))
+:effect (and (at ?x ?z) (not (at ?x ?y))))
+
+)

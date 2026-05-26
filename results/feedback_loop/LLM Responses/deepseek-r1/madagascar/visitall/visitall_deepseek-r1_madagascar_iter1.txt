@@ -1,0 +1,17 @@
+I reordered the predicates to place the goal predicate `visited` first, following Madagascar’s backward-chaining heuristic that prioritizes goal variables with lower SAT IDs. I also swapped the action parameters to put the destination (the goal‑relevant variable) first, so that ground actions achieving `visited` receive lower variable IDs and are explored earlier by the solver.
+
+```lisp
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+             (at-robot ?x - place)
+             (connected ?x ?y - place)
+)
+(:action move
+:parameters (?dest ?src - place)
+:precondition (and (connected ?src ?dest) (at-robot ?src))
+:effect (and (visited ?dest) (at-robot ?dest) (not (at-robot ?src)))
+)
+)
+```

@@ -1,0 +1,42 @@
+I will reorder the actions to place leaf-like operations (Lift, Drop) first, then coordinating actions (Load, Unload), and finally the center-only action (Drive). Within each action, I will reorder preconditions and effects to prioritize the primary manipulated crate object first, moving hub predicates like (at ?x ?p) to the end, to help DecStar’s factoring engine isolate leaf subsystems and reduce center expansion costs.
+
+```lisp
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	depot distributor - place
+        truck hoist surface - locatable
+        pallet crate - surface)
+
+(:predicates (available ?x - hoist) 
+             (clear ?x - surface)
+             (on ?x - crate ?y - surface)
+             (in ?x - crate ?y - truck)
+             (lifting ?x - hoist ?y - crate)
+             (at ?x - locatable ?y - place))
+
+(:action Lift
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (clear ?y) (on ?y ?z) (at ?y ?p) (at ?x ?p) (available ?x))
+:effect (and (lifting ?x ?y) (not (clear ?y)) (not (on ?y ?z)) (clear ?z) (not (at ?y ?p)) (not (available ?x))))
+
+(:action Drop 
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (lifting ?x ?y) (at ?z ?p) (clear ?z) (at ?x ?p))
+:effect (and (not (lifting ?x ?y)) (at ?y ?p) (clear ?y) (on ?y ?z) (not (clear ?z)) (available ?x)))
+
+(:action Load
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (lifting ?x ?y) (at ?x ?p) (at ?z ?p))
+:effect (and (not (lifting ?x ?y)) (in ?y ?z) (available ?x)))
+
+(:action Unload 
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (in ?y ?z) (at ?x ?p) (available ?x) (at ?z ?p))
+:effect (and (lifting ?x ?y) (not (in ?y ?z)) (not (available ?x))))
+
+(:action Drive
+:parameters (?x - truck ?y - place ?z - place) 
+:precondition (and (at ?x ?y))
+:effect (and (not (at ?x ?y)) (at ?x ?z)))
+)```

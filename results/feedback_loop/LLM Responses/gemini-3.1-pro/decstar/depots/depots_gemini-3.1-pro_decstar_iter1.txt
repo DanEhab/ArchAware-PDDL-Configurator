@@ -1,0 +1,44 @@
+This reordering strategy prioritizes the isolation of crate-manipulation subsystems by placing single-object predicates and localized actions (Lift, Drop) first, while demoting cross-subsystem interactions and truck movements (Drive) to the end. Preconditions and effects within each action are also sorted to evaluate leaf-variable (crate) states before shared center-variable (truck, hoist, location) states, optimizing DecStar's Causal Graph analysis and accelerating leaf-local Dijkstra pricing.
+
+```lisp
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	depot distributor - place
+        truck hoist surface - locatable
+        pallet crate - surface)
+
+(:predicates (available ?x - hoist)
+             (clear ?x - surface)
+             (on ?x - crate ?y - surface)
+             (in ?x - crate ?y - truck)
+             (lifting ?x - hoist ?y - crate)
+             (at ?x - locatable ?y - place))
+
+(:action Lift
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (clear ?y) (on ?y ?z) (at ?y ?p) (available ?x) (at ?x ?p))
+:effect (and (not (clear ?y)) (not (on ?y ?z)) (not (at ?y ?p)) (clear ?z) (lifting ?x ?y) (not (available ?x))))
+
+(:action Drop 
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (lifting ?x ?y) (clear ?z) (at ?z ?p) (at ?x ?p))
+:effect (and (clear ?y) (on ?y ?z) (at ?y ?p) (not (clear ?z)) (not (lifting ?x ?y)) (available ?x)))
+
+(:action Load
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (lifting ?x ?y) (at ?z ?p) (at ?x ?p))
+:effect (and (in ?y ?z) (not (lifting ?x ?y)) (available ?x)))
+
+(:action Unload 
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (in ?y ?z) (available ?x) (at ?x ?p) (at ?z ?p))
+:effect (and (not (in ?y ?z)) (lifting ?x ?y) (not (available ?x))))
+
+(:action Drive
+:parameters (?x - truck ?y - place ?z - place) 
+:precondition (and (at ?x ?y))
+:effect (and (not (at ?x ?y)) (at ?x ?z)))
+
+)
+```

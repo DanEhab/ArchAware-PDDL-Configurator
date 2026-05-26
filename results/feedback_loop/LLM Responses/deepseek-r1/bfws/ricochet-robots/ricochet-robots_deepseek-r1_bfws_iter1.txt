@@ -1,0 +1,84 @@
+I will reorder the domain so that actions directly achieving goal predicates (stop-at-barrier, stop-at-robot, then step) appear first, and the go action last, giving them lower internal IDs; this ensures BFWS-Preference's tie-breaking selects goal-relevant actions in relaxed plans, producing tighter #r values and more discriminating bucket assignments. Additionally, I reorder predicates to place goal-relevant ones (at, free, nothing-is-moving) first and static ones (NEXT, BLOCKED) last, and within each action I order preconditions and effects to prioritize goal-proximal fluents, further improving heuristic pruning and novelty discrimination.
+
+```lisp
+(define (domain ricochet-robots)
+(:requirements :strips :typing :negative-preconditions)
+
+(:types
+    robot - object
+    cell - object
+    direction - object
+)
+
+(:predicates
+    (at ?r - robot ?c - cell)
+    (free ?c - cell)
+    (nothing-is-moving)
+    (is-moving ?r - robot ?dir - direction)
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
+    (BLOCKED ?c - cell ?dir - direction)
+)
+
+(:action stop-at-barrier
+    :parameters (?r - robot ?cat - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cat)
+            (is-moving ?r ?dir)
+            (BLOCKED ?cat ?dir)
+        )
+    :effect
+        (and
+            (nothing-is-moving)
+            (not (is-moving ?r ?dir))
+        )
+)
+
+(:action stop-at-robot
+    :parameters (?r - robot ?cat - cell ?cnext - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cat)
+            (not (free ?cnext))
+            (is-moving ?r ?dir)
+            (NEXT ?cat ?cnext ?dir)
+        )
+    :effect
+        (and
+            (nothing-is-moving)
+            (not (is-moving ?r ?dir))
+        )
+)
+
+(:action step
+    :parameters (?r - robot ?cfrom - cell ?cto - cell ?dir - direction)
+    :precondition
+        (and
+            (at ?r ?cfrom)
+            (free ?cto)
+            (NEXT ?cfrom ?cto ?dir)
+            (is-moving ?r ?dir)
+            (not (BLOCKED ?cfrom ?dir))
+        )
+    :effect
+        (and
+            (at ?r ?cto)
+            (free ?cfrom)
+            (not (at ?r ?cfrom))
+            (not (free ?cto))
+        )
+)
+
+(:action go
+    :parameters (?r - robot ?dir - direction)
+    :precondition
+        (and
+            (nothing-is-moving)
+        )
+    :effect
+        (and
+            (not (nothing-is-moving))
+            (is-moving ?r ?dir)
+        )
+)
+```

@@ -1,0 +1,215 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the LAMA-first planning engine (Fast Downward framework). You possess deep
+knowledge of how LAMA's internal architecture—specifically its Translation module
+(grounding + invariant synthesis), Knowledge Compilation module (DTG construction),
+and Search module (multi-heuristic FF/add + Landmark heuristic with 4-queue
+preferred operator system)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve LAMA's planning
+efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+LAMA processes PDDL through a three-stage pipeline:
+1. TRANSLATION: Grounds all action schemas, discovers mutex groups (mutually
+exclusive fact groups) via invariant synthesis, and constructs a Finite-Domain
+Representation (SAS+/FDR). Mutex information is critical because it directly
+determines the quality of landmark ordering constraints used later in search.
+2. KNOWLEDGE COMPILATION: Builds Domain Transition Graphs (DTGs) for each state
+variable, constructs fast operator-applicability lookup structures, and prepares
+axiom evaluation mechanisms.
+3. SEARCH: Runs greedy best-first search (for initial plan), then iterated weighted
+A* with restarts. Uses TWO heuristics simultaneously in separate queues:
+- FF/add heuristic (delete-relaxation based, additive cost propagation)
+- Landmark heuristic (counts unachieved mandatory waypoints)
+Each heuristic generates PREFERRED OPERATORS—actions deemed especially promising—
+which receive priority via a +1000 boost mechanism in a 4-queue system.
+
+Because of this architecture, the textual ordering of predicates affects mutex
+discovery and landmark ordering quality. The ordering of actions affects successor
+generation, tie-breaking, and which operators are evaluated first. The ordering of
+preconditions directly affects which "best support" is selected during FF's
+relaxed-plan extraction, determining WHICH actions become preferred operators.
+The ordering of effects affects delete-relaxed forward propagation and landmark
+acceptance tracking.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply these in order of priority):
+
+1. PREDICATE DECLARATIONS: Place goal-relevant predicates (those describing
+positional state, object relationships, or task completion) at the top of the
+:predicates block. Follow with frequently-occurring predicates. Place static
+predicates (those never modified by any :effect) last.
+REASON: Early placement accelerates mutex discovery during invariant synthesis,
+improving landmark ordering constraint quality.
+
+2. ACTION ORDERING: Place actions with fewer preconditions earlier in the domain
+file. Among actions with similar precondition counts, prioritize "enabling"
+actions—those whose effects create preconditions for other actions.
+REASON: LAMA's greedy best-first search evaluates operators in listing order
+during deferred evaluation. Simpler, enabling actions listed first produce
+better initial plans during the speed-first greedy sprint.
+
+3. PRECONDITION ORDERING: Within each action's :precondition block:
+a) Place STATIC predicates (never changed by any effect) first.
+b) Then place the MOST RESTRICTIVE conditions (those satisfied in fewest states).
+c) Then group remaining predicates by relatedness (same predicate name or
+referencing the same object types).
+REASON: Static predicates first enable fast applicability short-circuiting.
+Restrictive conditions first cause earlier failure detection. The ordering
+also affects FF's relaxed-plan backward trace, which selects "best supports"
+and determines preferred operators.
+
+4. EFFECT ORDERING: Within each action's :effect block:
+a) Place ADD-EFFECTS first (positive effects without "not").
+b) Within add-effects, place goal-relevant effects before auxiliary effects.
+c) Place DELETE-EFFECTS (negative effects with "not") last.
+REASON: LAMA's FF/add heuristic operates in a delete-relaxed world where only
+add-effects drive cost propagation. Goal-relevant add-effects first accelerate
+the forward propagation phase and improve landmark acceptance tracking.
+
+5. PARAMETER CONSISTENCY: Maintain consistent parameter ordering across all action
+schemas (e.g., always agent before object before location).
+REASON: Consistent ordering simplifies FDR translation and supports causal graph
+structural consistency.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: FAILED — V4 Check
+  • Detail: Your reordering CHANGED the logical semantics of the
+    domain. The following differences were detected:
+    Unknown semantic violation
+
+---
+
+[EXECUTION FEEDBACK]
+
+No execution data is available because your previous attempt was
+REJECTED for changing the domain's logical semantics.
+
+⚠ CRITICAL: You must ONLY reorder existing elements. Do NOT:
+  - Add or remove preconditions
+  - Add or remove effects
+  - Change parameter types
+  - Rename predicates or actions
+
+The domain below is the ORIGINAL unmodified baseline. Start over and
+ensure you ONLY change the ORDER of elements, not their content.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain ricochet-robots)
+(:requirements :strips :typing :negative-preconditions)
+
+(:types
+    robot - object
+    cell - object
+    direction - object
+)
+
+(:predicates
+    ;; ?cnext is right next to ?c in the direction of ?dir
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
+    ;; moving from ?c in the direction ?dir is blocked
+    (BLOCKED ?c - cell ?dir - direction)
+    ;; Robot ?r is located in the cell ?c
+    (at ?r - robot ?c - cell)
+    ;; No robot is located in the cell ?c
+    (free ?c - cell)
+    ;; No robot is moving anywhere
+    (nothing-is-moving)
+    ;; Robot ?r is moving in the direction ?dir
+    (is-moving ?r - robot ?dir - direction)
+)
+
+
+;; Starts movement of the robot ?r in the direction ?dir
+(:action go
+    :parameters (?r - robot ?dir - direction)
+    :precondition
+        (and
+            (nothing-is-moving)
+
+            ;; If we want to make sure that the robot can actually make a step
+            ;; in the specified direction, then we need to add the following
+            ;; (and the corresponding parameters ?cfrom and ?cto):
+            ;;
+            ;; (at ?r ?cfrom)
+            ;; (NEXT ?cfrom ?cto ?dir)
+            ;; (free ?cto)
+            ;; (not (BLOCKED ?cfrom ?dir))
+        )
+    :effect
+        (and
+            (not (nothing-is-moving))
+            (is-moving ?r ?dir)
+        )
+)
+
+;; Make one step from the cell ?cfrom to the cell ?cto with the robot ?r
+;; Robot is allowed to make the step only if it is the (only) one currently
+;; moving, and it is moving in the direction ?dir
+(:action step
+    :parameters (?r - robot ?cfrom - cell ?cto - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cfrom)
+            (NEXT ?cfrom ?cto ?dir)
+            (free ?cto)
+            (not (BLOCKED ?cfrom ?dir))
+        )
+    :effect
+        (and
+            (not (at ?r ?cfrom))
+            (free ?cfrom)
+            (not (free ?cto))
+            (at ?r ?cto)
+        )
+)
+
+;; Stopping of the robot is split between
+;; (i) stop-at-barrier which stops the robot if it cannot move further due to
+;;     a barrier expressed with (BLOCKED ...) predicate
+;; (ii) stop-at-robot which stops the robot if the next step is blocked by
+;;      another robot
+(:action stop-at-barrier
+    :parameters (?r - robot ?cat - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cat)
+            (BLOCKED ?cat ?dir)
+        )
+    :effect
+        (and
+            (not (is-moving ?r ?dir))
+            (nothing-is-moving)
+        )
+)
+
+(:action stop-at-robot
+    :parameters (?r - robot ?cat - cell ?cnext - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cat)
+            (NEXT ?cat ?cnext ?dir)
+            (not (free ?cnext))
+        )
+    :effect
+        (and
+            (not (is-moving ?r ?dir))
+            (nothing-is-moving)
+        )
+)
+)

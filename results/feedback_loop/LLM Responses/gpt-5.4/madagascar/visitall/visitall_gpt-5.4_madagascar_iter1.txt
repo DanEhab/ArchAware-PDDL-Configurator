@@ -1,0 +1,17 @@
+I prioritize the goal predicate and its direct achiever first, then place the robot-location predicate adjacent to support backward chaining from goals through move while leaving the static connectivity predicate last. Within the move action, I keep the easy enabling condition before the structural one and order effects as goal-relevant add effects before the delete effect to better align Madagascar’s variable ordering and propagation behavior.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

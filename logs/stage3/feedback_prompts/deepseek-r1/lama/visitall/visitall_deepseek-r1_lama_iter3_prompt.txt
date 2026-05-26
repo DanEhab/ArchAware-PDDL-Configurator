@@ -1,0 +1,128 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the LAMA-first planning engine (Fast Downward framework). You possess deep
+knowledge of how LAMA's internal architecture—specifically its Translation module
+(grounding + invariant synthesis), Knowledge Compilation module (DTG construction),
+and Search module (multi-heuristic FF/add + Landmark heuristic with 4-queue
+preferred operator system)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve LAMA's planning
+efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+LAMA processes PDDL through a three-stage pipeline:
+1. TRANSLATION: Grounds all action schemas, discovers mutex groups (mutually
+exclusive fact groups) via invariant synthesis, and constructs a Finite-Domain
+Representation (SAS+/FDR). Mutex information is critical because it directly
+determines the quality of landmark ordering constraints used later in search.
+2. KNOWLEDGE COMPILATION: Builds Domain Transition Graphs (DTGs) for each state
+variable, constructs fast operator-applicability lookup structures, and prepares
+axiom evaluation mechanisms.
+3. SEARCH: Runs greedy best-first search (for initial plan), then iterated weighted
+A* with restarts. Uses TWO heuristics simultaneously in separate queues:
+- FF/add heuristic (delete-relaxation based, additive cost propagation)
+- Landmark heuristic (counts unachieved mandatory waypoints)
+Each heuristic generates PREFERRED OPERATORS—actions deemed especially promising—
+which receive priority via a +1000 boost mechanism in a 4-queue system.
+
+Because of this architecture, the textual ordering of predicates affects mutex
+discovery and landmark ordering quality. The ordering of actions affects successor
+generation, tie-breaking, and which operators are evaluated first. The ordering of
+preconditions directly affects which "best support" is selected during FF's
+relaxed-plan extraction, determining WHICH actions become preferred operators.
+The ordering of effects affects delete-relaxed forward propagation and landmark
+acceptance tracking.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply these in order of priority):
+
+1. PREDICATE DECLARATIONS: Place goal-relevant predicates (those describing
+positional state, object relationships, or task completion) at the top of the
+:predicates block. Follow with frequently-occurring predicates. Place static
+predicates (those never modified by any :effect) last.
+REASON: Early placement accelerates mutex discovery during invariant synthesis,
+improving landmark ordering constraint quality.
+
+2. ACTION ORDERING: Place actions with fewer preconditions earlier in the domain
+file. Among actions with similar precondition counts, prioritize "enabling"
+actions—those whose effects create preconditions for other actions.
+REASON: LAMA's greedy best-first search evaluates operators in listing order
+during deferred evaluation. Simpler, enabling actions listed first produce
+better initial plans during the speed-first greedy sprint.
+
+3. PRECONDITION ORDERING: Within each action's :precondition block:
+a) Place STATIC predicates (never changed by any effect) first.
+b) Then place the MOST RESTRICTIVE conditions (those satisfied in fewest states).
+c) Then group remaining predicates by relatedness (same predicate name or
+referencing the same object types).
+REASON: Static predicates first enable fast applicability short-circuiting.
+Restrictive conditions first cause earlier failure detection. The ordering
+also affects FF's relaxed-plan backward trace, which selects "best supports"
+and determines preferred operators.
+
+4. EFFECT ORDERING: Within each action's :effect block:
+a) Place ADD-EFFECTS first (positive effects without "not").
+b) Within add-effects, place goal-relevant effects before auxiliary effects.
+c) Place DELETE-EFFECTS (negative effects with "not") last.
+REASON: LAMA's FF/add heuristic operates in a delete-relaxed world where only
+add-effects drive cost propagation. Goal-relevant add-effects first accelerate
+the forward propagation phase and improve landmark acceptance tracking.
+
+5. PARAMETER CONSISTENCY: Maintain consistent parameter ordering across all action
+schemas (e.g., always agent before object before location).
+REASON: Consistent ordering simplifies FDR translation and supports causal graph
+structural consistency.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: IMPROVEMENT DETECTED (passed all 3 conditions: statistical
+    significance, practical significance, coverage preservation).
+  • No rationale was recorded for this attempt.
+
+Iteration 1:
+  • Your Strategy: "The domain already follows all architecture-aware ordering rules: goal-relevant predicates are first, static predicates last, preconditions list static conditions before restrictive conditions, and effects list add-effects before delete-effects with goal-relevant add-effects first. Therefore, no reordering is required to achieve optimal performance."
+  • Result: REJECTED — V1 check failed.
+    Changes detected: Malformed.
+
+Iteration 2:
+  • Your Strategy: "By placing the dynamic precondition 'at-robot' before the static 'connected' in the move action, LAMA's early failure detection is accelerated because the robot's location changes frequently, reducing the evaluation of static edges for inapplicable actions. This reordering also improves the FF heuristic's backward trace by prioritizing the most restrictive condition first, leading to better preferred operator selection."
+  • Result: REJECTED — V1 check failed.
+    Changes detected: Malformed.
+
+CURRENT TASK (Iteration 3):
+Your strategy in Iteration 2 resulted in a broken domain file. Do not repeat these changes. Analyze the current domain and propose a NEW Valid strategy.
+
+---
+
+[EXECUTION FEEDBACK — ITERATION 3]
+
+Your Iteration 2 output was REJECTED because it failed V1 extraction.
+
+⚠ You must ONLY reorder elements. Do NOT modify preconditions, effects, or parameters. Analyze the domain below and try a different structural reordering strategy.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+)

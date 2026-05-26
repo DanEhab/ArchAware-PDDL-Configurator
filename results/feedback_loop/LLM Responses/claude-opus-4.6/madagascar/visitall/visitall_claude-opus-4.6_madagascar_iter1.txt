@@ -1,0 +1,17 @@
+My reordering strategy places the goal-relevant predicate `visited` first and the mutually-exclusive positional predicate `at-robot` second to optimize backward-chaining variable selection, and reorders the move action's preconditions to place the more constraining `connected` predicate (which is static and enables longer unit propagation chains) before `at-robot`, while placing add-effects before delete-effects with goal-relevant `visited` first. Since both baseline and reordered timed out on all instances, this domain may be inherently too hard for Madagascar, but this ordering maximizes the chance of mutex discovery and backward-chaining efficiency.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

@@ -1,0 +1,84 @@
+Looking at the baseline vs my iteration 1 attempt, my changes caused regression particularly on instances 1-3 and 11. The key insight is that the baseline ordering likely already had reasonable action ordering, and my changes disrupted the relaxed plan extraction. For this iteration, I'll try placing `move` first (since it's the most frequently used action and having the lowest ID helps H_Add_Rp_Fwd prefer movement over eating when ties occur, leading to tighter #r counts), reorder predicates to put static/structural predicates (`ISADJACENT`, `NEXTSPAWN`) last, and within preconditions place the most constraining/goal-proximal predicates first while putting static adjacency checks last.
+
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (headsnake ?x)
+    (tailsnake ?x)
+    (nextsnake ?x ?y)
+    (blocked ?x)
+    (ispoint ?x)
+    (spawn ?x)
+    (NEXTSPAWN ?x ?y)
+    (ISADJACENT ?x ?y)
+)
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (headsnake ?head)
+        (not (blocked ?newhead))
+        (not (ispoint ?newhead))
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
+        (ISADJACENT ?head ?newhead)
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (tailsnake ?newtail)
+        (not (headsnake ?head))
+        (not (tailsnake ?tail))
+        (not (nextsnake ?newtail ?tail))
+        (not (blocked ?tail))
+    )
+)
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (headsnake ?head)
+        (ispoint ?newhead)
+        (not (blocked ?newhead))
+        (spawn ?spawnpoint)
+        (not (= ?spawnpoint dummypoint))
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (ISADJACENT ?head ?newhead)
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+        (spawn ?nextspawnpoint)
+        (not (spawn ?spawnpoint))
+        (ispoint ?spawnpoint)
+    )
+)
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (headsnake ?head)
+        (ispoint ?newhead)
+        (not (blocked ?newhead))
+        (spawn dummypoint)
+        (ISADJACENT ?head ?newhead)
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+)

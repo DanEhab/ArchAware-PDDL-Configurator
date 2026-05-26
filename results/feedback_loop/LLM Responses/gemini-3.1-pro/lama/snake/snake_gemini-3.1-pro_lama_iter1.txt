@@ -1,0 +1,89 @@
+To optimize for LAMA's architecture, static predicates (`ISADJACENT`, `NEXTSPAWN`) were moved to the end of the `:predicates` block and the beginning of `:precondition` blocks to accelerate invariant synthesis and applicability short-circuiting. Actions were ordered by increasing precondition count (`move-and-eat-no-spawn`, `move`, `move-and-eat-spawn`), and within effects, all add-effects were placed before delete-effects to enhance the FF/add heuristic's delete-relaxed forward propagation.
+
+```lisp
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (headsnake ?x)
+    (tailsnake ?x)
+    (nextsnake ?x ?y)
+    (blocked ?x)
+    (ispoint ?x)
+    (spawn ?x)
+    (ISADJACENT ?x ?y)
+    (NEXTSPAWN ?x ?y)
+)
+
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (ISADJACENT ?head ?newhead)
+        (headsnake ?head)
+        (spawn dummypoint)
+        (ispoint ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (ISADJACENT ?head ?newhead)
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
+        (not (ispoint ?newhead))
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (tailsnake ?newtail)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (tailsnake ?tail))
+        (not (nextsnake ?newtail ?tail))
+        (not (blocked ?tail))
+    )
+)
+
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (ISADJACENT ?head ?newhead)
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (not (= ?spawnpoint dummypoint))
+        (headsnake ?head)
+        (spawn ?spawnpoint)
+        (ispoint ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (ispoint ?spawnpoint)
+        (spawn ?nextspawnpoint)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+        (not (spawn ?spawnpoint))
+    )
+)
+)
+```

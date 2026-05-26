@@ -1,0 +1,9 @@
+=== ERROR DUMP -- 6549 ===
+Error Type: FAILURE
+Timestamp: 2026-05-25T15:50:14.601732+00:00
+
+=== STDOUT ===
+(empty)
+
+=== STDERR ===
+(empty)

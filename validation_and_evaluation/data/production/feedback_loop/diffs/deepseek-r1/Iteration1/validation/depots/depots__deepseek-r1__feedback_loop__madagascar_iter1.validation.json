@@ -1,0 +1,106 @@
+{
+  "domain": "depots",
+  "model": "deepseek-r1",
+  "stage": "feedback_loop",
+  "run_id": "madagascar_iter1",
+  "timestamp": "2026-05-24T22:42:53.309418+00:00",
+  "validation_status": "VALID",
+  "rejection_reason": null,
+  "failed_stage": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "actions_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "eff_del_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(at ?x - locatable ?y - place)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)",
+          "(clear ?x - surface)"
+        ],
+        "candidate": [
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(clear ?x - surface)",
+          "(at ?x - locatable ?y - place)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)"
+        ]
+      },
+      {
+        "type": "actions-order",
+        "original": [
+          "Drive",
+          "Lift",
+          "Drop",
+          "Load",
+          "Unload"
+        ],
+        "candidate": [
+          "Drop",
+          "Load",
+          "Lift",
+          "Unload",
+          "Drive"
+        ]
+      },
+      {
+        "type": "Unload-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(available ?x)",
+          "(in ?y ?z)"
+        ],
+        "candidate": [
+          "(available ?x)",
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(in ?y ?z)"
+        ]
+      },
+      {
+        "type": "Drop-eff-add-order",
+        "original": [
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(clear ?y)",
+          "(on ?y ?z)"
+        ],
+        "candidate": [
+          "(on ?y ?z)",
+          "(clear ?y)",
+          "(at ?y ?p)",
+          "(available ?x)"
+        ]
+      },
+      {
+        "type": "Lift-eff-del-order",
+        "original": [
+          "(not (at ?y ?p))",
+          "(not (clear ?y))",
+          "(not (available ?x))",
+          "(not (on ?y ?z))"
+        ],
+        "candidate": [
+          "(not (on ?y ?z))",
+          "(not (at ?y ?p))",
+          "(not (clear ?y))",
+          "(not (available ?x))"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1490,
+  "val_output": ""
+}

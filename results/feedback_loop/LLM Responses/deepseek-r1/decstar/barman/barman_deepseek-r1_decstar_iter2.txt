@@ -1,0 +1,156 @@
+My reordering strategy inverts the previous approach by placing cross-type interaction predicates (e.g., contains, used, shaker-level) first to help DecStar's causal graph identify the central hub variables, and ordering cross‑container actions (pour, shake) before single‑container leaf actions to emphasize the hub‑and‑spoke structure. Within each action, I reorder parameters to make the primary manipulated container the first parameter and restructure preconditions/effects to put hand (center) conditions first and leaf effects first, aiming to improve the InteractionGraph’s ability to separate leaf modules from the center.
+
+```lisp
+(define (domain barman)
+  (:requirements :strips :typing)
+  (:types hand level beverage dispenser container - object
+  	  ingredient cocktail - beverage
+          shot shaker - container)
+  (:predicates  (contains ?c - container ?b - beverage)
+                (used ?c - container ?b - beverage)
+                (dispenses ?d - dispenser ?i - ingredient)
+		(next ?l1 ?l2 - level)
+		(shaker-level ?s - shaker ?l - level)
+		(shaker-empty-level ?s - shaker ?l - level)
+                (cocktail-part1 ?c - cocktail ?i - ingredient)
+                (cocktail-part2 ?c - cocktail ?i - ingredient)
+		(holding ?h - hand ?c - container)
+                (ontable ?c - container)
+                (handempty ?h - hand)
+		(empty ?c - container)
+                (clean ?c - container)
+		(unshaked ?s - shaker)
+                (shaked ?s - shaker))
+		
+  (:action pour-shot-to-clean-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (holding ?h1 ?s)
+			      (contains ?s ?i)
+                              (empty ?d)
+	   		      (clean ?d)                              
+                              (shaker-level ?d ?l)
+                              (next ?l ?l1))
+           :effect (and (not (contains ?s ?i))
+	   	   	(empty ?s)
+			(contains ?d ?i)
+                        (not (empty ?d))
+			(not (clean ?d))
+			(unshaked ?d)
+			(not (shaker-level ?d ?l))
+			(shaker-level ?d ?l1)))
+
+  (:action pour-shot-to-used-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (holding ?h1 ?s)
+			      (contains ?s ?i)
+                              (unshaked ?d)
+                              (shaker-level ?d ?l)
+                              (next ?l ?l1))
+           :effect (and (not (contains ?s ?i))
+	   	   	(empty ?s)
+                        (contains ?d ?i)
+  			(not (shaker-level ?d ?l))
+			(shaker-level ?d ?l1)))
+
+  (:action pour-shaker-to-shot
+           :parameters (?s - shaker ?b - beverage ?d - shot ?h - hand ?l ?l1 - level)
+           :precondition (and (holding ?h ?s)
+			      (empty ?d)
+			      (clean ?d)
+			      (shaked ?s)
+			      (contains ?s ?b)
+                              (shaker-level ?s ?l)
+                              (next ?l1 ?l))
+           :effect (and (not (clean ?d))
+	   	   	(not (empty ?d))
+			(contains ?d ?b)
+			(shaker-level ?s ?l1)
+			(not (shaker-level ?s ?l))))
+
+  (:action shake
+  	   :parameters (?s - shaker ?b - cocktail ?d1 ?d2 - ingredient ?h1 ?h2 - hand)
+           :precondition (and (holding ?h1 ?s)
+			      (contains ?s ?d1)
+                              (contains ?s ?d2)
+			      (unshaked ?s)
+			      (cocktail-part1 ?b ?d1)
+			      (cocktail-part2 ?b ?d2)
+			      (handempty ?h2))
+           :effect (and (not (unshaked ?s))
+		        (not (contains ?s ?d1))
+                        (not (contains ?s ?d2))
+	   	   	(shaked ?s)
+                        (contains ?s ?b)))
+
+  (:action grasp
+             :parameters (?c - container ?h - hand)
+             :precondition (and (handempty ?h) (ontable ?c))
+             :effect (and (ontable ?c) ; leaf effect first
+	     	     	  (not (handempty ?h))
+			  (holding ?h ?c)))
+
+  (:action leave
+             :parameters (?c - container ?h - hand)
+             :precondition (holding ?h ?c)
+             :effect (and (ontable ?c) ; leaf effect first
+	     	     	  (handempty ?h)
+			  (not (holding ?h ?c))))
+
+  (:action empty-shot
+           :parameters (?p - shot ?h - hand ?b - beverage)
+           :precondition (and (holding ?h ?p)
+                              (contains ?p ?b))
+           :effect (and (not (contains ?p ?b))
+	   	   	(empty ?p)))
+
+  (:action clean-shot
+  	   :parameters (?s - shot ?h1 ?h2 - hand ?b - beverage)
+           :precondition (and (holding ?h1 ?s)
+			      (empty ?s)
+                              (used ?s ?b)
+			      (handempty ?h2))
+           :effect (and (not (used ?s ?b))
+	   	   	(clean ?s)))
+
+  (:action fill-shot
+           :parameters (?s - shot ?i - ingredient ?h1 ?h2 - hand ?d - dispenser)
+           :precondition (and (holding ?h1 ?s)
+                              (empty ?s)
+			      (clean ?s)
+	   		      (dispenses ?d ?i)
+                              (handempty ?h2))
+           :effect (and (not (empty ?s))
+	   	   	(contains ?s ?i)
+	   	   	(not (clean ?s))
+			(used ?s ?i)))
+
+  (:action refill-shot
+           :parameters (?s - shot ?i - ingredient ?h1 ?h2 - hand ?d - dispenser)
+           :precondition (and (holding ?h1 ?s)
+                              (empty ?s)
+			      (used ?s ?i)
+	   		      (dispenses ?d ?i)
+                              (handempty ?h2))
+           :effect (and (not (empty ?s))
+                        (contains ?s ?i)))
+
+  (:action clean-shaker
+  	   :parameters (?s - shaker ?h1 ?h2 - hand)
+           :precondition (and (holding ?h1 ?s)
+                              (empty ?s)
+			      (handempty ?h2))
+           :effect (and (clean ?s)))
+  
+  (:action empty-shaker
+           :parameters (?s - shaker ?b - cocktail ?l ?l1 - level ?h - hand)
+           :precondition (and (holding ?h ?s)
+                              (contains ?s ?b)
+			      (shaked ?s)
+			      (shaker-level ?s ?l)
+			      (shaker-empty-level ?s ?l1))
+           :effect (and (not (shaked ?s))
+	   	   	(not (shaker-level ?s ?l))
+	   	   	(shaker-level ?s ?l1)
+			(not (contains ?s ?b))
+	   	   	(empty ?s)))
+ ))```

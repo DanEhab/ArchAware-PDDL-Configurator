@@ -1,0 +1,14 @@
+{
+  "domain": "visitall",
+  "model": "deepseek-r1",
+  "stage": "feedback_loop",
+  "run_id": "lama_iter2",
+  "timestamp": "2026-05-25T14:28:40.912005+00:00",
+  "validation_status": "REJECTED",
+  "rejection_reason": "extraction_failed",
+  "failed_stage": "V1",
+  "diff_features": {},
+  "diff_details": {},
+  "extracted_pddl_length": 0,
+  "val_output": ""
+}

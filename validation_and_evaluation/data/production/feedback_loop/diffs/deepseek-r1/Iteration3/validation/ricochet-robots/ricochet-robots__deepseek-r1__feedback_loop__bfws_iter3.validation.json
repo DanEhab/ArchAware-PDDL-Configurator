@@ -1,0 +1,14 @@
+{
+  "domain": "ricochet-robots",
+  "model": "deepseek-r1",
+  "stage": "feedback_loop",
+  "run_id": "bfws_iter3",
+  "timestamp": "2026-05-25T02:19:34.566510+00:00",
+  "validation_status": "REJECTED",
+  "rejection_reason": "extraction_failed",
+  "failed_stage": "V1",
+  "diff_features": {},
+  "diff_details": {},
+  "extracted_pddl_length": 0,
+  "val_output": ""
+}

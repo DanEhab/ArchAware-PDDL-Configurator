@@ -1,0 +1,28 @@
+==================================================
+           STAGE 3 EXECUTION SUMMARY              
+==================================================
+
+Total Triples Processed: 80
+Total Triples Improved (vs Seed): 29 (36.2%)
+
+BREAKDOWN BY LLM:
+-----------------
+- gpt-5.4-2026-03-05: 8/20 Improved
+- claude-opus-4-6: 7/20 Improved
+- deepseek-reasoner: 5/20 Improved
+- gemini-3.1-pro-preview-customtools: 9/20 Improved
+
+BREAKDOWN BY PLANNER:
+---------------------
+- lama: 10/20 Improved
+- decstar: 3/20 Improved
+- bfws: 10/20 Improved
+- madagascar: 6/20 Improved
+
+BREAKDOWN BY DOMAIN:
+--------------------
+- barman: 8/16 Improved
+- depots: 5/16 Improved
+- ricochet-robots: 6/16 Improved
+- snake: 5/16 Improved
+- visitall: 5/16 Improved

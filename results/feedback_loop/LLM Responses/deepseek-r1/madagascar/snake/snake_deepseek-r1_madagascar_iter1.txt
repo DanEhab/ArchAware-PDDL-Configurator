@@ -1,0 +1,88 @@
+**Strategy:** Reorder predicates to assign lowest SAT variable IDs to goal-relevant predicates (headsnake, tailsnake, ispoint) and group mutually exclusive predicates (e.g., spawn and ispoint) adjacently for faster binary mutex discovery. Reorder actions so that eating actions (move-and-eat-spawn, move-and-eat-no-spawn) appear first, as they directly achieve typical goals, followed by the move action; within each action, reorder preconditions to place easily-satisfiable conditions (e.g., headsnake) before complex ones, and effects to list add-effects before delete-effects to align with backward-chaining.
+
+```lisp
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (headsnake ?x)
+    (tailsnake ?x)
+    (ispoint ?x)
+    (spawn ?x)
+    (blocked ?x)
+    (nextsnake ?x ?y)
+    (NEXTSPAWN ?x ?y)
+    (ISADJACENT ?x ?y)
+)
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (headsnake ?head)
+        (ISADJACENT ?head ?newhead)
+        (ispoint ?newhead)
+        (spawn ?spawnpoint)
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (not (blocked ?newhead))
+        (not (= ?spawnpoint dummypoint))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (ispoint ?spawnpoint)
+        (spawn ?nextspawnpoint)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+        (not (spawn ?spawnpoint))
+    )
+)
+
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (headsnake ?head)
+        (ISADJACENT ?head ?newhead)
+        (ispoint ?newhead)
+        (spawn dummypoint)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (ISADJACENT ?head ?newhead)
+        (nextsnake ?newtail ?tail)
+        (not (blocked ?newhead))
+        (not (ispoint ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (tailsnake ?newtail)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (blocked ?tail))
+        (not (tailsnake ?tail))
+        (not (nextsnake ?newtail ?tail))
+    )
+)
+)
+```

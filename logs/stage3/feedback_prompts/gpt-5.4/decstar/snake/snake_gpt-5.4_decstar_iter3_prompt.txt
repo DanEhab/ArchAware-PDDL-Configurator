@@ -1,0 +1,238 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the DecStar planning engine. You possess deep knowledge of how DecStar's
+internal architecture—specifically its h² preprocessing, Star Topology factoring
+engine (Center/Leaf assignment via Causal Graph and InteractionGraph analysis),
+and Decoupled Search (Center Actions vs. silent Leaf Actions with Pricing
+Functions)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve DecStar's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+DecStar extends Fast Downward with DECOUPLED STATE-SPACE SEARCH. After standard
+FD translation (grounding + FDR) and aggressive h² mutex pruning, DecStar builds
+a STAR TOPOLOGY that separates state variables into:
+- A CENTRAL HUB ("Center"): highly-connected, entangled variables
+- Independent LEAF modules: isolated subsystems that can only interact through
+the Center
+
+The factoring engine enforces a GOLDEN RULE: Leaves cannot interact with other
+Leaves directly. It uses the Causal Graph to identify Strongly Connected
+Components (SCCs), strips off isolated "tips" as Leaves, and whatever tangled
+mass remains becomes the Center.
+
+CRITICAL PERFORMANCE MECHANISM:
+- CENTER ACTIONS (affecting any Center variable): Branch the main search tree,
+generating new states in the open list — EXPENSIVE.
+- LEAF ACTIONS (affecting only one Leaf): Handled silently by localized Dijkstra
+within the current state — CHEAP.
+
+The MORE actions that qualify as Leaf-only operators, the greater the combinatorial
+compression. Actions with preconditions/effects spanning multiple subsystems force
+Center classification and defeat decoupling.
+
+SAFETY CONSTRAINTS: Factoring has a 30-second timer and a maximum leaf size limit.
+If the topology cannot be built, DecStar falls back to standard explicit-state
+search, losing all decoupling benefits.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply these in order of priority):
+
+1. PREDICATE DECLARATIONS: Group predicates by the object types they describe.
+Place predicates involving SINGLE object types first (these become candidate
+leaf variables). Place predicates describing INTERACTIONS between different
+object types last (these likely become center variables).
+REASON: Cleaner predicate grouping leads to more efficient mutex group
+construction, which feeds directly into the SCC analysis that determines
+the Center/Leaf partition.
+
+2. ACTION ORDERING: Place actions that operate on a SINGLE independent subsystem
+(e.g., manipulating one package, one block, one room) FIRST. Place actions
+that COORDINATE across multiple subsystems (e.g., loading a package onto a
+truck, connecting two rooms) LAST.
+REASON: This ordering emphasizes the hub-and-spoke structure that DecStar's
+Fork/Inverted-Fork factoring algorithms are designed to detect, helping the
+factoring engine identify valid topologies within the 30-second timer.
+
+3. PRECONDITION ORDERING: Within each action, place preconditions referencing
+the action's PRIMARY manipulated object first. Place preconditions referencing
+SHARED or COORDINATING state (hub variables, transport vehicles, etc.) last.
+REASON: The InteractionGraph analyzes precondition-effect dependencies to
+detect cross-leaf violations. Local-first ordering makes this analysis more
+efficient.
+
+4. EFFECT ORDERING: Place effects modifying the action's PRIMARY (local) object
+first. Place effects modifying shared or coordinating state last.
+REASON: Leaf-local effects first enables faster pricing function computation
+during silent Dijkstra execution within leaf notebooks.
+
+5. GLOBAL PREDICATE DEMOTION: If any predicates appear in preconditions or effects
+of nearly ALL actions (e.g., total-cost counters, phase flags), place them at
+the END of the :predicates block and at the END within each precondition/effect
+block where they appear.
+REASON: Global predicates draw causal edges connecting all objects, potentially
+collapsing the entire task into one SCC and destroying the Star Topology.
+Demoting their textual position may influence variable ordering in the
+translator, mitigating this destructive effect.
+
+6. PARAMETER CONSISTENCY: Maintain consistent parameter ordering, with the
+primary manipulated object as the first parameter in all actions.
+REASON: Consistent ordering supports cleaner causal graph construction.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: NO IMPROVEMENT detected. Failed conditions: Statistical_Significance
+  • No rationale was recorded for this attempt.
+
+Iteration 1:
+  • Your Strategy: "I reorder predicates to place unary state descriptors before binary relational predicates, and I order actions from the most local snake-body update to the more globally coordinating spawn-handling variants. Within each action, I place preconditions and effects around the primary manipulated snake positions first and defer shared adjacency and spawn-chain conditions to the end, which may slightly improve DecStar’s variable and dependency ordering during translation and factoring."
+  • Result: 3/15 solved, avg search time 97.10s, avg states expanded 114631, Mean IPC Gain vs baseline: -0.003.
+    Verdict: REGRESSION.
+
+Iteration 2:
+  • Your Strategy: "I reorder to isolate the globally shared spawn-chain predicates and the spawn-coordinating eating action away from the core snake-motion structure, while keeping the baseline-friendly action internals for the common movement operators as intact as possible. This should reduce harmful translator ordering perturbations seen in the previous attempt while still nudging DecStar to treat ordinary movement as the dominant local subsystem and the spawn mechanism as secondary coordination."
+  • Result: 3/15 solved, avg search time 97.89s, avg states expanded 114631, Mean IPC Gain vs baseline: -0.003.
+    Verdict: REGRESSION.
+
+CURRENT TASK (Iteration 3):
+Your strategy in Iteration 2 actively harmed performance. Do not repeat these changes. Analyze the current domain and propose a NEW strategy.
+
+---
+
+[EXECUTION FEEDBACK — ITERATION 3]
+
+Your Iteration 2 reordering was tested on decstar across all 15
+problem instances. Here are the results compared to the BASELINE:
+
+OVERALL PERFORMANCE SUMMARY:
+• Instances solved: 3/15 (Baseline: 3/15)
+• Average run wall time (solved): 97.89s (Baseline: 93.32s)
+• Average states expanded (solved): 114631 (Baseline: 114631)
+• Mean IPC Gain vs Baseline: -0.003
+• Verdict: REGRESSION
+
+PER-INSTANCE BREAKDOWN:
+┌──────────────┬──────────┬────────────┬─────────────┬──────────────┬───────────┐
+│ Instance     │ Status   │ Search (s) │ States Exp. │ IPC Score    │ IPC Gain  │
+├──────────────┼──────────┼────────────┼─────────────┼──────────────┼───────────┤
+│ instance-01. │ SUCCESS  │ 5.04       │ 634         │ 0.992        │ -0.008    │
+│ instance-02. │ SUCCESS  │ 113.24     │ 138609      │ 0.993        │ -0.007    │
+│ instance-03. │ SUCCESS  │ 175.37     │ 204652      │ 0.971        │ -0.029    │
+│ instance-04. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-07. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-08. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-09. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-11. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-12. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-13. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-14. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-16. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-17. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-18. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-19. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+└──────────────┴──────────┴────────────┴─────────────┴──────────────┴───────────┘
+
+DIAGNOSTIC ANALYSIS:
+Mean IPC Gain is negative (-0.003), indicating overall performance degradation.
+
+IMPROVEMENT DIRECTION:
+Your previous reordering did not produce a statistically significant improvement. Try a different structural strategy.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (tailsnake ?x)
+    (headsnake ?x)
+    (blocked ?x)
+    (ispoint ?x)
+    (spawn ?x)
+    (nextsnake ?x ?y)
+    (ISADJACENT ?x ?y)
+    (NEXTSPAWN ?x ?y)
+)
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
+        (not (blocked ?newhead))
+        (not (ispoint ?newhead))
+        (ISADJACENT ?head ?newhead)
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (tailsnake ?newtail)
+        (not (tailsnake ?tail))
+        (not (nextsnake ?newtail ?tail))
+        (blocked ?newhead)
+        (not (blocked ?tail))
+    )
+)
+
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (headsnake ?head)
+        (not (blocked ?newhead))
+        (ispoint ?newhead)
+        (ISADJACENT ?head ?newhead)
+        (spawn dummypoint)
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (blocked ?newhead)
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (headsnake ?head)
+        (not (blocked ?newhead))
+        (ispoint ?newhead)
+        (ISADJACENT ?head ?newhead)
+        (spawn ?spawnpoint)
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (not (= ?spawnpoint dummypoint))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (blocked ?newhead)
+        (not (ispoint ?newhead))
+        (ispoint ?spawnpoint)
+        (not (spawn ?spawnpoint))
+        (spawn ?nextspawnpoint)
+    )
+)
+
+)

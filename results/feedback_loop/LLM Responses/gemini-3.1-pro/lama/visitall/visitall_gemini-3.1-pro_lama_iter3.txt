@@ -1,0 +1,19 @@
+I refined the predicate ordering by placing the positional state `at-robot` before the task completion `visited` to accelerate the discovery of the critical positional mutex group during LAMA's invariant synthesis. I maintained `visited` as the first add-effect to ensure the FF heuristic's forward propagation remains focused on the primary goal, while strictly adhering to the static-first precondition rule.
+
+```lisp
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (at-robot ?x - place)
+	     (visited ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)
+```

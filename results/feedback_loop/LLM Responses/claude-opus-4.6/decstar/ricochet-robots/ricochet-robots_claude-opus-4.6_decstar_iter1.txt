@@ -1,0 +1,85 @@
+Looking at this domain, I notice that `nothing-is-moving` and `free` are global predicates connecting all robots/cells, while `is-moving` and `at` are robot-specific. The key insight is that `go` and `stop-*` actions toggle the global `nothing-is-moving` flag, making it a center variable that connects everything. By reordering predicates to place single-type predicates first and the global `nothing-is-moving` last, and reordering actions so that the most localized action (`step`, which primarily moves a single robot between cells) comes first, followed by stop actions, and finally `go` (which is the most "coordinating" action), we can help DecStar's causal graph analysis better identify robot-local subsystems as leaves.
+
+My strategy focuses on demoting the global predicate `nothing-is-moving` to the very end of the predicates block and within every precondition/effect block, reordering `free` (which spans all robots via `step`) after robot-specific predicates, and placing `step` first since it's the most frequent leaf-candidate action, while ensuring preconditions reference the primary robot parameter first throughout.
+
+(define (domain ricochet-robots)
+(:requirements :strips :typing :negative-preconditions)
+
+(:types
+    robot - object
+    cell - object
+    direction - object
+)
+
+(:predicates
+    (at ?r - robot ?c - cell)
+    (is-moving ?r - robot ?dir - direction)
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
+    (BLOCKED ?c - cell ?dir - direction)
+    (free ?c - cell)
+    (nothing-is-moving)
+)
+
+(:action step
+    :parameters (?r - robot ?cfrom - cell ?cto - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cfrom)
+            (NEXT ?cfrom ?cto ?dir)
+            (not (BLOCKED ?cfrom ?dir))
+            (free ?cto)
+        )
+    :effect
+        (and
+            (at ?r ?cto)
+            (not (at ?r ?cfrom))
+            (free ?cfrom)
+            (not (free ?cto))
+        )
+)
+
+(:action stop-at-barrier
+    :parameters (?r - robot ?cat - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cat)
+            (BLOCKED ?cat ?dir)
+        )
+    :effect
+        (and
+            (not (is-moving ?r ?dir))
+            (nothing-is-moving)
+        )
+)
+
+(:action stop-at-robot
+    :parameters (?r - robot ?cat - cell ?cnext - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cat)
+            (NEXT ?cat ?cnext ?dir)
+            (not (free ?cnext))
+        )
+    :effect
+        (and
+            (not (is-moving ?r ?dir))
+            (nothing-is-moving)
+        )
+)
+
+(:action go
+    :parameters (?r - robot ?dir - direction)
+    :precondition
+        (and
+            (nothing-is-moving)
+        )
+    :effect
+        (and
+            (is-moving ?r ?dir)
+            (not (nothing-is-moving))
+        )
+)
+)

@@ -1,0 +1,239 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the Madagascar (MpC configuration) planning engine. You possess deep knowledge
+of how Madagascar's internal architecture—specifically its CNF encoding of PDDL
+into Boolean SAT formulas using ∃-step parallel plans, its fixpoint binary mutex
+(invariant) discovery, its backward-chaining variable selection heuristic, and its
+CDCL (Conflict-Driven Clause Learning) solver with Unit Propagation—processes
+PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve Madagascar's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+Madagascar is a SAT-BASED planner. It does NOT search through states like
+traditional planners. Instead, it:
+1. ENCODES the entire PDDL problem into a massive Boolean formula (Φₜ) in
+Conjunctive Normal Form (CNF). Each PDDL predicate at each time step becomes
+a True/False variable. Each PDDL action at each time step becomes a True/False
+variable. The formula represents ALL constraints simultaneously.
+2. Discovers BINARY MUTEXES (invariants) via fixpoint computation — rules like
+"package cannot be at LocationA AND LocationB simultaneously." These are stored
+ONCE in memory and dynamically linked across time steps, providing massive
+memory savings.
+3. Uses ∃-step (existential-step) PARALLEL PLANS that allow multiple noninterfering
+actions in the same time step, dramatically shrinking formula size.
+4. Runs CONCURRENT SAT SOLVERS at multiple time horizons (Algorithm C for MpC:
+exponential steps with equal CPU allocation).
+5. Each SAT solver uses CDCL with a BACKWARD-CHAINING HEURISTIC: instead of
+generic conflict-driven guessing, it starts from GOAL variables, identifies
+which action variables directly achieve those goals, and prioritizes evaluating
+them first. Sub-goals then dynamically become the next priority.
+
+CRITICAL: The order of PDDL elements determines the internal SAT variable IDs.
+The backward-chaining heuristic's priority queue processes variables by their IDs.
+Goal-achieving actions and goal predicates with LOWER IDs are evaluated FIRST.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply in order of priority):
+
+1. PREDICATE DECLARATIONS: Place GOAL predicates (those describing desired end
+states) FIRST. Then place predicates that are effects of goal-achieving actions.
+Group mutually exclusive predicates together (e.g., all positional predicates
+for the same object type adjacently, like at-locA, at-locB, at-locC).
+REASON: Goal predicates receive the lowest SAT variable IDs, placing them first
+in the backward-chaining priority queue. Adjacent mutually-exclusive predicates
+are discovered as binary mutex pairs sooner during fixpoint iteration.
+
+2. ACTION ORDERING: Place actions that DIRECTLY ACHIEVE goal predicates FIRST.
+Then place actions that achieve subgoals (preconditions of goal-achieving
+actions). Place auxiliary/setup actions last.
+REASON: The backward-chaining heuristic starts from goal variables and
+identifies their causal actions. Lower SAT variable IDs for goal-achieving
+actions place them higher in the priority queue, focusing the CDCL solver's
+initial guesses on the most productive variables.
+
+3. PRECONDITION ORDERING: Place EASILY SATISFIABLE preconditions first (those
+true in many states or established by simple actions). Place preconditions
+requiring complex multi-step setup last.
+REASON: Preconditions are encoded as CNF implications. Easily-satisfiable
+conditions trigger longer UNIT PROPAGATION domino chains, forcing more
+variables automatically and reducing the number of explicit guesses needed.
+
+4. EFFECT ORDERING: Place ADD-EFFECTS first, then DELETE-EFFECTS. Within
+add-effects, place GOAL-RELEVANT effects first.
+REASON: Although SAT treats literals symmetrically, add-effects placed first
+align with the backward-chaining heuristic's goal-focused search direction
+and produce frame axiom clauses in an order that supports faster propagation.
+
+5. MUTUAL EXCLUSION ALIGNMENT: In the :predicates block, place predicates
+describing the SAME PROPERTY of the same object type ADJACENTLY (e.g., group
+all location predicates for trucks together, all status predicates for
+packages together).
+REASON: Madagascar's fixpoint invariant finder discovers binary mutexes by
+checking predicate pairs. Adjacent same-property predicates are checked
+earlier, allowing critical invariants to be discovered sooner.
+
+6. PARAMETER CONSISTENCY: Use consistent parameter ordering across all actions.
+REASON: Regular grounding patterns produce more uniform CNF clause structures
+that the CDCL solver exploits through learned clause pattern recognition.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: IMPROVEMENT DETECTED (passed all 3 conditions: statistical
+    significance, practical significance, coverage preservation).
+  • No rationale was recorded for this attempt.
+
+Iteration 1:
+  • Your Strategy: "I prioritized the `move-and-eat-spawn` action and the `spawn` predicate to align with Madagascar's backward-chaining heuristic, ensuring the CDCL solver focuses first on the primary goal-progression variables. Additionally, I ordered preconditions to evaluate static and highly restrictive dynamic predicates (like `NEXTSPAWN` and `headsnake`) before negative checks, maximizing early unit propagation and accelerating binary mutex discovery."
+  • Result: 6/15 solved, avg search time 66.38s, avg states expanded 0, Mean IPC Gain vs baseline: -0.024.
+    Verdict: REGRESSION.
+
+Iteration 2:
+  • Your Strategy: "I prioritized the `move` action and snake-body predicates (`headsnake`, `tailsnake`, `blocked`) to align with the domain's primary bottleneck: navigating highly constrained spatial paths without self-collision. By placing the most frequent action and its associated spatial invariants first, Madagascar's backward-chaining heuristic and fixpoint mutex discovery can more rapidly evaluate valid movement sequences and prune illegal self-intersecting states."
+  • Result: 5/15 solved, avg search time 23.23s, avg states expanded 0, Mean IPC Gain vs baseline: -0.029.
+    Verdict: REGRESSION.
+
+CURRENT TASK (Iteration 3):
+Your strategy in Iteration 2 actively harmed performance. Do not repeat these changes. Analyze the current domain and propose a NEW strategy.
+
+---
+
+[EXECUTION FEEDBACK — ITERATION 3]
+
+Your Iteration 2 reordering was tested on madagascar across all 15
+problem instances. Here are the results compared to the BASELINE:
+
+OVERALL PERFORMANCE SUMMARY:
+• Instances solved: 5/15 (Baseline: 6/15)
+• Average run wall time (solved): 23.23s (Baseline: 81.59s)
+• Average states expanded (solved): 0 (Baseline: 0)
+• Mean IPC Gain vs Baseline: -0.029
+• Verdict: REGRESSION
+
+PER-INSTANCE BREAKDOWN:
+┌──────────────┬──────────┬────────────┬─────────────┬──────────────┬───────────┐
+│ Instance     │ Status   │ Search (s) │ States Exp. │ IPC Score    │ IPC Gain  │
+├──────────────┼──────────┼────────────┼─────────────┼──────────────┼───────────┤
+│ instance-01. │ SUCCESS  │ 6.94       │ 0           │ 0.885        │ -0.115    │
+│ instance-02. │ SUCCESS  │ 5.82       │ 0           │ 1.000        │ +0.491    │
+│ instance-03. │ SUCCESS  │ 6.20       │ 0           │ 1.000        │ +0.480    │
+│ instance-04. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-07. │ SUCCESS  │ 40.18      │ 0           │ 0.744        │ -0.256    │
+│ instance-08. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-09. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-11. │ SUCCESS  │ 56.98      │ 0           │ 0.965        │ -0.035    │
+│ instance-12. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ -1.000    │
+│ instance-13. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-14. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-16. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-17. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-18. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-19. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+└──────────────┴──────────┴────────────┴─────────────┴──────────────┴───────────┘
+
+DIAGNOSTIC ANALYSIS:
+⚠ WARNING: Your reordering REDUCED coverage from 6/15 to 5/15. The planner could not find plans for instances it previously solved.
+✓ POSITIVE: Average run wall time decreased from 81.59s to 23.23s.
+Mean IPC Gain is negative (-0.029), indicating overall performance degradation.
+
+IMPROVEMENT DIRECTION:
+Your reordering lost coverage. Prioritize structural orderings that maintain solvability before optimizing speed.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (headsnake ?x)
+    (tailsnake ?x)
+    (blocked ?x)
+    (ispoint ?x)
+    (nextsnake ?x ?y)
+    (spawn ?x)
+    (ISADJACENT ?x ?y)
+    (NEXTSPAWN ?x ?y)
+)
+
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (ISADJACENT ?head ?newhead)
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
+        (not (blocked ?newhead))
+        (not (ispoint ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (tailsnake ?newtail)
+        (blocked ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (not (tailsnake ?tail))
+        (not (blocked ?tail))
+        (not (nextsnake ?newtail ?tail))
+    )
+)
+
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (not (= ?spawnpoint dummypoint))
+        (ISADJACENT ?head ?newhead)
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (headsnake ?head)
+        (spawn ?spawnpoint)
+        (ispoint ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (blocked ?newhead)
+        (nextsnake ?newhead ?head)
+        (spawn ?nextspawnpoint)
+        (ispoint ?spawnpoint)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+        (not (spawn ?spawnpoint))
+    )
+)
+
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (ISADJACENT ?head ?newhead)
+        (headsnake ?head)
+        (spawn dummypoint)
+        (ispoint ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (blocked ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+)

@@ -1,0 +1,83 @@
+My reordering strategy focuses on optimizing the `step` action's precondition ordering to place the most restrictive dynamic condition `is-moving` first (fewest states satisfy it) before static predicates, and critically reorders `step`'s effects to place delete-effects of `at` and `free` interleaved with adds to improve FF's backward chaining support selection—specifically placing `free ?cfrom` and `at ?r ?cto` (goal-relevant adds) first, then deletes last—while also swapping `stop-at-robot` before `stop-at-barrier` since its additional precondition `(not (free ?cnext))` makes it more selective and should be tried first to reduce branching on stop actions, which are the bottleneck in large instances where many cells and robots create massive grounding of stop alternatives.
+
+(define (domain ricochet-robots)
+(:requirements :strips :typing :negative-preconditions)
+
+(:types
+    robot - object
+    cell - object
+    direction - object
+)
+
+(:predicates
+    (at ?r - robot ?c - cell)
+    (free ?c - cell)
+    (nothing-is-moving)
+    (is-moving ?r - robot ?dir - direction)
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
+    (BLOCKED ?c - cell ?dir - direction)
+)
+
+(:action go
+    :parameters (?r - robot ?dir - direction)
+    :precondition
+        (and
+            (nothing-is-moving)
+        )
+    :effect
+        (and
+            (is-moving ?r ?dir)
+            (not (nothing-is-moving))
+        )
+)
+
+(:action step
+    :parameters (?r - robot ?cfrom - cell ?cto - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (NEXT ?cfrom ?cto ?dir)
+            (at ?r ?cfrom)
+            (free ?cto)
+            (not (BLOCKED ?cfrom ?dir))
+        )
+    :effect
+        (and
+            (at ?r ?cto)
+            (free ?cfrom)
+            (not (at ?r ?cfrom))
+            (not (free ?cto))
+        )
+)
+
+(:action stop-at-robot
+    :parameters (?r - robot ?cat - cell ?cnext - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (NEXT ?cat ?cnext ?dir)
+            (at ?r ?cat)
+            (not (free ?cnext))
+        )
+    :effect
+        (and
+            (nothing-is-moving)
+            (not (is-moving ?r ?dir))
+        )
+)
+
+(:action stop-at-barrier
+    :parameters (?r - robot ?cat - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cat)
+            (BLOCKED ?cat ?dir)
+        )
+    :effect
+        (and
+            (nothing-is-moving)
+            (not (is-moving ?r ?dir))
+        )
+)
+)

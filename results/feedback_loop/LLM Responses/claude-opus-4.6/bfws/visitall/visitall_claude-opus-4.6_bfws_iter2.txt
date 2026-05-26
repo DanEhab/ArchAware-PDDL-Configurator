@@ -1,0 +1,17 @@
+My reordering strategy maintains the goal-relevant `visited` predicate first and keeps the same overall structure from Iteration 1, but I now reorder the preconditions to place `at-robot` (the dynamic, goal-proximal predicate that changes with each action) before `connected` (the static predicate), and ensure effects list the goal-achieving `visited` first, then the positive `at-robot` add-effect, then the delete effect last—this should help H_Add_Rp_Fwd's backward trace prioritize dynamic state-changing fluents and produce tighter relaxed plans. Since all 15 instances already solve, the marginal gains target reducing search time on the slower instances (8, 9, 16, 18) by improving novelty discrimination through optimal precondition ordering that guides the relaxed plan extraction toward goal-relevant supports.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types place - object)
+(:predicates (visited ?x - place)
+             (at-robot ?x - place)
+             (connected ?x ?y - place)
+)
+
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

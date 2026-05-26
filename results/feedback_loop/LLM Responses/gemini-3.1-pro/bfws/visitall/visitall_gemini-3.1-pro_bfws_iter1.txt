@@ -1,0 +1,19 @@
+To avoid the severe successor generation slowdown observed previously, the dynamic singleton predicate `at-robot` is kept before the static `connected` predicate in the precondition, ensuring O(1) instantiations per state instead of O(|Edges|). Additionally, `at-robot` is moved before `visited` in both the predicate declarations and effects to optimize cache locality in the novelty tuple tables and accelerate delete-free forward reachability.
+
+```lisp
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (at-robot ?x - place)
+	     (visited ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (at-robot ?nextpos) (visited ?nextpos) (not (at-robot ?curpos)))
+)
+
+)
+```

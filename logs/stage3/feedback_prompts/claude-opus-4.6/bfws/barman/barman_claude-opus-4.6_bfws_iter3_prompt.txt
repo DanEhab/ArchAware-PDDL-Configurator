@@ -1,0 +1,297 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the LAPKT-BFWS-Preference planning engine (IPC 2018 Agile Track winner). You
+possess deep knowledge of how BFWS-Preference's internal architecture—specifically
+its DIRECT MEMORY INJECTION parsing (no intermediate file), BUCKET SORTING via
+partition = (1000 × #g) + #r, NOVELTY evaluation w(s), and its TWO-ENGINE RELAY
+(LAPKT then Fast Downward)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve BFWS-Preference's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+BFWS-Preference is a TWO-ENGINE RELAY system:
+
+ENGINE 1 (LAPKT - The Sprinter):
+The Python manager DIRECTLY INJECTS parsed PDDL into C++ memory via bindings
+(add_atom, add_precondition, add_effect). There is NO intermediate .sas file.
+C++ internal ID numbers are assigned in the EXACT ORDER elements appear in the
+PDDL text. These IDs control tie-breaking EVERYWHERE in the engine.
+
+The search uses BUCKET SORTING: partition = (1000 × #g) + #r, where:
+- #g = number of MISSING GOALS (simple count)
+- #r = number of RELEVANT FLUENTS from a delete-free relaxed plan (H_Add_Rp_Fwd)
+
+CRITICAL: H_Add_Rp_Fwd breaks ties among equally-optimal relaxed actions by
+selecting the one with the LOWEST INTERNAL ID NUMBER. This means changing the
+textual order of actions in the PDDL file DIRECTLY CHANGES which relaxed actions
+are selected, which changes the #r count, which changes the BUCKET ASSIGNMENT,
+which changes the NOVELTY score w(s), which completely reroutes the search tree.
+
+ENGINE 2 (Fast Downward/LAMA - The Marathon Runner):
+After Engine 1 finds an initial plan, Engine 2 re-parses the SAME PDDL file using
+standard Fast Downward translation (with h² preprocessing), then runs weighted A*
+with LAMA heuristics to find cheaper plans within the time limit.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply in order of priority):
+
+1. ACTION ORDERING [CRITICAL — HIGHEST IMPACT]:
+Place actions whose effects directly ACHIEVE GOAL predicates FIRST in the
+domain file. Then place actions that CREATE PRECONDITIONS for goal-achieving
+actions. Place general utility actions last.
+REASON: Goal-achieving actions receive the lowest C++ IDs. When H_Add_Rp_Fwd
+breaks ties during relaxed plan extraction, it selects the lowest-ID action,
+which will now be goal-relevant. This produces tighter #r values and more
+discriminating bucket assignments, improving novelty-based search focus.
+
+2. PREDICATE DECLARATIONS: Place GOAL-RELEVANT predicates (describing task
+completion, object positioning, desired states) first. Then place actionenabling
+predicates. Place auxiliary/static predicates last.
+REASON: Predicate IDs are also assigned sequentially. Goal-relevant predicates
+with lower IDs are prioritized in the novelty tuple tables, improving novelty
+discrimination.
+
+3. PRECONDITION ORDERING: Within each action, place the most GOAL-PROXIMAL
+predicates first (those appearing in goal conditions or as effects of goalachieving
+actions). Place static/auxiliary predicates last.
+REASON: Precondition order affects the H_Add_Rp_Fwd backward trace,
+influencing which support actions are selected for the relaxed plan. Goalproximal
+preconditions first guide the trace toward goal-relevant fluents.
+
+4. EFFECT ORDERING: Place effects that ACHIEVE or ENABLE goal predicates first.
+Place "cleanup" or state-removal effects last.
+REASON: During delete-free forward reachability, goal-relevant add-effects
+first ensure early discovery of goal-adjacent facts, reducing #r and producing
+tighter partitions.
+
+5. DUAL-ENGINE COMPATIBILITY: Ensure the reordering is also compatible with Fast
+Downward's pipeline (Engine 2). Static predicates should be identifiable early
+in precondition blocks for FD's invariant synthesis. Add-effects before
+delete-effects for FD's relaxed planning.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: IMPROVEMENT DETECTED (passed all 3 conditions: statistical
+    significance, practical significance, coverage preservation).
+  • No rationale was recorded for this attempt.
+
+Iteration 1:
+  • Your Strategy: "My reordering strategy focuses on further optimizing action order by placing `pour-shaker-to-shot` first (directly achieves the goal predicate `contains ?shot ?cocktail`), followed by `shake` (creates the cocktail in the shaker), then the pour-to-shaker actions and `fill-shot`/`refill-shot` that build preconditions, with `grasp`/`leave` and cleanup actions last; I also reorder predicates to place `contains` and `ontable` (goal-relevant) first, and within each action I reorder preconditions to place goal-proximal predicates before static/auxiliary ones, and effects to place goal-achieving add-effects before deletes. This tighter alignment of internal IDs with goal-relevance should produce more discriminating #r values in H_Add_Rp_Fwd, yielding better bucket assignments and improved novelty pruning."
+  • Result: 15/15 solved, avg search time 51.12s, avg states expanded 23380, Mean IPC Gain vs baseline: 0.021.
+    Verdict: IMPROVEMENT.
+
+Iteration 2:
+  • Your Strategy: "My reordering strategy further refines precondition and effect ordering within each action to maximize goal-proximity of early-ID fluents, and swaps `pour-shot-to-clean-shaker` before `pour-shot-to-used-shaker` since clean-shaker pouring is always needed first in any plan (the shaker starts clean), ensuring the relaxed plan extractor picks the correct initial pour action with lower ID; I also reorder predicates to push `used` and `shaker-level` earlier since they appear frequently in preconditions of goal-critical actions, improving novelty discrimination. This tighter alignment of the relaxed plan trace with actual plan structure should reduce #r further and improve bucket assignments, especially on harder instances like instance-13."
+  • Result: 15/15 solved, avg search time 51.21s, avg states expanded 23380, Mean IPC Gain vs baseline: 0.020.
+    Verdict: IMPROVEMENT.
+
+CURRENT TASK (Iteration 3):
+Your strategy in Iteration 2 showed improvement. Analyze the current domain and propose a strategy to further optimize the remaining timeouts.
+
+---
+
+[EXECUTION FEEDBACK — ITERATION 3]
+
+Your Iteration 2 reordering was tested on bfws across all 15
+problem instances. Here are the results compared to the BASELINE:
+
+OVERALL PERFORMANCE SUMMARY:
+• Instances solved: 15/15 (Baseline: 15/15)
+• Average run wall time (solved): 51.21s (Baseline: 53.23s)
+• Average states expanded (solved): 23380 (Baseline: 23942)
+• Mean IPC Gain vs Baseline: 0.020
+• Verdict: IMPROVEMENT
+
+PER-INSTANCE BREAKDOWN:
+┌──────────────┬──────────┬────────────┬─────────────┬──────────────┬───────────┐
+│ Instance     │ Status   │ Search (s) │ States Exp. │ IPC Score    │ IPC Gain  │
+├──────────────┼──────────┼────────────┼─────────────┼──────────────┼───────────┤
+│ instance-01. │ SUCCESS  │ 40.61      │ 21461       │ 1.000        │ +0.012    │
+│ instance-02. │ SUCCESS  │ 51.93      │ 22530       │ 1.000        │ +0.022    │
+│ instance-03. │ SUCCESS  │ 52.51      │ 22582       │ 1.000        │ +0.026    │
+│ instance-04. │ SUCCESS  │ 35.05      │ 21451       │ 0.991        │ -0.009    │
+│ instance-07. │ SUCCESS  │ 53.58      │ 25053       │ 1.000        │ +0.032    │
+│ instance-08. │ SUCCESS  │ 76.68      │ 26611       │ 1.000        │ +0.010    │
+│ instance-09. │ SUCCESS  │ 22.53      │ 15190       │ 1.000        │ +0.038    │
+│ instance-11. │ SUCCESS  │ 54.60      │ 23306       │ 1.000        │ +0.020    │
+│ instance-12. │ SUCCESS  │ 49.89      │ 23572       │ 1.000        │ +0.005    │
+│ instance-13. │ SUCCESS  │ 138.33     │ 49970       │ 0.993        │ -0.007    │
+│ instance-14. │ SUCCESS  │ 27.42      │ 16962       │ 1.000        │ +0.020    │
+│ instance-16. │ SUCCESS  │ 51.25      │ 22296       │ 1.000        │ +0.009    │
+│ instance-17. │ SUCCESS  │ 20.65      │ 15517       │ 1.000        │ +0.011    │
+│ instance-18. │ SUCCESS  │ 33.62      │ 18076       │ 1.000        │ +0.091    │
+│ instance-19. │ SUCCESS  │ 59.43      │ 26131       │ 1.000        │ +0.020    │
+└──────────────┴──────────┴────────────┴─────────────┴──────────────┴───────────┘
+
+DIAGNOSTIC ANALYSIS:
+✓ POSITIVE: Mean IPC Gain is positive (0.020), indicating overall performance improvement.
+
+IMPROVEMENT DIRECTION:
+Your previous reordering already shows improvement (Mean IPC Gain: 0.020). Try to further optimize for the 0 instances that still timed out.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain barman)
+  (:requirements :strips :typing)
+  (:types hand level beverage dispenser container - object
+  	  ingredient cocktail - beverage
+          shot shaker - container)
+  (:predicates  (contains ?c - container ?b - beverage)
+                (ontable ?c - container)
+                (empty ?c - container)
+                (clean ?c - container)
+                (used ?c - container ?b - beverage)
+                (holding ?h - hand ?c - container)
+                (handempty ?h - hand)
+                (shaked ?s - shaker)
+                (unshaked ?s - shaker)
+                (shaker-level ?s - shaker ?l - level)
+                (shaker-empty-level ?s - shaker ?l - level)
+                (next ?l1 ?l2 - level)
+                (cocktail-part1 ?c - cocktail ?i - ingredient)
+                (cocktail-part2 ?c - cocktail ?i - ingredient)
+                (dispenses ?d - dispenser ?i - ingredient))
+
+  (:action pour-shaker-to-shot
+           :parameters (?b - beverage ?d - shot ?h - hand ?s - shaker ?l ?l1 - level)
+           :precondition (and (contains ?s ?b)
+                              (shaked ?s)
+                              (holding ?h ?s)
+                              (empty ?d)
+                              (clean ?d)
+                              (shaker-level ?s ?l)
+                              (next ?l1 ?l))
+           :effect (and (contains ?d ?b)
+                        (shaker-level ?s ?l1)
+                        (not (empty ?d))
+                        (not (clean ?d))
+                        (not (shaker-level ?s ?l))))
+
+  (:action shake
+  	   :parameters (?b - cocktail ?d1 ?d2 - ingredient ?s - shaker ?h1 ?h2 - hand)
+           :precondition (and (cocktail-part1 ?b ?d1)
+                              (cocktail-part2 ?b ?d2)
+                              (contains ?s ?d1)
+                              (contains ?s ?d2)
+                              (unshaked ?s)
+                              (holding ?h1 ?s)
+                              (handempty ?h2))
+           :effect (and (contains ?s ?b)
+                        (shaked ?s)
+                        (not (unshaked ?s))
+		        (not (contains ?s ?d1))
+                        (not (contains ?s ?d2))))
+
+  (:action pour-shot-to-clean-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (contains ?s ?i)
+                              (holding ?h1 ?s)
+                              (empty ?d)
+	   		      (clean ?d)
+                              (shaker-level ?d ?l)
+                              (next ?l ?l1))
+           :effect (and (contains ?d ?i)
+                        (unshaked ?d)
+                        (shaker-level ?d ?l1)
+	   	   	(empty ?s)
+                        (not (contains ?s ?i))
+                        (not (empty ?d))
+			(not (clean ?d))
+			(not (shaker-level ?d ?l))))
+
+  (:action pour-shot-to-used-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (contains ?s ?i)
+                              (holding ?h1 ?s)
+                              (unshaked ?d)
+                              (shaker-level ?d ?l)
+                              (next ?l ?l1))
+           :effect (and (contains ?d ?i)
+                        (shaker-level ?d ?l1)
+	   	   	(empty ?s)
+                        (not (contains ?s ?i))
+  			(not (shaker-level ?d ?l))))
+
+  (:action fill-shot
+           :parameters (?s - shot ?i - ingredient ?h1 ?h2 - hand ?d - dispenser)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+                              (empty ?s)
+			      (clean ?s)
+	   		      (dispenses ?d ?i))
+           :effect (and (contains ?s ?i)
+                        (used ?s ?i)
+                        (not (empty ?s))
+	   	   	(not (clean ?s))))
+
+  (:action refill-shot
+           :parameters (?s - shot ?i - ingredient ?h1 ?h2 - hand ?d - dispenser)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+                              (empty ?s)
+			      (used ?s ?i)
+	   		      (dispenses ?d ?i))
+           :effect (and (contains ?s ?i)
+                        (not (empty ?s))))
+
+  (:action grasp
+             :parameters (?h - hand ?c - container)
+             :precondition (and (ontable ?c) (handempty ?h))
+             :effect (and (holding ?h ?c)
+                          (not (ontable ?c))
+	     	     	  (not (handempty ?h))))
+
+  (:action leave
+             :parameters (?h - hand ?c - container)
+             :precondition (holding ?h ?c)
+             :effect (and (ontable ?c)
+                          (handempty ?h)
+                          (not (holding ?h ?c))))
+
+  (:action empty-shot
+           :parameters (?h - hand ?p - shot ?b - beverage)
+           :precondition (and (holding ?h ?p)
+                              (contains ?p ?b))
+           :effect (and (empty ?p)
+                        (not (contains ?p ?b))))
+
+  (:action clean-shot
+  	   :parameters (?s - shot ?b - beverage ?h1 ?h2 - hand)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+			      (empty ?s)
+                              (used ?s ?b))
+           :effect (and (clean ?s)
+                        (not (used ?s ?b))))
+
+  (:action empty-shaker
+           :parameters (?h - hand ?s - shaker ?b - cocktail ?l ?l1 - level)
+           :precondition (and (holding ?h ?s)
+                              (contains ?s ?b)
+			      (shaked ?s)
+			      (shaker-level ?s ?l)
+			      (shaker-empty-level ?s ?l1))
+           :effect (and (empty ?s)
+                        (shaker-level ?s ?l1)
+                        (not (shaked ?s))
+	   	   	(not (shaker-level ?s ?l))
+			(not (contains ?s ?b))))
+
+  (:action clean-shaker
+  	   :parameters (?h1 ?h2 - hand ?s - shaker)
+           :precondition (and (holding ?h1 ?s)
+                              (empty ?s)
+                              (handempty ?h2))
+           :effect (and (clean ?s)))
+ )

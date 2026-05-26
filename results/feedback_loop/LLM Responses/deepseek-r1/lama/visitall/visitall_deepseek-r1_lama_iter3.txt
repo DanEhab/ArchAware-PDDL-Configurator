@@ -1,0 +1,18 @@
+By reordering the predicate declarations to place the most frequently used dynamic predicate 'at-robot' before the goal-relevant 'visited', LAMA's invariant synthesis will discover mutex groups more efficiently because 'at-robot' appears in all action preconditions and effects, accelerating the construction of finite-domain representation and improving landmark ordering constraints. This reordering does not alter the logical meaning and maintains the static predicate 'connected' last as per the architecture-aware rule for static predicates.
+
+```lisp
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (at-robot ?x - place)
+	     (visited ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+)
+```

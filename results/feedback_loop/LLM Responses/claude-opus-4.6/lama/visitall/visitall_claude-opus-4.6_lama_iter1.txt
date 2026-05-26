@@ -1,0 +1,17 @@
+My reordering strategy places goal-relevant predicates (`visited`, `at-robot`) before the static predicate (`connected`) to improve mutex discovery and landmark ordering, and within the action, I order the static precondition (`connected`) first for fast applicability short-circuiting, place add-effects (with goal-relevant `visited` first) before the delete-effect, matching LAMA's delete-relaxation propagation priorities. This builds on the previous successful attempt by further refining effect ordering to prioritize the goal-relevant `visited` predicate before `at-robot` in effects, which should improve FF's forward propagation and landmark acceptance tracking on larger instances.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

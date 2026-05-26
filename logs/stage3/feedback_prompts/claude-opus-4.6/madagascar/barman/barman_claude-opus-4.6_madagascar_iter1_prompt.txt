@@ -1,0 +1,293 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the Madagascar (MpC configuration) planning engine. You possess deep knowledge
+of how Madagascar's internal architecture—specifically its CNF encoding of PDDL
+into Boolean SAT formulas using ∃-step parallel plans, its fixpoint binary mutex
+(invariant) discovery, its backward-chaining variable selection heuristic, and its
+CDCL (Conflict-Driven Clause Learning) solver with Unit Propagation—processes
+PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve Madagascar's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+Madagascar is a SAT-BASED planner. It does NOT search through states like
+traditional planners. Instead, it:
+1. ENCODES the entire PDDL problem into a massive Boolean formula (Φₜ) in
+Conjunctive Normal Form (CNF). Each PDDL predicate at each time step becomes
+a True/False variable. Each PDDL action at each time step becomes a True/False
+variable. The formula represents ALL constraints simultaneously.
+2. Discovers BINARY MUTEXES (invariants) via fixpoint computation — rules like
+"package cannot be at LocationA AND LocationB simultaneously." These are stored
+ONCE in memory and dynamically linked across time steps, providing massive
+memory savings.
+3. Uses ∃-step (existential-step) PARALLEL PLANS that allow multiple noninterfering
+actions in the same time step, dramatically shrinking formula size.
+4. Runs CONCURRENT SAT SOLVERS at multiple time horizons (Algorithm C for MpC:
+exponential steps with equal CPU allocation).
+5. Each SAT solver uses CDCL with a BACKWARD-CHAINING HEURISTIC: instead of
+generic conflict-driven guessing, it starts from GOAL variables, identifies
+which action variables directly achieve those goals, and prioritizes evaluating
+them first. Sub-goals then dynamically become the next priority.
+
+CRITICAL: The order of PDDL elements determines the internal SAT variable IDs.
+The backward-chaining heuristic's priority queue processes variables by their IDs.
+Goal-achieving actions and goal predicates with LOWER IDs are evaluated FIRST.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply in order of priority):
+
+1. PREDICATE DECLARATIONS: Place GOAL predicates (those describing desired end
+states) FIRST. Then place predicates that are effects of goal-achieving actions.
+Group mutually exclusive predicates together (e.g., all positional predicates
+for the same object type adjacently, like at-locA, at-locB, at-locC).
+REASON: Goal predicates receive the lowest SAT variable IDs, placing them first
+in the backward-chaining priority queue. Adjacent mutually-exclusive predicates
+are discovered as binary mutex pairs sooner during fixpoint iteration.
+
+2. ACTION ORDERING: Place actions that DIRECTLY ACHIEVE goal predicates FIRST.
+Then place actions that achieve subgoals (preconditions of goal-achieving
+actions). Place auxiliary/setup actions last.
+REASON: The backward-chaining heuristic starts from goal variables and
+identifies their causal actions. Lower SAT variable IDs for goal-achieving
+actions place them higher in the priority queue, focusing the CDCL solver's
+initial guesses on the most productive variables.
+
+3. PRECONDITION ORDERING: Place EASILY SATISFIABLE preconditions first (those
+true in many states or established by simple actions). Place preconditions
+requiring complex multi-step setup last.
+REASON: Preconditions are encoded as CNF implications. Easily-satisfiable
+conditions trigger longer UNIT PROPAGATION domino chains, forcing more
+variables automatically and reducing the number of explicit guesses needed.
+
+4. EFFECT ORDERING: Place ADD-EFFECTS first, then DELETE-EFFECTS. Within
+add-effects, place GOAL-RELEVANT effects first.
+REASON: Although SAT treats literals symmetrically, add-effects placed first
+align with the backward-chaining heuristic's goal-focused search direction
+and produce frame axiom clauses in an order that supports faster propagation.
+
+5. MUTUAL EXCLUSION ALIGNMENT: In the :predicates block, place predicates
+describing the SAME PROPERTY of the same object type ADJACENTLY (e.g., group
+all location predicates for trucks together, all status predicates for
+packages together).
+REASON: Madagascar's fixpoint invariant finder discovers binary mutexes by
+checking predicate pairs. Adjacent same-property predicates are checked
+earlier, allowing critical invariants to be discovered sooner.
+
+6. PARAMETER CONSISTENCY: Use consistent parameter ordering across all actions.
+REASON: Regular grounding patterns produce more uniform CNF clause structures
+that the CDCL solver exploits through learned clause pattern recognition.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: NO IMPROVEMENT detected. Failed conditions: Statistical_Significance, Practical_Significance, Coverage_Preserved
+  • No rationale was recorded for this attempt.
+
+---
+
+[EXECUTION FEEDBACK]
+
+Your previous reordering was tested on madagascar across all 15
+problem instances. Here are the results compared to the BASELINE:
+
+OVERALL PERFORMANCE SUMMARY:
+• Instances solved: 3/15 (Baseline: 4/15)
+• Average run wall time (solved): 68.96s (Baseline: 80.07s)
+• Average states expanded (solved): 0 (Baseline: 0)
+• Mean IPC Gain: -0.075 (from improvement_results.csv)
+• Verdict: NO IMPROVEMENT — Failed: Statistical_Significance, Practical_Significance, Coverage_Preserved
+
+PER-INSTANCE BREAKDOWN:
+┌──────────────┬──────────┬────────────┬─────────────┬──────────────┬───────────┐
+│ Instance     │ Status   │ Search (s) │ States Exp. │ IPC Score    │ IPC Gain  │
+├──────────────┼──────────┼────────────┼─────────────┼──────────────┼───────────┤
+│ instance-01. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-02. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-03. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-04. │ SUCCESS  │ 69.73      │ N/A         │ 1.000        │ +0.019    │
+│ instance-07. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-08. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-09. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ -1.000    │
+│ instance-11. │ SUCCESS  │ 107.81     │ N/A         │ 1.000        │ +1.000    │
+│ instance-12. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-13. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-14. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+│ instance-16. │ SUCCESS  │ 29.32      │ N/A         │ 1.000        │ +1.000    │
+│ instance-17. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ -1.000    │
+│ instance-18. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ -1.000    │
+│ instance-19. │ TIMEOUT  │ N/A        │ N/A         │ 0.000        │ +0.000    │
+└──────────────┴──────────┴────────────┴─────────────┴──────────────┴───────────┘
+
+DIAGNOSTIC ANALYSIS:
+⚠ WARNING: Your reordering REDUCED coverage from 4/15 to 3/15. The planner could not find plans for instances it previously solved.
+✓ POSITIVE: Average run wall time decreased from 80.07s to 68.96s.
+Mean IPC Gain is negative (-0.075), indicating overall performance degradation.
+
+IMPROVEMENT DIRECTION:
+Your reordering lost coverage. Prioritize structural orderings that maintain solvability before optimizing speed.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain barman)
+  (:requirements :strips :typing)
+  (:types hand level beverage dispenser container - object
+  	  ingredient cocktail - beverage
+          shot shaker - container)
+  (:predicates  (contains ?c - container ?b - beverage)
+                (holding ?h - hand ?c - container)
+                (ontable ?c - container)
+                (handempty ?h - hand)
+                (empty ?c - container)
+                (clean ?c - container)
+                (used ?c - container ?b - beverage)
+                (shaked ?s - shaker)
+                (unshaked ?s - shaker)
+                (shaker-level ?s - shaker ?l - level)
+                (shaker-empty-level ?s - shaker ?l - level)
+                (next ?l1 ?l2 - level)
+                (cocktail-part1 ?c - cocktail ?i - ingredient)
+                (cocktail-part2 ?c - cocktail ?i - ingredient)
+                (dispenses ?d - dispenser ?i - ingredient))
+
+  (:action pour-shaker-to-shot
+           :parameters (?b - beverage ?d - shot ?h - hand ?s - shaker ?l ?l1 - level)
+           :precondition (and (holding ?h ?s)
+			      (shaked ?s)
+			      (empty ?d)
+			      (clean ?d)
+			      (contains ?s ?b)
+                              (shaker-level ?s ?l)
+                              (next ?l1 ?l))
+           :effect (and (contains ?d ?b)
+                        (not (empty ?d))
+                        (not (clean ?d))
+			(shaker-level ?s ?l1)
+			(not (shaker-level ?s ?l))))
+
+  (:action shake
+  	   :parameters (?b - cocktail ?d1 ?d2 - ingredient ?s - shaker ?h1 ?h2 - hand)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+			      (contains ?s ?d1)
+                              (contains ?s ?d2)
+                              (cocktail-part1 ?b ?d1)
+			      (cocktail-part2 ?b ?d2)
+			      (unshaked ?s))
+           :effect (and (shaked ?s)
+                        (contains ?s ?b)
+                        (not (unshaked ?s))
+		        (not (contains ?s ?d1))
+                        (not (contains ?s ?d2))))
+
+  (:action pour-shot-to-clean-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (holding ?h1 ?s)
+			      (contains ?s ?i)
+                              (empty ?d)
+	   		      (clean ?d)
+                              (shaker-level ?d ?l)
+                              (next ?l ?l1))
+           :effect (and (contains ?d ?i)
+                        (unshaked ?d)
+                        (shaker-level ?d ?l1)
+                        (empty ?s)
+                        (not (contains ?s ?i))
+                        (not (empty ?d))
+			(not (clean ?d))
+			(not (shaker-level ?d ?l))))
+
+  (:action pour-shot-to-used-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (holding ?h1 ?s)
+			      (contains ?s ?i)
+                              (unshaked ?d)
+                              (shaker-level ?d ?l)
+                              (next ?l ?l1))
+           :effect (and (contains ?d ?i)
+                        (shaker-level ?d ?l1)
+                        (empty ?s)
+                        (not (contains ?s ?i))
+  			(not (shaker-level ?d ?l))))
+
+  (:action fill-shot
+           :parameters (?s - shot ?i - ingredient ?h1 ?h2 - hand ?d - dispenser)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+	   		      (dispenses ?d ?i)
+                              (empty ?s)
+			      (clean ?s))
+           :effect (and (contains ?s ?i)
+                        (used ?s ?i)
+                        (not (empty ?s))
+	   	   	(not (clean ?s))))
+
+  (:action refill-shot
+           :parameters (?s - shot ?i - ingredient ?h1 ?h2 - hand ?d - dispenser)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+	   		      (dispenses ?d ?i)
+                              (empty ?s)
+			      (used ?s ?i))
+           :effect (and (contains ?s ?i)
+                        (not (empty ?s))))
+
+  (:action grasp
+             :parameters (?h - hand ?c - container)
+             :precondition (and (ontable ?c) (handempty ?h))
+             :effect (and (holding ?h ?c)
+	     	     	  (not (ontable ?c))
+			  (not (handempty ?h))))
+
+  (:action leave
+             :parameters (?h - hand ?c - container)
+             :precondition (holding ?h ?c)
+             :effect (and (ontable ?c)
+                          (handempty ?h)
+                          (not (holding ?h ?c))))
+
+  (:action empty-shot
+           :parameters (?h - hand ?p - shot ?b - beverage)
+           :precondition (and (holding ?h ?p)
+                              (contains ?p ?b))
+           :effect (and (empty ?p)
+                        (not (contains ?p ?b))))
+
+  (:action clean-shot
+  	   :parameters (?s - shot ?b - beverage ?h1 ?h2 - hand)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+			      (empty ?s)
+                              (used ?s ?b))
+           :effect (and (clean ?s)
+                        (not (used ?s ?b))))
+
+  (:action empty-shaker
+           :parameters (?h - hand ?s - shaker ?b - cocktail ?l ?l1 - level)
+           :precondition (and (holding ?h ?s)
+                              (contains ?s ?b)
+			      (shaked ?s)
+			      (shaker-level ?s ?l)
+			      (shaker-empty-level ?s ?l1))
+           :effect (and (empty ?s)
+                        (shaker-level ?s ?l1)
+                        (not (shaked ?s))
+	   	   	(not (shaker-level ?s ?l))
+			(not (contains ?s ?b))))
+
+  (:action clean-shaker
+  	   :parameters (?h1 ?h2 - hand ?s - shaker)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+                              (empty ?s))
+           :effect (and (clean ?s)))
+ )

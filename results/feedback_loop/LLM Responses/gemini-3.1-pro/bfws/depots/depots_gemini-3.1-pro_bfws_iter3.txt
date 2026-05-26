@@ -1,0 +1,41 @@
+To further optimize the search and reduce states expanded, I reordered the actions to prioritize `Drop` and `Lift` (which directly achieve the primary goal `on` and its critical subgoal `clear`), followed by the transport actions `Unload`, `Load`, and `Drive`, ensuring the relaxed plan's backward trace strongly prefers local crate manipulation before falling back to truck transport. Additionally, I restructured the predicates and preconditions to place `lifting` and `clear` before location fluents, guiding `H_Add_Rp_Fwd` to resolve crate acquisition and destination clearing before routing, which tightens bucket assignments and improves novelty discrimination.
+
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	depot distributor - place
+        truck hoist surface - locatable
+        pallet crate - surface)
+
+(:predicates (on ?x - crate ?y - surface)
+             (clear ?x - surface)
+             (lifting ?x - hoist ?y - crate)
+             (in ?x - crate ?y - truck)
+             (at ?x - locatable ?y - place)
+             (available ?x - hoist))
+
+(:action Drop 
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (lifting ?x ?y) (clear ?z) (at ?z ?p) (at ?x ?p))
+:effect (and (on ?y ?z) (clear ?y) (at ?y ?p) (available ?x) (not (clear ?z)) (not (lifting ?x ?y))))
+
+(:action Lift
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (on ?y ?z) (clear ?y) (available ?x) (at ?y ?p) (at ?x ?p))
+:effect (and (clear ?z) (lifting ?x ?y) (not (on ?y ?z)) (not (clear ?y)) (not (at ?y ?p)) (not (available ?x))))
+
+(:action Unload 
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (in ?y ?z) (available ?x) (at ?z ?p) (at ?x ?p))
+:effect (and (lifting ?x ?y) (not (in ?y ?z)) (not (available ?x))))
+
+(:action Load
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (lifting ?x ?y) (at ?z ?p) (at ?x ?p))
+:effect (and (in ?y ?z) (available ?x) (not (lifting ?x ?y))))
+
+(:action Drive
+:parameters (?x - truck ?y - place ?z - place) 
+:precondition (and (at ?x ?y))
+:effect (and (at ?x ?z) (not (at ?x ?y))))
+)

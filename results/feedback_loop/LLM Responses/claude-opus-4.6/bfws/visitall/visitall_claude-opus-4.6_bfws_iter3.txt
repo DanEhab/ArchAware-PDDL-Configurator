@@ -1,0 +1,17 @@
+My reordering strategy maintains the proven structure from Iteration 2 since all 15 instances already solve and the domain has only one action with three predicates, leaving minimal room for further structural changes; however, I will try swapping the precondition order to place `connected` before `at-robot` to see if this guides H_Add_Rp_Fwd's backward trace differently—since `connected` is static and grounds to many tuples, placing it first may allow the relaxed plan extractor to more quickly identify applicable move actions with lower IDs, potentially reducing the relaxed plan size (#r) on harder instances like 18 and 14 where states expanded are highest.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types place - object)
+(:predicates (visited ?x - place)
+             (at-robot ?x - place)
+             (connected ?x ?y - place)
+)
+
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

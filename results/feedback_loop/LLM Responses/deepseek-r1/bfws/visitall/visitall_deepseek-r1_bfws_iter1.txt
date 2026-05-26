@@ -1,0 +1,18 @@
+I will reorder predicate declarations to place the goal-relevant predicate 'visited' first, then dynamic 'at-robot', then static 'connected' last, giving lowest IDs to goal fluents. Within the action, I will reorder preconditions to put the dynamic 'at-robot' before static 'connected' and effects to put the goal-achieving 'visited' first, then 'at-robot', then the delete effect, to influence tie-breaking and relaxed plan extraction toward goal-relevant facts.
+
+```lisp
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+)
+```

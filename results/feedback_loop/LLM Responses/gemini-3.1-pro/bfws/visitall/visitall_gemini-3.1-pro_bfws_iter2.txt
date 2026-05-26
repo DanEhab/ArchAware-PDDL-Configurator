@@ -1,0 +1,19 @@
+To prioritize goal-relevant elements in BFWS-Preference's internal ID assignment and novelty tuple tables, the goal predicate `visited` is moved to the first position in both the predicate declarations and the action effects. The precondition order `(at-robot ?curpos) (connected ?curpos ?nextpos)` is strictly maintained to ensure O(degree) rather than O(|Edges|) variable binding during successor generation, preserving fast state expansion while improving heuristic guidance.
+
+```lisp
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)
+```

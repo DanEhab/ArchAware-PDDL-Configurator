@@ -1,0 +1,17 @@
+My reordering strategy keeps the successful Iteration 1 structure but swaps the precondition order to place `at-robot` (the dynamic, most restrictive predicate—true for exactly one place) before `connected` (static but less restrictive), which should improve FF's relaxed-plan backward trace by selecting the robot's current position as the best supporter first, leading to better preferred operator selection and faster search on larger instances. The predicate and effect orderings remain optimized from Iteration 1 with goal-relevant predicates first and add-effects before delete-effects.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

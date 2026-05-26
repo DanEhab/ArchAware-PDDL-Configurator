@@ -1,0 +1,15 @@
+I reordered the predicate declarations to place the goal predicate `visited` first, aligning with Madagascar's backward-chaining heuristic that prioritizes goal variables with lower SAT IDs. I also reordered the precondition of the `move` action to place the static `connected` predicate before `at-robot`, as static conditions are more easily satisfied and can trigger longer unit propagation chains.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+             (at-robot ?x - place)
+             (connected ?x ?y - place)
+)
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+)

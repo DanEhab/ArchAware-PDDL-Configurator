@@ -1,0 +1,46 @@
+Looking at the iteration history, my Stage 2 attempt was the successful one, and both Iterations 1 and 2 regressed by reordering actions and preconditions differently. The key insight is that the current domain file (which was my Iteration 2 attempt) has Lift-Drop-Unload-Load-Drive order, while the original/baseline likely had a different arrangement. Since both my creative reorderings regressed, I should try a minimal change strategy: keep the action order close to the original (Lift, Drop, Unload, Load, Drive) but focus on optimizing predicate grouping for mutex discovery and precondition ordering within actions for better unit propagation, placing `available` and `lifting` (which are mutually exclusive for hoists) adjacently, and ensuring static/easily-satisfied preconditions come first.
+
+My strategy places predicates so that mutually exclusive pairs (`available`/`lifting` for hoists, `on`/`in`/`clear` for crate states) are adjacent to accelerate fixpoint mutex discovery, and within each action reorders preconditions to place the most constraining location-based preconditions first to trigger longer unit propagation chains, while keeping the original action order (Lift, Drop, Unload, Load, Drive) that the baseline used successfully. I expect this minimal-but-targeted approach to improve mutex discovery speed and propagation efficiency without disrupting the variable ID ordering that worked well in the baseline.
+
+```
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	depot distributor - place
+        truck hoist surface - locatable
+        pallet crate - surface)
+
+(:predicates (at ?x - locatable ?y - place)
+             (on ?x - crate ?y - surface)
+             (clear ?x - surface)
+             (in ?x - crate ?y - truck)
+             (available ?x - hoist)
+             (lifting ?x - hoist ?y - crate))
+
+(:action Lift
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (at ?x ?p) (at ?y ?p) (on ?y ?z) (clear ?y) (available ?x))
+:effect (and (lifting ?x ?y) (clear ?z) (not (at ?y ?p)) (not (clear ?y)) (not (available ?x)) (not (on ?y ?z))))
+
+(:action Drop
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (at ?x ?p) (at ?z ?p) (lifting ?x ?y) (clear ?z))
+:effect (and (on ?y ?z) (at ?y ?p) (clear ?y) (available ?x) (not (lifting ?x ?y)) (not (clear ?z))))
+
+(:action Unload
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (at ?x ?p) (at ?z ?p) (in ?y ?z) (available ?x))
+:effect (and (lifting ?x ?y) (not (in ?y ?z)) (not (available ?x))))
+
+(:action Load
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (at ?x ?p) (at ?z ?p) (lifting ?x ?y))
+:effect (and (in ?y ?z) (available ?x) (not (lifting ?x ?y))))
+
+(:action Drive
+:parameters (?x - truck ?y - place ?z - place)
+:precondition (and (at ?x ?y))
+:effect (and (at ?x ?z) (not (at ?x ?y))))
+
+)
+```

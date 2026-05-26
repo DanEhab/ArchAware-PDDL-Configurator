@@ -1,0 +1,17 @@
+I reordered the domain to give the goal-achieving predicate and action the lowest internal IDs, while placing the goal-proximal precondition and add-effects first so BFWS-Preference’s relaxed-plan tie-breaking favors directly useful support. I also moved the static connectivity predicate last to keep novelty and relaxed relevance centered on visitation and robot-position fluents, which should preserve the prior gain while slightly sharpening bucket discrimination.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

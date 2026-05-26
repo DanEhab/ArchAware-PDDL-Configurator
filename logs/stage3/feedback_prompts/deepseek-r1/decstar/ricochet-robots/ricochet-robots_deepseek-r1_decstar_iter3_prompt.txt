@@ -1,0 +1,201 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the DecStar planning engine. You possess deep knowledge of how DecStar's
+internal architecture—specifically its h² preprocessing, Star Topology factoring
+engine (Center/Leaf assignment via Causal Graph and InteractionGraph analysis),
+and Decoupled Search (Center Actions vs. silent Leaf Actions with Pricing
+Functions)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve DecStar's
+planning efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+DecStar extends Fast Downward with DECOUPLED STATE-SPACE SEARCH. After standard
+FD translation (grounding + FDR) and aggressive h² mutex pruning, DecStar builds
+a STAR TOPOLOGY that separates state variables into:
+- A CENTRAL HUB ("Center"): highly-connected, entangled variables
+- Independent LEAF modules: isolated subsystems that can only interact through
+the Center
+
+The factoring engine enforces a GOLDEN RULE: Leaves cannot interact with other
+Leaves directly. It uses the Causal Graph to identify Strongly Connected
+Components (SCCs), strips off isolated "tips" as Leaves, and whatever tangled
+mass remains becomes the Center.
+
+CRITICAL PERFORMANCE MECHANISM:
+- CENTER ACTIONS (affecting any Center variable): Branch the main search tree,
+generating new states in the open list — EXPENSIVE.
+- LEAF ACTIONS (affecting only one Leaf): Handled silently by localized Dijkstra
+within the current state — CHEAP.
+
+The MORE actions that qualify as Leaf-only operators, the greater the combinatorial
+compression. Actions with preconditions/effects spanning multiple subsystems force
+Center classification and defeat decoupling.
+
+SAFETY CONSTRAINTS: Factoring has a 30-second timer and a maximum leaf size limit.
+If the topology cannot be built, DecStar falls back to standard explicit-state
+search, losing all decoupling benefits.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply these in order of priority):
+
+1. PREDICATE DECLARATIONS: Group predicates by the object types they describe.
+Place predicates involving SINGLE object types first (these become candidate
+leaf variables). Place predicates describing INTERACTIONS between different
+object types last (these likely become center variables).
+REASON: Cleaner predicate grouping leads to more efficient mutex group
+construction, which feeds directly into the SCC analysis that determines
+the Center/Leaf partition.
+
+2. ACTION ORDERING: Place actions that operate on a SINGLE independent subsystem
+(e.g., manipulating one package, one block, one room) FIRST. Place actions
+that COORDINATE across multiple subsystems (e.g., loading a package onto a
+truck, connecting two rooms) LAST.
+REASON: This ordering emphasizes the hub-and-spoke structure that DecStar's
+Fork/Inverted-Fork factoring algorithms are designed to detect, helping the
+factoring engine identify valid topologies within the 30-second timer.
+
+3. PRECONDITION ORDERING: Within each action, place preconditions referencing
+the action's PRIMARY manipulated object first. Place preconditions referencing
+SHARED or COORDINATING state (hub variables, transport vehicles, etc.) last.
+REASON: The InteractionGraph analyzes precondition-effect dependencies to
+detect cross-leaf violations. Local-first ordering makes this analysis more
+efficient.
+
+4. EFFECT ORDERING: Place effects modifying the action's PRIMARY (local) object
+first. Place effects modifying shared or coordinating state last.
+REASON: Leaf-local effects first enables faster pricing function computation
+during silent Dijkstra execution within leaf notebooks.
+
+5. GLOBAL PREDICATE DEMOTION: If any predicates appear in preconditions or effects
+of nearly ALL actions (e.g., total-cost counters, phase flags), place them at
+the END of the :predicates block and at the END within each precondition/effect
+block where they appear.
+REASON: Global predicates draw causal edges connecting all objects, potentially
+collapsing the entire task into one SCC and destroying the Star Topology.
+Demoting their textual position may influence variable ordering in the
+translator, mitigating this destructive effect.
+
+6. PARAMETER CONSISTENCY: Maintain consistent parameter ordering, with the
+primary manipulated object as the first parameter in all actions.
+REASON: Consistent ordering supports cleaner causal graph construction.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: VALID — Your reordered domain passed all validation checks.
+  • Result: NO IMPROVEMENT detected. Failed conditions: Statistical_Significance, Practical_Significance
+  • No rationale was recorded for this attempt.
+
+Iteration 1:
+  • Your Strategy: "Reorder the predicates to place single-type and robot-specific predicates before multi-type and static predicates, and demote the global 'nothing-is-moving' predicate to the end of the list. Reorder actions to put simpler movement initiation/termination actions before the coupled step action, and within each action reorder preconditions and effects to put robot-local conditions first and global predicates last."
+  • Result: 5/15 solved, avg search time 71.50s, avg states expanded 530587, Mean IPC Gain vs baseline: -0.006.
+    Verdict: REGRESSION.
+
+Iteration 2:
+  • Your Strategy: "I will reorder the action list to place 'step' first, as it is the only action that does not involve the global predicate 'nothing-is-moving', making it a candidate for leaf-level processing, and then follow with stop actions and finally 'go' to emphasize the separation of core movement from global control. Additionally, within preconditions and effects I will consistently place robot-local predicates before cell-related and static predicates, while demoting the global predicate to the end of both the predicate list and within each action block to reduce its centrality in the causal graph."
+  • Result: REJECTED — V1 check failed.
+    Changes detected: Malformed.
+
+CURRENT TASK (Iteration 3):
+Your strategy in Iteration 2 resulted in a broken domain file. Do not repeat these changes. Analyze the current domain and propose a NEW Valid strategy.
+
+---
+
+[EXECUTION FEEDBACK — ITERATION 3]
+
+Your Iteration 2 output was REJECTED because it failed V1 extraction.
+
+⚠ You must ONLY reorder elements. Do NOT modify preconditions, effects, or parameters. Analyze the domain below and try a different structural reordering strategy.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain ricochet-robots)
+(:requirements :strips :typing :negative-preconditions)
+
+(:types
+    robot - object
+    cell - object
+    direction - object
+)
+
+(:predicates
+    (free ?c - cell)
+    (at ?r - robot ?c - cell)
+    (is-moving ?r - robot ?dir - direction)
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
+    (BLOCKED ?c - cell ?dir - direction)
+    (nothing-is-moving)
+)
+
+(:action go
+    :parameters (?r - robot ?dir - direction)
+    :precondition
+        (and
+            (nothing-is-moving)
+        )
+    :effect
+        (and
+            (is-moving ?r ?dir)
+            (not (nothing-is-moving))
+        )
+)
+
+(:action stop-at-barrier
+    :parameters (?r - robot ?cat - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cat)
+            (BLOCKED ?cat ?dir)
+        )
+    :effect
+        (and
+            (not (is-moving ?r ?dir))
+            (nothing-is-moving)
+        )
+)
+
+(:action stop-at-robot
+    :parameters (?r - robot ?cat - cell ?cnext - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cat)
+            (NEXT ?cat ?cnext ?dir)
+            (not (free ?cnext))
+        )
+    :effect
+        (and
+            (not (is-moving ?r ?dir))
+            (nothing-is-moving)
+        )
+)
+
+(:action step
+    :parameters (?r - robot ?cfrom - cell ?cto - cell ?dir - direction)
+    :precondition
+        (and
+            (is-moving ?r ?dir)
+            (at ?r ?cfrom)
+            (NEXT ?cfrom ?cto ?dir)
+            (free ?cto)
+            (not (BLOCKED ?cfrom ?dir))
+        )
+    :effect
+        (and
+            (not (at ?r ?cfrom))
+            (at ?r ?cto)
+            (free ?cfrom)
+            (not (free ?cto))
+        )
+)
+)

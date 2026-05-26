@@ -1,0 +1,160 @@
+{
+  "domain": "snake",
+  "model": "claude-opus-4.6",
+  "stage": "feedback_loop",
+  "run_id": "decstar_iter2",
+  "timestamp": "2026-05-25T18:08:53.271926+00:00",
+  "validation_status": "VALID",
+  "rejection_reason": null,
+  "failed_stage": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "params_reordered": 1,
+    "pre_reordered": 1,
+    "eff_del_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(ISADJACENT ?x ?y)",
+          "(tailsnake ?x)",
+          "(headsnake ?x)",
+          "(nextsnake ?x ?y)",
+          "(blocked ?x)",
+          "(spawn ?x)",
+          "(NEXTSPAWN ?x ?y)",
+          "(ispoint ?x)"
+        ],
+        "candidate": [
+          "(ISADJACENT ?x ?y)",
+          "(NEXTSPAWN ?x ?y)",
+          "(nextsnake ?x ?y)",
+          "(headsnake ?x)",
+          "(tailsnake ?x)",
+          "(ispoint ?x)",
+          "(blocked ?x)",
+          "(spawn ?x)"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-params-order",
+        "original": [
+          "?head",
+          "?newhead",
+          "?spawnpoint",
+          "?nextspawnpoint"
+        ],
+        "candidate": [
+          "?newhead",
+          "?head",
+          "?spawnpoint",
+          "?nextspawnpoint"
+        ]
+      },
+      {
+        "type": "move-and-eat-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn ?spawnpoint)",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)",
+          "(not (= ?spawnpoint dummypoint))"
+        ],
+        "candidate": [
+          "(ISADJACENT ?head ?newhead)",
+          "(headsnake ?head)",
+          "(ispoint ?newhead)",
+          "(not (blocked ?newhead))",
+          "(not (= ?spawnpoint dummypoint))",
+          "(spawn ?spawnpoint)",
+          "(NEXTSPAWN ?spawnpoint ?nextspawnpoint)"
+        ]
+      },
+      {
+        "type": "move-params-order",
+        "original": [
+          "?head",
+          "?newhead",
+          "?tail",
+          "?newtail"
+        ],
+        "candidate": [
+          "?newhead",
+          "?head",
+          "?tail",
+          "?newtail"
+        ]
+      },
+      {
+        "type": "move-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ],
+        "candidate": [
+          "(ISADJACENT ?head ?newhead)",
+          "(headsnake ?head)",
+          "(tailsnake ?tail)",
+          "(nextsnake ?newtail ?tail)",
+          "(not (blocked ?newhead))",
+          "(not (ispoint ?newhead))"
+        ]
+      },
+      {
+        "type": "move-eff-del-order",
+        "original": [
+          "(not (headsnake ?head))",
+          "(not (blocked ?tail))",
+          "(not (tailsnake ?tail))",
+          "(not (nextsnake ?newtail ?tail))"
+        ],
+        "candidate": [
+          "(not (headsnake ?head))",
+          "(not (tailsnake ?tail))",
+          "(not (blocked ?tail))",
+          "(not (nextsnake ?newtail ?tail))"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-params-order",
+        "original": [
+          "?head",
+          "?newhead"
+        ],
+        "candidate": [
+          "?newhead",
+          "?head"
+        ]
+      },
+      {
+        "type": "move-and-eat-no-spawn-precondition-order",
+        "original": [
+          "(headsnake ?head)",
+          "(ISADJACENT ?head ?newhead)",
+          "(not (blocked ?newhead))",
+          "(ispoint ?newhead)",
+          "(spawn dummypoint)"
+        ],
+        "candidate": [
+          "(ISADJACENT ?head ?newhead)",
+          "(headsnake ?head)",
+          "(ispoint ?newhead)",
+          "(not (blocked ?newhead))",
+          "(spawn dummypoint)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1921,
+  "val_output": ""
+}

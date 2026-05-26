@@ -1,0 +1,16 @@
+I reordered the domain to keep the sole goal predicate and its achiever first, while placing the enabling robot-location predicate before the static connectivity predicate so BFWS-Preference’s ID-based relaxed-plan tie-breaking continues to favor the direct move-to-visit support chain. Within the only action, I kept the goal-relevant precondition and add-effects first and the delete last, which is the strongest architecture-compatible ordering available in this minimal domain and should preserve the prior improvement without introducing less goal-focused IDs.
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

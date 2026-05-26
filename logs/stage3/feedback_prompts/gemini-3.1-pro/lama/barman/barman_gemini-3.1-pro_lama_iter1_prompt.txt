@@ -1,0 +1,260 @@
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the LAMA-first planning engine (Fast Downward framework). You possess deep
+knowledge of how LAMA's internal architecture—specifically its Translation module
+(grounding + invariant synthesis), Knowledge Compilation module (DTG construction),
+and Search module (multi-heuristic FF/add + Landmark heuristic with 4-queue
+preferred operator system)—processes PDDL input.
+
+Your task is to reorder the following PDDL domain file to improve LAMA's planning
+efficiency (coverage, runtime, IPC score).
+
+STRICT CONSTRAINTS:
+- Do NOT add, remove, or rename any predicates, types, constants, or actions.
+- Do NOT change the logical meaning of any precondition or effect.
+- Do NOT alter parameter types or add/remove parameters.
+- Do NOT add comments, explanations, or formatting changes.
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your reordering strategy and why you expect it to improve performance. Then output the complete reordered PDDL domain file.
+
+ARCHITECTURE CONTEXT:
+LAMA processes PDDL through a three-stage pipeline:
+1. TRANSLATION: Grounds all action schemas, discovers mutex groups (mutually
+exclusive fact groups) via invariant synthesis, and constructs a Finite-Domain
+Representation (SAS+/FDR). Mutex information is critical because it directly
+determines the quality of landmark ordering constraints used later in search.
+2. KNOWLEDGE COMPILATION: Builds Domain Transition Graphs (DTGs) for each state
+variable, constructs fast operator-applicability lookup structures, and prepares
+axiom evaluation mechanisms.
+3. SEARCH: Runs greedy best-first search (for initial plan), then iterated weighted
+A* with restarts. Uses TWO heuristics simultaneously in separate queues:
+- FF/add heuristic (delete-relaxation based, additive cost propagation)
+- Landmark heuristic (counts unachieved mandatory waypoints)
+Each heuristic generates PREFERRED OPERATORS—actions deemed especially promising—
+which receive priority via a +1000 boost mechanism in a 4-queue system.
+
+Because of this architecture, the textual ordering of predicates affects mutex
+discovery and landmark ordering quality. The ordering of actions affects successor
+generation, tie-breaking, and which operators are evaluated first. The ordering of
+preconditions directly affects which "best support" is selected during FF's
+relaxed-plan extraction, determining WHICH actions become preferred operators.
+The ordering of effects affects delete-relaxed forward propagation and landmark
+acceptance tracking.
+
+ARCHITECTURE-AWARE REORDERING RULES (apply these in order of priority):
+
+1. PREDICATE DECLARATIONS: Place goal-relevant predicates (those describing
+positional state, object relationships, or task completion) at the top of the
+:predicates block. Follow with frequently-occurring predicates. Place static
+predicates (those never modified by any :effect) last.
+REASON: Early placement accelerates mutex discovery during invariant synthesis,
+improving landmark ordering constraint quality.
+
+2. ACTION ORDERING: Place actions with fewer preconditions earlier in the domain
+file. Among actions with similar precondition counts, prioritize "enabling"
+actions—those whose effects create preconditions for other actions.
+REASON: LAMA's greedy best-first search evaluates operators in listing order
+during deferred evaluation. Simpler, enabling actions listed first produce
+better initial plans during the speed-first greedy sprint.
+
+3. PRECONDITION ORDERING: Within each action's :precondition block:
+a) Place STATIC predicates (never changed by any effect) first.
+b) Then place the MOST RESTRICTIVE conditions (those satisfied in fewest states).
+c) Then group remaining predicates by relatedness (same predicate name or
+referencing the same object types).
+REASON: Static predicates first enable fast applicability short-circuiting.
+Restrictive conditions first cause earlier failure detection. The ordering
+also affects FF's relaxed-plan backward trace, which selects "best supports"
+and determines preferred operators.
+
+4. EFFECT ORDERING: Within each action's :effect block:
+a) Place ADD-EFFECTS first (positive effects without "not").
+b) Within add-effects, place goal-relevant effects before auxiliary effects.
+c) Place DELETE-EFFECTS (negative effects with "not") last.
+REASON: LAMA's FF/add heuristic operates in a delete-relaxed world where only
+add-effects drive cost propagation. Goal-relevant add-effects first accelerate
+the forward propagation phase and improve landmark acceptance tracking.
+
+5. PARAMETER CONSISTENCY: Maintain consistent parameter ordering across all action
+schemas (e.g., always agent before object before location).
+REASON: Consistent ordering simplifies FDR translation and supports causal graph
+structural consistency.
+
+---
+
+PREVIOUS ATTEMPT HISTORY:
+
+Stage 2 Attempt:
+  • Status: FAILED — Your response exceeded the maximum token output
+    limit (4,096 tokens) and was truncated before completion.
+  • No valid PDDL domain was produced.
+
+---
+
+[EXECUTION FEEDBACK]
+
+No execution data is available because your previous attempt did not
+produce a complete PDDL domain file.
+
+The domain below is the ORIGINAL unmodified baseline. You are starting
+from scratch. Generate a complete, reordered PDDL domain.
+
+Note: The token output limit has been increased to 8,192 tokens.
+Output the reordered PDDL efficiently without conversational filler.
+
+---
+
+DOMAIN TO REORDER:
+(define (domain barman)
+  (:requirements :strips :typing)
+  (:types hand level beverage dispenser container - object
+  	  ingredient cocktail - beverage
+          shot shaker - container)
+  (:predicates  (ontable ?c - container)
+                (holding ?h - hand ?c - container)
+		(handempty ?h - hand)
+		(empty ?c - container)
+                (contains ?c - container ?b - beverage)
+		(clean ?c - container)
+                (used ?c - container ?b - beverage)
+                (dispenses ?d - dispenser ?i - ingredient)
+		(shaker-empty-level ?s - shaker ?l - level)
+		(shaker-level ?s - shaker ?l - level)
+		(next ?l1 ?l2 - level)
+		(unshaked ?s - shaker)
+		(shaked ?s - shaker)
+                (cocktail-part1 ?c - cocktail ?i - ingredient)
+                (cocktail-part2 ?c - cocktail ?i - ingredient))
+		
+  (:action grasp
+             :parameters (?h - hand ?c - container)
+             :precondition (and (ontable ?c) (handempty ?h))
+             :effect (and (not (ontable ?c))
+	     	     	  (not (handempty ?h))
+			  (holding ?h ?c)))
+
+  (:action leave
+             :parameters (?h - hand ?c - container)
+             :precondition (holding ?h ?c)
+             :effect (and (not (holding ?h ?c))
+	     	     	  (handempty ?h)
+			  (ontable ?c)))
+  
+  (:action fill-shot
+           :parameters (?s - shot ?i - ingredient ?h1 ?h2 - hand ?d - dispenser)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+	   		      (dispenses ?d ?i)
+                              (empty ?s)
+			      (clean ?s))
+           :effect (and (not (empty ?s))
+	   	   	(contains ?s ?i)
+	   	   	(not (clean ?s))
+			(used ?s ?i)))
+
+
+  (:action refill-shot
+           :parameters (?s - shot ?i - ingredient ?h1 ?h2 - hand ?d - dispenser)
+           :precondition (and (holding ?h1 ?s)	   		      
+                              (handempty ?h2)
+	   		      (dispenses ?d ?i)
+                              (empty ?s)
+			      (used ?s ?i))
+           :effect (and (not (empty ?s))
+                        (contains ?s ?i)))
+
+  (:action empty-shot
+           :parameters (?h - hand ?p - shot ?b - beverage)
+           :precondition (and (holding ?h ?p)
+                              (contains ?p ?b))
+           :effect (and (not (contains ?p ?b))
+	   	   	(empty ?p)))
+
+  (:action clean-shot
+  	   :parameters (?s - shot ?b - beverage ?h1 ?h2 - hand)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)	   		      
+			      (empty ?s)
+                              (used ?s ?b))
+           :effect (and (not (used ?s ?b))
+	   	   	(clean ?s)))
+
+  (:action pour-shot-to-clean-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (holding ?h1 ?s)
+			      (contains ?s ?i)
+                              (empty ?d)
+	   		      (clean ?d)                              
+                              (shaker-level ?d ?l)
+                              (next ?l ?l1))
+           :effect (and (not (contains ?s ?i))
+	   	   	(empty ?s)
+			(contains ?d ?i)
+                        (not (empty ?d))
+			(not (clean ?d))
+			(unshaked ?d)
+			(not (shaker-level ?d ?l))
+			(shaker-level ?d ?l1)))
+
+
+  (:action pour-shot-to-used-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (holding ?h1 ?s)
+			      (contains ?s ?i)
+                              (unshaked ?d)
+                              (shaker-level ?d ?l)
+                              (next ?l ?l1))
+           :effect (and (not (contains ?s ?i))
+                        (contains ?d ?i)
+	   	   	(empty ?s)     
+  			(not (shaker-level ?d ?l))
+			(shaker-level ?d ?l1)))
+
+  (:action empty-shaker
+           :parameters (?h - hand ?s - shaker ?b - cocktail ?l ?l1 - level)
+           :precondition (and (holding ?h ?s)
+                              (contains ?s ?b)
+			      (shaked ?s)
+			      (shaker-level ?s ?l)
+			      (shaker-empty-level ?s ?l1))
+           :effect (and (not (shaked ?s))
+	   	   	(not (shaker-level ?s ?l))
+	   	   	(shaker-level ?s ?l1)
+			(not (contains ?s ?b))
+	   	   	(empty ?s)))
+
+  (:action clean-shaker
+  	   :parameters (?h1 ?h2 - hand ?s - shaker)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+                              (empty ?s))
+           :effect (and (clean ?s)))
+  
+  (:action shake
+  	   :parameters (?b - cocktail ?d1 ?d2 - ingredient ?s - shaker ?h1 ?h2 - hand)
+           :precondition (and (holding ?h1 ?s)
+                              (handempty ?h2)
+			      (contains ?s ?d1)
+                              (contains ?s ?d2)
+                              (cocktail-part1 ?b ?d1)
+			      (cocktail-part2 ?b ?d2)
+			      (unshaked ?s))			      
+           :effect (and (not (unshaked ?s))
+		        (not (contains ?s ?d1))
+                        (not (contains ?s ?d2))
+	   	   	(shaked ?s)
+                        (contains ?s ?b)))
+
+  (:action pour-shaker-to-shot
+           :parameters (?b - beverage ?d - shot ?h - hand ?s - shaker ?l ?l1 - level)
+           :precondition (and (holding ?h ?s)
+			      (shaked ?s)
+			      (empty ?d)
+			      (clean ?d)
+			      (contains ?s ?b)
+                              (shaker-level ?s ?l)
+                              (next ?l1 ?l))
+           :effect (and (not (clean ?d))
+	   	   	(not (empty ?d))
+			(contains ?d ?b)
+			(shaker-level ?s ?l1)
+			(not (shaker-level ?s ?l))))
+ )

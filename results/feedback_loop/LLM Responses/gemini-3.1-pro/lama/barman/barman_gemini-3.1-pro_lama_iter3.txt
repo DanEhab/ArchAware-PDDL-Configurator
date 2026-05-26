@@ -1,0 +1,158 @@
+To avoid the regressions of previous purely complexity-based orderings, I reordered actions by their typical execution frequency and causal phase in a plan (e.g., `grasp`, `fill-shot`, and `clean-shot` first), which optimizes LAMA's successor generation and tie-breaking for the most commonly evaluated operators. Additionally, I strictly ordered preconditions to evaluate static and highly restrictive predicates (like `contains` and `used`) before common state flags, enabling faster applicability short-circuiting, while placing goal-relevant add-effects first to accelerate the FF heuristic's forward propagation.
+
+```lisp
+(define (domain barman)
+  (:requirements :strips :typing)
+  (:types hand level beverage dispenser container - object
+          ingredient cocktail - beverage
+          shot shaker - container)
+  (:predicates  (contains ?c - container ?b - beverage)
+                (holding ?h - hand ?c - container)
+                (handempty ?h - hand)
+                (empty ?c - container)
+                (clean ?c - container)
+                (ontable ?c - container)
+                (used ?c - container ?b - beverage)
+                (shaked ?s - shaker)
+                (unshaked ?s - shaker)
+                (shaker-level ?s - shaker ?l - level)
+                (next ?l1 ?l2 - level)
+                (dispenses ?d - dispenser ?i - ingredient)
+                (shaker-empty-level ?s - shaker ?l - level)
+                (cocktail-part1 ?c - cocktail ?i - ingredient)
+                (cocktail-part2 ?c - cocktail ?i - ingredient))
+
+  (:action grasp
+           :parameters (?h - hand ?c - container)
+           :precondition (and (ontable ?c)
+                              (handempty ?h))
+           :effect (and (holding ?h ?c)
+                        (not (ontable ?c))
+                        (not (handempty ?h))))
+
+  (:action leave
+           :parameters (?h - hand ?c - container)
+           :precondition (holding ?h ?c)
+           :effect (and (handempty ?h)
+                        (ontable ?c)
+                        (not (holding ?h ?c))))
+
+  (:action fill-shot
+           :parameters (?s - shot ?i - ingredient ?h1 ?h2 - hand ?d - dispenser)
+           :precondition (and (dispenses ?d ?i)
+                              (holding ?h1 ?s)
+                              (clean ?s)
+                              (empty ?s)
+                              (handempty ?h2))
+           :effect (and (contains ?s ?i)
+                        (used ?s ?i)
+                        (not (empty ?s))
+                        (not (clean ?s))))
+
+  (:action clean-shot
+           :parameters (?s - shot ?b - beverage ?h1 ?h2 - hand)
+           :precondition (and (used ?s ?b)
+                              (holding ?h1 ?s)
+                              (empty ?s)
+                              (handempty ?h2))
+           :effect (and (clean ?s)
+                        (not (used ?s ?b))))
+
+  (:action empty-shot
+           :parameters (?h - hand ?p - shot ?b - beverage)
+           :precondition (and (contains ?p ?b)
+                              (holding ?h ?p))
+           :effect (and (empty ?p)
+                        (not (contains ?p ?b))))
+
+  (:action refill-shot
+           :parameters (?s - shot ?i - ingredient ?h1 ?h2 - hand ?d - dispenser)
+           :precondition (and (dispenses ?d ?i)
+                              (used ?s ?i)
+                              (holding ?h1 ?s)
+                              (empty ?s)
+                              (handempty ?h2))
+           :effect (and (contains ?s ?i)
+                        (not (empty ?s))))
+
+  (:action pour-shot-to-clean-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (next ?l ?l1)
+                              (contains ?s ?i)
+                              (shaker-level ?d ?l)
+                              (holding ?h1 ?s)
+                              (clean ?d)
+                              (empty ?d))
+           :effect (and (contains ?d ?i)
+                        (empty ?s)
+                        (unshaked ?d)
+                        (shaker-level ?d ?l1)
+                        (not (contains ?s ?i))
+                        (not (empty ?d))
+                        (not (clean ?d))
+                        (not (shaker-level ?d ?l))))
+
+  (:action pour-shot-to-used-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (next ?l ?l1)
+                              (contains ?s ?i)
+                              (shaker-level ?d ?l)
+                              (holding ?h1 ?s)
+                              (unshaked ?d))
+           :effect (and (contains ?d ?i)
+                        (empty ?s)
+                        (shaker-level ?d ?l1)
+                        (not (contains ?s ?i))
+                        (not (shaker-level ?d ?l))))
+
+  (:action shake
+           :parameters (?b - cocktail ?d1 ?d2 - ingredient ?s - shaker ?h1 ?h2 - hand)
+           :precondition (and (cocktail-part1 ?b ?d1)
+                              (cocktail-part2 ?b ?d2)
+                              (contains ?s ?d1)
+                              (contains ?s ?d2)
+                              (unshaked ?s)
+                              (holding ?h1 ?s)
+                              (handempty ?h2))
+           :effect (and (contains ?s ?b)
+                        (shaked ?s)
+                        (not (unshaked ?s))
+                        (not (contains ?s ?d1))
+                        (not (contains ?s ?d2))))
+
+  (:action pour-shaker-to-shot
+           :parameters (?b - beverage ?d - shot ?h - hand ?s - shaker ?l ?l1 - level)
+           :precondition (and (next ?l1 ?l)
+                              (contains ?s ?b)
+                              (shaker-level ?s ?l)
+                              (shaked ?s)
+                              (holding ?h ?s)
+                              (clean ?d)
+                              (empty ?d))
+           :effect (and (contains ?d ?b)
+                        (shaker-level ?s ?l1)
+                        (not (clean ?d))
+                        (not (empty ?d))
+                        (not (shaker-level ?s ?l))))
+
+  (:action empty-shaker
+           :parameters (?h - hand ?s - shaker ?b - cocktail ?l ?l1 - level)
+           :precondition (and (shaker-empty-level ?s ?l1)
+                              (contains ?s ?b)
+                              (shaker-level ?s ?l)
+                              (shaked ?s)
+                              (holding ?h ?s))
+           :effect (and (empty ?s)
+                        (shaker-level ?s ?l1)
+                        (not (shaked ?s))
+                        (not (shaker-level ?s ?l))
+                        (not (contains ?s ?b))))
+
+  (:action clean-shaker
+           :parameters (?h1 ?h2 - hand ?s - shaker)
+           :precondition (and (holding ?h1 ?s)
+                              (empty ?s)
+                              (handempty ?h2))
+           :effect (and (clean ?s)))
+)
+```

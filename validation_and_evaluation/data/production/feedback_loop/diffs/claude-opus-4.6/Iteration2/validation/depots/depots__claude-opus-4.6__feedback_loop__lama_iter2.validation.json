@@ -1,0 +1,133 @@
+{
+  "domain": "depots",
+  "model": "claude-opus-4.6",
+  "stage": "feedback_loop",
+  "run_id": "lama_iter2",
+  "timestamp": "2026-05-25T01:05:18.491943+00:00",
+  "validation_status": "VALID",
+  "rejection_reason": null,
+  "failed_stage": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "pre_reordered": 1,
+    "eff_add_reordered": 1,
+    "eff_del_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(at ?x - locatable ?y - place)",
+          "(on ?x - crate ?y - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)",
+          "(clear ?x - surface)"
+        ],
+        "candidate": [
+          "(on ?x - crate ?y - surface)",
+          "(at ?x - locatable ?y - place)",
+          "(clear ?x - surface)",
+          "(in ?x - crate ?y - truck)",
+          "(lifting ?x - hoist ?y - crate)",
+          "(available ?x - hoist)"
+        ]
+      },
+      {
+        "type": "Load-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(lifting ?x ?y)",
+          "(at ?z ?p)"
+        ]
+      },
+      {
+        "type": "Unload-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(available ?x)",
+          "(in ?y ?z)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(available ?x)",
+          "(at ?z ?p)",
+          "(in ?y ?z)"
+        ]
+      },
+      {
+        "type": "Drop-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(at ?z ?p)",
+          "(clear ?z)",
+          "(lifting ?x ?y)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(lifting ?x ?y)",
+          "(clear ?z)",
+          "(at ?z ?p)"
+        ]
+      },
+      {
+        "type": "Drop-eff-add-order",
+        "original": [
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(clear ?y)",
+          "(on ?y ?z)"
+        ],
+        "candidate": [
+          "(on ?y ?z)",
+          "(at ?y ?p)",
+          "(clear ?y)",
+          "(available ?x)"
+        ]
+      },
+      {
+        "type": "Lift-precondition-order",
+        "original": [
+          "(at ?x ?p)",
+          "(available ?x)",
+          "(at ?y ?p)",
+          "(on ?y ?z)",
+          "(clear ?y)"
+        ],
+        "candidate": [
+          "(at ?x ?p)",
+          "(available ?x)",
+          "(clear ?y)",
+          "(on ?y ?z)",
+          "(at ?y ?p)"
+        ]
+      },
+      {
+        "type": "Lift-eff-del-order",
+        "original": [
+          "(not (at ?y ?p))",
+          "(not (clear ?y))",
+          "(not (available ?x))",
+          "(not (on ?y ?z))"
+        ],
+        "candidate": [
+          "(not (at ?y ?p))",
+          "(not (on ?y ?z))",
+          "(not (clear ?y))",
+          "(not (available ?x))"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 1489,
+  "val_output": ""
+}

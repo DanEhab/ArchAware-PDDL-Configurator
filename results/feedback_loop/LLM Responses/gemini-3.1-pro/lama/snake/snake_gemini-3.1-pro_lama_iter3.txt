@@ -1,0 +1,89 @@
+To further optimize invariant synthesis and landmark generation, structural and highly restrictive predicates (`headsnake`, `tailsnake`, `nextsnake`, `blocked`) were moved to the very top of the `:predicates` block, as they define the core mutexes of the snake's body. Within `:precondition` blocks, predicates were strictly ordered to evaluate static adjacency first, followed by these restrictive singleton/structural predicates, and finally negative conditions, ensuring maximum early state-pruning during relaxed-plan extraction.
+
+```lisp
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (headsnake ?x)
+    (tailsnake ?x)
+    (nextsnake ?x ?y)
+    (blocked ?x)
+    (ispoint ?x)
+    (spawn ?x)
+    (ISADJACENT ?x ?y)
+    (NEXTSPAWN ?x ?y)
+)
+
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (ISADJACENT ?head ?newhead)
+        (headsnake ?head)
+        (spawn dummypoint)
+        (ispoint ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (nextsnake ?newhead ?head)
+        (headsnake ?newhead)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (ISADJACENT ?head ?newhead)
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
+        (not (ispoint ?newhead))
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (nextsnake ?newhead ?head)
+        (headsnake ?newhead)
+        (tailsnake ?newtail)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (tailsnake ?tail))
+        (not (nextsnake ?newtail ?tail))
+        (not (blocked ?tail))
+    )
+)
+
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (ISADJACENT ?head ?newhead)
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (not (= ?spawnpoint dummypoint))
+        (headsnake ?head)
+        (spawn ?spawnpoint)
+        (ispoint ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (ispoint ?spawnpoint)
+        (spawn ?nextspawnpoint)
+        (nextsnake ?newhead ?head)
+        (headsnake ?newhead)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+        (not (spawn ?spawnpoint))
+    )
+)
+)
+```

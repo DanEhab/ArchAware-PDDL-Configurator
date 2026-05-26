@@ -1,0 +1,85 @@
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (spawn ?x)
+    (headsnake ?x)
+    (ispoint ?x)
+    (tailsnake ?x)
+    (nextsnake ?x ?y)
+    (blocked ?x)
+    (NEXTSPAWN ?x ?y)
+    (ISADJACENT ?x ?y)
+)
+
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (spawn ?spawnpoint)
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (headsnake ?head)
+        (ispoint ?newhead)
+        (ISADJACENT ?head ?newhead)
+        (not (= ?spawnpoint dummypoint))
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (spawn ?nextspawnpoint)
+        (headsnake ?newhead)
+        (ispoint ?spawnpoint)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (spawn ?spawnpoint))
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (spawn dummypoint)
+        (headsnake ?head)
+        (ispoint ?newhead)
+        (ISADJACENT ?head ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (headsnake ?head)
+        (ISADJACENT ?head ?newhead)
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
+        (not (ispoint ?newhead))
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (tailsnake ?newtail)
+        (nextsnake ?newhead ?head)
+        (blocked ?newhead)
+        (not (headsnake ?head))
+        (not (tailsnake ?tail))
+        (not (blocked ?tail))
+        (not (nextsnake ?newtail ?tail))
+    )
+)
+)

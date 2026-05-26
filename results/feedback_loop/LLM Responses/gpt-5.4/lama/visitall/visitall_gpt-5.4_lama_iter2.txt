@@ -1,0 +1,18 @@
+I prioritize the dynamic positional predicate before the visitation predicate and keep the static connectivity predicate last, while preserving the single enabling action first because it is the only operator and already drives all progress. Within the action, I place the static applicability test before the dynamic location test and keep goal-relevant add-effects before the delete-effect so translation, relaxed-plan extraction, and preferred-operator selection encounter the most useful facts earliest.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates
+	(at-robot ?x - place)
+	(visited ?x - place)
+	(connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
+:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+)
+
+)

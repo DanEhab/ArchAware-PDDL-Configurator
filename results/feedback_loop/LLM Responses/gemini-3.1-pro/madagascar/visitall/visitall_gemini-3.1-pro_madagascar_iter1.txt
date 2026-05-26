@@ -1,0 +1,19 @@
+I reordered the domain by placing the dynamic `at-robot` predicate, precondition, and add-effect before the goal-related `visited` elements to aggressively prune the backward-chaining search space by forcing the solver to resolve the robot's location first. This fundamentally different structural approach aims to help the CDCL solver learn critical routing clauses and state transitions earlier, potentially overcoming the timeouts observed in previous attempts.
+
+```lisp
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (at-robot ?x - place)
+	     (visited ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?curpos ?nextpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (at-robot ?nextpos) (visited ?nextpos) (not (at-robot ?curpos)))
+)
+
+)
+```

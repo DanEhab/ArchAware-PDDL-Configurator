@@ -1,0 +1,21 @@
+=== ERROR DUMP -- 6684 ===
+Error Type: TIMEOUT
+Timestamp: 2026-05-25T17:53:55.297979+00:00
+
+=== STDOUT ===
+[INFO] Running Madagascar (MpC configuration):
+[INFO]   Domain: /pddl/tmp_stage3/domain_deepseek-r1_madagascar_iter2.pddl
+[INFO]   Problem: /pddl/instances/instance-17.pddl
+
+[RESULT] STATUS: TIMEOUT
+[METRIC] PlanCost: N/A
+[METRIC] Runtime_wall_s: 359.99395
+[METRIC] Runtime_internal_s: 
+[METRIC] StatesExpanded: N/A
+[METRIC] StatesGenerated: N/A
+[METRIC] StatesEvaluated: N/A
+[METRIC] PeakMemory_KB: N/A
+
+
+=== STDERR ===
+(empty)

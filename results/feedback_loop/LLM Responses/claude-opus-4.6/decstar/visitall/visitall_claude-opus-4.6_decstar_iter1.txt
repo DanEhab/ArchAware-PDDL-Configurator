@@ -1,0 +1,17 @@
+My reordering strategy places the single-object predicates (`visited`, `at-robot`) before the multi-object interaction predicate (`connected`), and reorders preconditions/effects so the primary manipulated object (`nextpos`) appears first in effects while the local state (`at-robot`) precedes the shared connectivity check in preconditions, aiming to help DecStar's causal graph analysis better separate visited-tracking as leaf variables from robot position as center. Given that both baseline and reordered timed out on all instances, this domain's structure (single action touching all variable types) may be inherently resistant to decoupling, but optimizing variable ordering may still influence h² preprocessing and heuristic computation efficiency.
+
+(define (domain grid-visit-all)
+(:requirements :typing)
+(:types        place - object)
+(:predicates (visited ?x - place)
+	     (at-robot ?x - place)
+	     (connected ?x ?y - place)
+)
+	
+(:action move
+:parameters (?nextpos ?curpos - place)
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (visited ?nextpos) (not (at-robot ?curpos)) (at-robot ?nextpos))
+)
+
+)

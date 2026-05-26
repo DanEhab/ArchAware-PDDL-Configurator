@@ -1,0 +1,83 @@
+I reordered dynamic, goal-structuring predicates before static topology predicates, kept static tests first inside actions, and moved the simplest enabling action first so translation and preferred-operator generation emphasize movement-control facts and early applicability pruning. I also reordered action schemas and effect literals to favor add-first propagation around movement termination and position updates, aiming to reduce unproductive branching while preserving exact semantics.
+
+(define (domain ricochet-robots)
+(:requirements :strips :typing :negative-preconditions)
+
+(:types
+    robot - object
+    cell - object
+    direction - object
+)
+
+(:predicates
+    (at ?r - robot ?c - cell)
+    (is-moving ?r - robot ?dir - direction)
+    (nothing-is-moving)
+    (free ?c - cell)
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
+    (BLOCKED ?c - cell ?dir - direction)
+)
+
+(:action go
+    :parameters (?r - robot ?dir - direction)
+    :precondition
+        (and
+            (nothing-is-moving)
+        )
+    :effect
+        (and
+            (is-moving ?r ?dir)
+            (not (nothing-is-moving))
+        )
+)
+
+(:action stop-at-barrier
+    :parameters (?r - robot ?cat - cell ?dir - direction)
+    :precondition
+        (and
+            (BLOCKED ?cat ?dir)
+            (at ?r ?cat)
+            (is-moving ?r ?dir)
+        )
+    :effect
+        (and
+            (nothing-is-moving)
+            (not (is-moving ?r ?dir))
+        )
+)
+
+(:action stop-at-robot
+    :parameters (?r - robot ?cat - cell ?cnext - cell ?dir - direction)
+    :precondition
+        (and
+            (NEXT ?cat ?cnext ?dir)
+            (at ?r ?cat)
+            (is-moving ?r ?dir)
+            (not (free ?cnext))
+        )
+    :effect
+        (and
+            (nothing-is-moving)
+            (not (is-moving ?r ?dir))
+        )
+)
+
+(:action step
+    :parameters (?r - robot ?cfrom - cell ?cto - cell ?dir - direction)
+    :precondition
+        (and
+            (NEXT ?cfrom ?cto ?dir)
+            (not (BLOCKED ?cfrom ?dir))
+            (at ?r ?cfrom)
+            (is-moving ?r ?dir)
+            (free ?cto)
+        )
+    :effect
+        (and
+            (at ?r ?cto)
+            (free ?cfrom)
+            (not (at ?r ?cfrom))
+            (not (free ?cto))
+        )
+)
+)

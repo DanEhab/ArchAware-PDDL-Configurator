@@ -1,0 +1,159 @@
+Looking at the iteration history, both my previous attempts regressed by reordering predicates and actions away from the original structure. The successful Stage 2 attempt (which I don't have) likely stayed very close to the original. Since the baseline solves 4/15 instances and my changes only hurt timing on those same 4, I should try a minimal, targeted change: keeping the original action order but reordering preconditions/effects within actions to place the most constraining local predicates first (helping h² pruning) and demoting `handempty`/`next`/`cocktail-part` references to the end, while keeping predicates in near-original order with only `next` and `cocktail-part` demoted as global connectors.
+
+My strategy focuses on minimal changes from the original: keeping action and predicate order nearly identical but reordering preconditions within each action to place the primary container's local state first and shared coordination predicates (handempty, next, cocktail-part1/2, dispenses) last, which should help h² mutex pruning eliminate more states early and improve the causal graph's leaf detection. I also swap `next` and `cocktail-part` predicates to the end of the predicates block since they connect all levels/cocktails globally and could collapse SCCs.
+
+```
+(define (domain barman)
+  (:requirements :strips :typing)
+  (:types hand level beverage dispenser container - object
+  	  ingredient cocktail - beverage
+          shot shaker - container)
+  (:predicates  (ontable ?c - container)
+		(empty ?c - container)
+		(clean ?c - container)
+		(unshaked ?s - shaker)
+		(shaked ?s - shaker)
+		(shaker-empty-level ?s - shaker ?l - level)
+		(shaker-level ?s - shaker ?l - level)
+		(handempty ?h - hand)
+		(holding ?h - hand ?c - container)
+		(used ?c - container ?b - beverage)
+		(contains ?c - container ?b - beverage)
+		(dispenses ?d - dispenser ?i - ingredient)
+		(next ?l1 ?l2 - level)
+		(cocktail-part1 ?c - cocktail ?i - ingredient)
+		(cocktail-part2 ?c - cocktail ?i - ingredient))
+
+  (:action grasp
+             :parameters (?h - hand ?c - container)
+             :precondition (and (ontable ?c) (handempty ?h))
+             :effect (and (not (ontable ?c))
+			  (holding ?h ?c)
+	     	     	  (not (handempty ?h))))
+
+  (:action leave
+             :parameters (?h - hand ?c - container)
+             :precondition (holding ?h ?c)
+             :effect (and (not (holding ?h ?c))
+			  (ontable ?c)
+	     	     	  (handempty ?h)))
+
+  (:action empty-shot
+           :parameters (?p - shot ?b - beverage ?h - hand)
+           :precondition (and (contains ?p ?b)
+                              (holding ?h ?p))
+           :effect (and (not (contains ?p ?b))
+	   	   	(empty ?p)))
+
+  (:action clean-shot
+  	   :parameters (?s - shot ?b - beverage ?h1 ?h2 - hand)
+           :precondition (and (empty ?s)
+                              (used ?s ?b)
+                              (holding ?h1 ?s)
+                              (handempty ?h2))
+           :effect (and (not (used ?s ?b))
+	   	   	(clean ?s)))
+
+  (:action fill-shot
+           :parameters (?s - shot ?i - ingredient ?d - dispenser ?h1 ?h2 - hand)
+           :precondition (and (empty ?s)
+			      (clean ?s)
+                              (holding ?h1 ?s)
+                              (dispenses ?d ?i)
+                              (handempty ?h2))
+           :effect (and (not (empty ?s))
+	   	   	(not (clean ?s))
+			(contains ?s ?i)
+			(used ?s ?i)))
+
+  (:action refill-shot
+           :parameters (?s - shot ?i - ingredient ?d - dispenser ?h1 ?h2 - hand)
+           :precondition (and (empty ?s)
+			      (used ?s ?i)
+                              (holding ?h1 ?s)
+                              (dispenses ?d ?i)
+                              (handempty ?h2))
+           :effect (and (not (empty ?s))
+                        (contains ?s ?i)))
+
+  (:action clean-shaker
+  	   :parameters (?s - shaker ?h1 ?h2 - hand)
+           :precondition (and (empty ?s)
+                              (holding ?h1 ?s)
+                              (handempty ?h2))
+           :effect (and (clean ?s)))
+
+  (:action empty-shaker
+           :parameters (?s - shaker ?b - cocktail ?l ?l1 - level ?h - hand)
+           :precondition (and (contains ?s ?b)
+			      (shaked ?s)
+			      (shaker-level ?s ?l)
+			      (shaker-empty-level ?s ?l1)
+                              (holding ?h ?s))
+           :effect (and (not (shaked ?s))
+	   	   	(not (shaker-level ?s ?l))
+	   	   	(shaker-level ?s ?l1)
+			(not (contains ?s ?b))
+	   	   	(empty ?s)))
+
+  (:action pour-shot-to-clean-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (contains ?s ?i)
+                              (holding ?h1 ?s)
+                              (empty ?d)
+	   		      (clean ?d)
+                              (shaker-level ?d ?l)
+                              (next ?l ?l1))
+           :effect (and (not (contains ?s ?i))
+	   	   	(empty ?s)
+			(contains ?d ?i)
+                        (not (empty ?d))
+			(not (clean ?d))
+			(unshaked ?d)
+			(not (shaker-level ?d ?l))
+			(shaker-level ?d ?l1)))
+
+  (:action pour-shot-to-used-shaker
+           :parameters (?s - shot ?i - ingredient ?d - shaker ?h1 - hand ?l ?l1 - level)
+           :precondition (and (contains ?s ?i)
+                              (holding ?h1 ?s)
+                              (unshaked ?d)
+                              (shaker-level ?d ?l)
+                              (next ?l ?l1))
+           :effect (and (not (contains ?s ?i))
+	   	   	(empty ?s)
+                        (contains ?d ?i)
+  			(not (shaker-level ?d ?l))
+			(shaker-level ?d ?l1)))
+
+  (:action shake
+  	   :parameters (?s - shaker ?b - cocktail ?d1 ?d2 - ingredient ?h1 ?h2 - hand)
+           :precondition (and (contains ?s ?d1)
+                              (contains ?s ?d2)
+                              (unshaked ?s)
+                              (holding ?h1 ?s)
+                              (cocktail-part1 ?b ?d1)
+			      (cocktail-part2 ?b ?d2)
+                              (handempty ?h2))
+           :effect (and (not (unshaked ?s))
+		        (not (contains ?s ?d1))
+                        (not (contains ?s ?d2))
+	   	   	(shaked ?s)
+                        (contains ?s ?b)))
+
+  (:action pour-shaker-to-shot
+           :parameters (?s - shaker ?b - beverage ?d - shot ?h - hand ?l ?l1 - level)
+           :precondition (and (contains ?s ?b)
+			      (shaked ?s)
+                              (shaker-level ?s ?l)
+                              (holding ?h ?s)
+                              (empty ?d)
+			      (clean ?d)
+                              (next ?l1 ?l))
+           :effect (and (not (shaker-level ?s ?l))
+			(shaker-level ?s ?l1)
+			(not (clean ?d))
+	   	   	(not (empty ?d))
+			(contains ?d ?b)))
+ )
+```

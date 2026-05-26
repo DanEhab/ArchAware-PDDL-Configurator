@@ -1,0 +1,43 @@
+To further optimize the domain for BFWS-Preference, I reordered the actions to prioritize `Drop` (achieves the primary goal `on`) and `Lift` (achieves the secondary goal/enabler `clear`), followed by `Load`, `Unload`, and `Drive`, ensuring that goal-achieving and goal-enabling actions receive the lowest C++ IDs for optimal tie-breaking in `H_Add_Rp_Fwd`. Additionally, I reordered predicates, preconditions, and effects to place goal-proximal fluents (`on`, `clear`, `lifting`) before location and state fluents (`at`, `available`), which guides the relaxed plan's backward trace and forward reachability more directly toward goal-relevant facts, tightening the bucket assignments and improving novelty discrimination.
+
+```lisp
+(define (domain Depot)
+(:requirements :strips :typing)
+(:types place locatable - object
+	depot distributor - place
+        truck hoist surface - locatable
+        pallet crate - surface)
+
+(:predicates (on ?x - crate ?y - surface)
+             (clear ?x - surface)
+             (in ?x - crate ?y - truck)
+             (lifting ?x - hoist ?y - crate)
+             (at ?x - locatable ?y - place)
+             (available ?x - hoist))
+
+(:action Drop 
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (lifting ?x ?y) (clear ?z) (at ?z ?p) (at ?x ?p))
+:effect (and (on ?y ?z) (clear ?y) (at ?y ?p) (available ?x) (not (lifting ?x ?y)) (not (clear ?z))))
+
+(:action Lift
+:parameters (?x - hoist ?y - crate ?z - surface ?p - place)
+:precondition (and (on ?y ?z) (clear ?y) (available ?x) (at ?y ?p) (at ?x ?p))
+:effect (and (lifting ?x ?y) (clear ?z) (not (on ?y ?z)) (not (clear ?y)) (not (at ?y ?p)) (not (available ?x))))
+
+(:action Load
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (lifting ?x ?y) (at ?z ?p) (at ?x ?p))
+:effect (and (in ?y ?z) (available ?x) (not (lifting ?x ?y))))
+
+(:action Unload 
+:parameters (?x - hoist ?y - crate ?z - truck ?p - place)
+:precondition (and (in ?y ?z) (available ?x) (at ?z ?p) (at ?x ?p))
+:effect (and (lifting ?x ?y) (not (in ?y ?z)) (not (available ?x))))
+
+(:action Drive
+:parameters (?x - truck ?y - place ?z - place) 
+:precondition (and (at ?x ?y))
+:effect (and (at ?x ?z) (not (at ?x ?y))))
+)
+```

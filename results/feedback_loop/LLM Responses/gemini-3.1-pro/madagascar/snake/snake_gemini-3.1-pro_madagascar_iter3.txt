@@ -1,0 +1,89 @@
+I prioritized the `move-and-eat-no-spawn` and `move-and-eat-spawn` actions to align with Madagascar's backward-chaining heuristic, ensuring the CDCL solver first evaluates the highly restrictive, goal-achieving actions that occur at the end of the planning horizon. Additionally, I ordered static preconditions (`ISADJACENT`, `NEXTSPAWN`) before dynamic ones, and placed the `spawn` predicate first to maximize early unit propagation and accelerate the discovery of critical goal-state invariants.
+
+```lisp
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (spawn ?x)
+    (ispoint ?x)
+    (headsnake ?x)
+    (tailsnake ?x)
+    (blocked ?x)
+    (nextsnake ?x ?y)
+    (ISADJACENT ?x ?y)
+    (NEXTSPAWN ?x ?y)
+)
+
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (ISADJACENT ?head ?newhead)
+        (spawn dummypoint)
+        (headsnake ?head)
+        (ispoint ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (blocked ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (ISADJACENT ?head ?newhead)
+        (not (= ?spawnpoint dummypoint))
+        (spawn ?spawnpoint)
+        (headsnake ?head)
+        (ispoint ?newhead)
+        (not (blocked ?newhead))
+    )
+    :effect
+    (and
+        (spawn ?nextspawnpoint)
+        (ispoint ?spawnpoint)
+        (headsnake ?newhead)
+        (blocked ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (spawn ?spawnpoint))
+        (not (headsnake ?head))
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (ISADJACENT ?head ?newhead)
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
+        (not (blocked ?newhead))
+        (not (ispoint ?newhead))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (tailsnake ?newtail)
+        (blocked ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (not (tailsnake ?tail))
+        (not (blocked ?tail))
+        (not (nextsnake ?newtail ?tail))
+    )
+)
+)
+```

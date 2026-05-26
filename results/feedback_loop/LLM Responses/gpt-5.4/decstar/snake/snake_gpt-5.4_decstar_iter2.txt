@@ -1,0 +1,87 @@
+I reorder to isolate the globally shared spawn-chain predicates and the spawn-coordinating eating action away from the core snake-motion structure, while keeping the baseline-friendly action internals for the common movement operators as intact as possible. This should reduce harmful translator ordering perturbations seen in the previous attempt while still nudging DecStar to treat ordinary movement as the dominant local subsystem and the spawn mechanism as secondary coordination.
+
+(define (domain snake)
+(:requirements :strips :negative-preconditions :equality)
+(:constants
+    dummypoint
+)
+(:predicates
+    (tailsnake ?x)
+    (headsnake ?x)
+    (blocked ?x)
+    (ispoint ?x)
+    (spawn ?x)
+    (nextsnake ?x ?y)
+    (ISADJACENT ?x ?y)
+    (NEXTSPAWN ?x ?y)
+)
+(:action move
+    :parameters (?head ?newhead ?tail ?newtail)
+    :precondition
+    (and
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
+        (not (blocked ?newhead))
+        (not (ispoint ?newhead))
+        (ISADJACENT ?head ?newhead)
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (tailsnake ?newtail)
+        (not (tailsnake ?tail))
+        (not (nextsnake ?newtail ?tail))
+        (blocked ?newhead)
+        (not (blocked ?tail))
+    )
+)
+
+(:action move-and-eat-no-spawn
+    :parameters (?head ?newhead)
+    :precondition
+    (and
+        (headsnake ?head)
+        (not (blocked ?newhead))
+        (ispoint ?newhead)
+        (ISADJACENT ?head ?newhead)
+        (spawn dummypoint)
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (blocked ?newhead)
+        (not (ispoint ?newhead))
+    )
+)
+
+(:action move-and-eat-spawn
+    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :precondition
+    (and
+        (headsnake ?head)
+        (not (blocked ?newhead))
+        (ispoint ?newhead)
+        (ISADJACENT ?head ?newhead)
+        (spawn ?spawnpoint)
+        (NEXTSPAWN ?spawnpoint ?nextspawnpoint)
+        (not (= ?spawnpoint dummypoint))
+    )
+    :effect
+    (and
+        (headsnake ?newhead)
+        (nextsnake ?newhead ?head)
+        (not (headsnake ?head))
+        (blocked ?newhead)
+        (not (ispoint ?newhead))
+        (ispoint ?spawnpoint)
+        (not (spawn ?spawnpoint))
+        (spawn ?nextspawnpoint)
+    )
+)
+
+)

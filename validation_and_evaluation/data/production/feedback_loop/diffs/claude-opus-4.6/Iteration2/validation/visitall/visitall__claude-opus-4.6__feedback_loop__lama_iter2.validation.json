@@ -1,0 +1,46 @@
+{
+  "domain": "visitall",
+  "model": "claude-opus-4.6",
+  "stage": "feedback_loop",
+  "run_id": "lama_iter2",
+  "timestamp": "2026-05-26T03:08:25.083219+00:00",
+  "validation_status": "VALID",
+  "rejection_reason": null,
+  "failed_stage": null,
+  "diff_features": {
+    "pred_reordered": 1,
+    "eff_add_reordered": 1,
+    "has_semantic_change": 0
+  },
+  "diff_details": {
+    "semantic": [],
+    "syntactic": [
+      {
+        "type": "predicates-order",
+        "original": [
+          "(connected ?x ?y - place)",
+          "(at-robot ?x - place)",
+          "(visited ?x - place)"
+        ],
+        "candidate": [
+          "(visited ?x - place)",
+          "(at-robot ?x - place)",
+          "(connected ?x ?y - place)"
+        ]
+      },
+      {
+        "type": "move-eff-add-order",
+        "original": [
+          "(at-robot ?nextpos)",
+          "(visited ?nextpos)"
+        ],
+        "candidate": [
+          "(visited ?nextpos)",
+          "(at-robot ?nextpos)"
+        ]
+      }
+    ]
+  },
+  "extracted_pddl_length": 388,
+  "val_output": ""
+}
