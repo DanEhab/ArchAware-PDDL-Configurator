@@ -8,8 +8,8 @@
 	
 (:action move
 :parameters (?curpos ?nextpos - place)
-:precondition (and (connected ?curpos ?nextpos) (at-robot ?curpos))
-:effect (and (visited ?nextpos) (at-robot ?nextpos) (not (at-robot ?curpos)))
+:precondition (and (at-robot ?curpos) (connected ?curpos ?nextpos))
+:effect (and (at-robot ?nextpos) (visited ?nextpos) (not (at-robot ?curpos)))
 )
 
 )

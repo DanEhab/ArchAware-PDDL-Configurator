@@ -258,6 +258,10 @@ def run_feedback_loop(domain_name, planner_name, llm_model, base_domain_path, te
     if stage2_stats is None:
         best_score = float(stage2_best_score)
         seed_score = float(stage2_best_score)
+        best_avg_time = float("inf")
+    else:
+        best_avg_cov = stage2_stats.get('coverage', 0)
+        best_avg_time = stage2_stats.get('total_search_time', 0.0) / best_avg_cov if best_avg_cov > 0 else float("inf")
     best_domain_path = None if not is_valid_seed else base_domain_path
     
     verdict = None # Track across iterations
@@ -541,6 +545,13 @@ IMPROVEMENT DIRECTION:
         if iter_ipc_abs > best_score:
             is_best = True
             best_score = iter_ipc_abs
+            best_avg_time = stage2_avg_time
+            best_domain_path = tmp_domain_path
+            best_iter_num = iteration
+        elif abs(iter_ipc_abs - best_score) < 1e-6 and stage2_avg_time < best_avg_time:
+            is_best = True
+            best_score = iter_ipc_abs
+            best_avg_time = stage2_avg_time
             best_domain_path = tmp_domain_path
             best_iter_num = iteration
 

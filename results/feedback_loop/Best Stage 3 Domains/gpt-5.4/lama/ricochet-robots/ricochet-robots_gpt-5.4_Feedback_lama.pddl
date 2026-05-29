@@ -9,9 +9,9 @@
 
 (:predicates
     (at ?r - robot ?c - cell)
-    (free ?c - cell)
-    (nothing-is-moving)
     (is-moving ?r - robot ?dir - direction)
+    (nothing-is-moving)
+    (free ?c - cell)
     (NEXT ?c - cell ?cnext - cell ?dir - direction)
     (BLOCKED ?c - cell ?dir - direction)
 )
@@ -34,8 +34,8 @@
     :precondition
         (and
             (BLOCKED ?cat ?dir)
-            (is-moving ?r ?dir)
             (at ?r ?cat)
+            (is-moving ?r ?dir)
         )
     :effect
         (and
@@ -49,8 +49,8 @@
     :precondition
         (and
             (NEXT ?cat ?cnext ?dir)
-            (is-moving ?r ?dir)
             (at ?r ?cat)
+            (is-moving ?r ?dir)
             (not (free ?cnext))
         )
     :effect
@@ -65,15 +65,15 @@
     :precondition
         (and
             (NEXT ?cfrom ?cto ?dir)
-            (is-moving ?r ?dir)
-            (at ?r ?cfrom)
-            (free ?cto)
             (not (BLOCKED ?cfrom ?dir))
+            (at ?r ?cfrom)
+            (is-moving ?r ?dir)
+            (free ?cto)
         )
     :effect
         (and
-            (free ?cfrom)
             (at ?r ?cto)
+            (free ?cfrom)
             (not (at ?r ?cfrom))
             (not (free ?cto))
         )

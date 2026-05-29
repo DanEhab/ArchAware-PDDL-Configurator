@@ -2,8 +2,8 @@
 (:requirements :typing)
 (:types        place - object)
 (:predicates
-	(visited ?x - place)
 	(at-robot ?x - place)
+	(visited ?x - place)
 	(connected ?x ?y - place)
 )
 	
