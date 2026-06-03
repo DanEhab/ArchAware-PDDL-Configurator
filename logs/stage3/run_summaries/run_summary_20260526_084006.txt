@@ -5,26 +5,26 @@
 Total Triples Processed: 80
 Always-Timeout Triples (Excluded): 12
 Contestable Triples: 68
-Total Triples Improved (vs Seed): 29 (42.6% of contestable)
+Total Triples Improved (vs Seed): 32 (47.1% of contestable)
 
 BREAKDOWN BY LLM (Contestable Triples):
 -----------------
 - gpt-5.4-2026-03-05: 8/17 Improved (47.1%)
-- claude-opus-4-6: 7/17 Improved (41.2%)
-- deepseek-reasoner: 5/17 Improved (29.4%)
-- gemini-3.1-pro-preview-customtools: 9/17 Improved (52.9%)
+- claude-opus-4-6: 8/17 Improved (47.1%)
+- deepseek-reasoner: 6/17 Improved (35.3%)
+- gemini-3.1-pro-preview-customtools: 10/17 Improved (58.8%)
 
 BREAKDOWN BY PLANNER (Contestable Triples):
 ---------------------
-- lama: 10/20 Improved (50.0%)
-- decstar: 3/16 Improved (18.8%)
-- bfws: 10/20 Improved (50.0%)
+- lama: 11/20 Improved (55.0%)
+- decstar: 4/16 Improved (25.0%)
+- bfws: 11/20 Improved (55.0%)
 - madagascar: 6/12 Improved (50.0%)
 
 BREAKDOWN BY DOMAIN (Contestable Triples):
 --------------------
-- barman: 8/16 Improved (50.0%)
+- barman: 9/16 Improved (56.2%)
 - depots: 5/16 Improved (31.2%)
 - ricochet-robots: 6/12 Improved (50.0%)
-- snake: 5/16 Improved (31.2%)
+- snake: 7/16 Improved (43.8%)
 - visitall: 5/8 Improved (62.5%)

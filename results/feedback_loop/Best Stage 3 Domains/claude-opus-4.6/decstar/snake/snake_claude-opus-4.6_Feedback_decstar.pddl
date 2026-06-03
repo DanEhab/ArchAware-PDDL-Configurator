@@ -4,40 +4,44 @@
     dummypoint
 )
 (:predicates
-    (tailsnake ?x)
-    (headsnake ?x)
+    (ISADJACENT ?x ?y)
+    (NEXTSPAWN ?x ?y)
     (nextsnake ?x ?y)
+    (headsnake ?x)
+    (tailsnake ?x)
     (ispoint ?x)
     (blocked ?x)
     (spawn ?x)
-    (NEXTSPAWN ?x ?y)
-    (ISADJACENT ?x ?y)
 )
-(:action move-and-eat-no-spawn
-    :parameters (?head ?newhead)
+(:action move
+    :parameters (?newhead ?head ?tail ?newtail)
     :precondition
     (and
-        (headsnake ?head)
         (ISADJACENT ?head ?newhead)
-        (ispoint ?newhead)
+        (headsnake ?head)
+        (tailsnake ?tail)
+        (nextsnake ?newtail ?tail)
         (not (blocked ?newhead))
-        (spawn dummypoint)
+        (not (ispoint ?newhead))
     )
     :effect
     (and
+        (blocked ?newhead)
         (headsnake ?newhead)
         (nextsnake ?newhead ?head)
-        (blocked ?newhead)
         (not (headsnake ?head))
-        (not (ispoint ?newhead))
+        (tailsnake ?newtail)
+        (not (tailsnake ?tail))
+        (not (blocked ?tail))
+        (not (nextsnake ?newtail ?tail))
     )
 )
 (:action move-and-eat-spawn
-    :parameters (?head ?newhead ?spawnpoint ?nextspawnpoint)
+    :parameters (?newhead ?head ?spawnpoint ?nextspawnpoint)
     :precondition
     (and
-        (headsnake ?head)
         (ISADJACENT ?head ?newhead)
+        (headsnake ?head)
         (ispoint ?newhead)
         (not (blocked ?newhead))
         (not (= ?spawnpoint dummypoint))
@@ -46,9 +50,9 @@
     )
     :effect
     (and
+        (blocked ?newhead)
         (headsnake ?newhead)
         (nextsnake ?newhead ?head)
-        (blocked ?newhead)
         (not (headsnake ?head))
         (not (ispoint ?newhead))
         (ispoint ?spawnpoint)
@@ -56,27 +60,23 @@
         (spawn ?nextspawnpoint)
     )
 )
-(:action move
-    :parameters (?head ?newhead ?tail ?newtail)
+(:action move-and-eat-no-spawn
+    :parameters (?newhead ?head)
     :precondition
     (and
-        (headsnake ?head)
         (ISADJACENT ?head ?newhead)
+        (headsnake ?head)
+        (ispoint ?newhead)
         (not (blocked ?newhead))
-        (not (ispoint ?newhead))
-        (tailsnake ?tail)
-        (nextsnake ?newtail ?tail)
+        (spawn dummypoint)
     )
     :effect
     (and
+        (blocked ?newhead)
         (headsnake ?newhead)
         (nextsnake ?newhead ?head)
-        (blocked ?newhead)
         (not (headsnake ?head))
-        (tailsnake ?newtail)
-        (not (tailsnake ?tail))
-        (not (blocked ?tail))
-        (not (nextsnake ?newtail ?tail))
+        (not (ispoint ?newhead))
     )
 )
 )

@@ -5,11 +5,11 @@
 )
 (:predicates
     (headsnake ?x)
-    (blocked ?x)
+    (tailsnake ?x)
     (nextsnake ?x ?y)
+    (blocked ?x)
     (ispoint ?x)
     (spawn ?x)
-    (tailsnake ?x)
     (ISADJACENT ?x ?y)
     (NEXTSPAWN ?x ?y)
 )
