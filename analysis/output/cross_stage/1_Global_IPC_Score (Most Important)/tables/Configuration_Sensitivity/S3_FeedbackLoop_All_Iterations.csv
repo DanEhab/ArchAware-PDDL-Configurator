@@ -1,0 +1,219 @@
+Domain,LLM,Planner,Iteration,Score
+barman,GPT-5.4,lama,1,14.6123
+barman,Claude Opus 4.6,lama,1,14.5449
+barman,DeepSeek-R1,lama,1,14.4714
+barman,Gemini 3.1 Pro,lama,1,14.4595
+barman,GPT-5.4,lama,2,14.401
+barman,Claude Opus 4.6,lama,2,14.4213
+barman,DeepSeek-R1,lama,2,14.565
+barman,GPT-5.4,lama,3,14.3209
+barman,Claude Opus 4.6,lama,3,14.4092
+barman,Gemini 3.1 Pro,lama,2,14.4768
+barman,DeepSeek-R1,lama,3,14.4946
+barman,Gemini 3.1 Pro,lama,3,14.7124
+barman,GPT-5.4,decstar,1,3.8754
+barman,Claude Opus 4.6,decstar,1,3.9001
+barman,DeepSeek-R1,decstar,1,3.8805
+barman,DeepSeek-R1,decstar,2,N/A (Invalid: INVALID_V4)
+barman,Gemini 3.1 Pro,decstar,1,3.8901
+barman,GPT-5.4,decstar,2,3.8802
+barman,Claude Opus 4.6,decstar,2,3.8841
+barman,DeepSeek-R1,decstar,3,3.8881
+barman,Gemini 3.1 Pro,decstar,2,3.88
+barman,Gemini 3.1 Pro,decstar,3,N/A (Invalid: LLM_TokenLimitExceeded)
+barman,DeepSeek-R1,bfws,1,13.868
+barman,Gemini 3.1 Pro,bfws,1,14.1795
+barman,DeepSeek-R1,bfws,2,13.8494
+barman,Gemini 3.1 Pro,bfws,2,14.1675
+barman,DeepSeek-R1,bfws,3,13.8464
+barman,DeepSeek-R1,madagascar,1,N/A (Invalid: INVALID_V4)
+barman,Gemini 3.1 Pro,bfws,3,14.1717
+barman,GPT-5.4,decstar,3,3.8643
+barman,Claude Opus 4.6,decstar,3,3.8541
+barman,GPT-5.4,bfws,1,13.5773
+barman,Claude Opus 4.6,bfws,1,13.6993
+barman,GPT-5.4,bfws,2,13.5642
+barman,Claude Opus 4.6,bfws,2,13.6866
+barman,Gemini 3.1 Pro,madagascar,1,4.6763
+barman,GPT-5.4,bfws,3,13.5985
+barman,Claude Opus 4.6,bfws,3,13.7373
+barman,DeepSeek-R1,madagascar,2,3.0198
+barman,Gemini 3.1 Pro,madagascar,2,3.4916
+barman,Claude Opus 4.6,madagascar,1,2.5131
+barman,GPT-5.4,madagascar,1,1.7776
+barman,DeepSeek-R1,madagascar,3,2.9493
+depots,DeepSeek-R1,lama,1,14.1493
+depots,DeepSeek-R1,lama,2,14.0563
+depots,DeepSeek-R1,lama,3,N/A (Invalid: INVALID_V1)
+depots,DeepSeek-R1,decstar,1,12.8632
+depots,DeepSeek-R1,decstar,2,13.0089
+depots,DeepSeek-R1,decstar,3,12.9522
+depots,DeepSeek-R1,bfws,1,13.4067
+depots,DeepSeek-R1,bfws,2,13.6477
+depots,DeepSeek-R1,bfws,3,13.5831
+depots,DeepSeek-R1,madagascar,1,13.1973
+depots,DeepSeek-R1,madagascar,2,13.4341
+depots,DeepSeek-R1,madagascar,3,13.5635
+barman,Gemini 3.1 Pro,madagascar,3,2.4833
+depots,Gemini 3.1 Pro,lama,1,14.1966
+barman,GPT-5.4,madagascar,2,2.7296
+depots,Gemini 3.1 Pro,lama,2,14.2496
+depots,Gemini 3.1 Pro,lama,3,14.0131
+barman,Claude Opus 4.6,madagascar,2,1.0871
+depots,Gemini 3.1 Pro,decstar,1,13.1284
+depots,Gemini 3.1 Pro,decstar,2,13.0607
+depots,Gemini 3.1 Pro,decstar,3,13.0597
+depots,Gemini 3.1 Pro,bfws,1,13.5332
+depots,Gemini 3.1 Pro,bfws,2,13.4948
+ricochet-robots,DeepSeek-R1,lama,1,5.8966
+depots,Gemini 3.1 Pro,bfws,3,13.6245
+depots,Gemini 3.1 Pro,madagascar,1,13.5811
+depots,Gemini 3.1 Pro,madagascar,2,13.5829
+depots,Gemini 3.1 Pro,madagascar,3,13.5274
+barman,GPT-5.4,madagascar,3,3.7178
+depots,GPT-5.4,lama,1,14.0923
+depots,GPT-5.4,lama,2,14.1312
+depots,GPT-5.4,lama,3,14.2038
+depots,GPT-5.4,decstar,1,13.1055
+depots,GPT-5.4,decstar,2,13.1305
+depots,GPT-5.4,decstar,3,12.9459
+depots,GPT-5.4,bfws,1,13.4021
+depots,GPT-5.4,bfws,2,N/A (Invalid: INVALID_V4)
+depots,GPT-5.4,bfws,3,13.4562
+depots,GPT-5.4,madagascar,1,13.4687
+depots,GPT-5.4,madagascar,2,13.4753
+depots,GPT-5.4,madagascar,3,13.3681
+barman,Claude Opus 4.6,madagascar,3,2.3762
+depots,Claude Opus 4.6,lama,1,14.2611
+depots,Claude Opus 4.6,lama,2,14.3116
+depots,Claude Opus 4.6,lama,3,14.3252
+depots,Claude Opus 4.6,decstar,1,13.1895
+ricochet-robots,DeepSeek-R1,lama,2,6.8954
+ricochet-robots,DeepSeek-R1,lama,3,N/A (Invalid: INVALID_V1)
+depots,Claude Opus 4.6,decstar,2,13.4193
+ricochet-robots,Gemini 3.1 Pro,lama,1,6.9
+depots,Claude Opus 4.6,decstar,3,13.4829
+ricochet-robots,Gemini 3.1 Pro,lama,2,N/A (Invalid: LLM_TokenLimitExceeded)
+depots,Claude Opus 4.6,bfws,1,13.7285
+depots,Claude Opus 4.6,bfws,2,13.663
+depots,Claude Opus 4.6,bfws,3,13.6837
+depots,Claude Opus 4.6,madagascar,1,13.6526
+depots,Claude Opus 4.6,madagascar,2,13.5782
+depots,Claude Opus 4.6,madagascar,3,13.6428
+ricochet-robots,GPT-5.4,lama,1,6.9387
+ricochet-robots,DeepSeek-R1,decstar,1,4.8841
+ricochet-robots,DeepSeek-R1,decstar,2,N/A (Invalid: INVALID_V1)
+ricochet-robots,DeepSeek-R1,decstar,3,N/A (Invalid: INVALID_V1)
+ricochet-robots,DeepSeek-R1,bfws,1,N/A (Invalid: INVALID_V1)
+ricochet-robots,DeepSeek-R1,bfws,2,N/A (Invalid: INVALID_V1)
+ricochet-robots,DeepSeek-R1,bfws,3,N/A (Invalid: INVALID_V1)
+ricochet-robots,Gemini 3.1 Pro,lama,3,6.9561
+ricochet-robots,Claude Opus 4.6,lama,1,6.9611
+ricochet-robots,GPT-5.4,lama,2,6.9573
+ricochet-robots,Gemini 3.1 Pro,decstar,1,4.8475
+ricochet-robots,Claude Opus 4.6,lama,2,6.9426
+ricochet-robots,DeepSeek-R1,madagascar,1,0.0
+ricochet-robots,GPT-5.4,lama,3,6.9484
+ricochet-robots,Gemini 3.1 Pro,decstar,2,4.8446
+ricochet-robots,Gemini 3.1 Pro,decstar,3,N/A (Invalid: LLM_TokenLimitExceeded)
+ricochet-robots,Claude Opus 4.6,lama,3,6.9273
+snake,DeepSeek-R1,lama,1,2.0
+ricochet-robots,Gemini 3.1 Pro,bfws,1,12.3891
+ricochet-robots,GPT-5.4,decstar,1,4.8188
+ricochet-robots,Claude Opus 4.6,decstar,1,4.8126
+snake,DeepSeek-R1,lama,2,1.9614
+snake,DeepSeek-R1,lama,3,N/A (Invalid: INVALID_V1)
+ricochet-robots,Gemini 3.1 Pro,bfws,2,10.0853
+ricochet-robots,GPT-5.4,decstar,2,4.8184
+ricochet-robots,Claude Opus 4.6,decstar,2,4.8231
+ricochet-robots,Gemini 3.1 Pro,bfws,3,10.1276
+snake,DeepSeek-R1,decstar,1,2.8653
+snake,DeepSeek-R1,decstar,2,N/A (Invalid: INVALID_V1)
+ricochet-robots,GPT-5.4,decstar,3,4.816
+ricochet-robots,Claude Opus 4.6,decstar,3,4.8133
+ricochet-robots,GPT-5.4,bfws,1,9.9088
+ricochet-robots,Gemini 3.1 Pro,madagascar,1,0.0
+snake,DeepSeek-R1,decstar,3,2.879
+ricochet-robots,Claude Opus 4.6,bfws,1,8.8841
+ricochet-robots,GPT-5.4,bfws,2,10.3435
+snake,DeepSeek-R1,bfws,1,7.3198
+ricochet-robots,Claude Opus 4.6,bfws,2,8.835
+snake,Gemini 3.1 Pro,lama,1,1.9639
+ricochet-robots,GPT-5.4,bfws,3,12.0044
+snake,DeepSeek-R1,bfws,2,7.0918
+ricochet-robots,Claude Opus 4.6,bfws,3,9.2935
+snake,Gemini 3.1 Pro,lama,2,1.9404
+snake,DeepSeek-R1,bfws,3,6.168
+ricochet-robots,GPT-5.4,madagascar,1,0.0
+ricochet-robots,Claude Opus 4.6,madagascar,1,0.0
+snake,Gemini 3.1 Pro,lama,3,1.9236
+snake,DeepSeek-R1,madagascar,1,4.0106
+snake,GPT-5.4,lama,1,1.9086
+snake,Claude Opus 4.6,lama,1,1.885
+snake,DeepSeek-R1,madagascar,2,3.9204
+snake,DeepSeek-R1,madagascar,3,N/A (Invalid: INVALID_V1)
+visitall,DeepSeek-R1,lama,1,N/A (Invalid: INVALID_V1)
+visitall,DeepSeek-R1,lama,2,N/A (Invalid: INVALID_V1)
+snake,Gemini 3.1 Pro,decstar,1,2.7494
+visitall,DeepSeek-R1,lama,3,12.7468
+visitall,DeepSeek-R1,decstar,1,N/A (Invalid: INVALID_V1)
+snake,GPT-5.4,lama,2,1.8878
+snake,Claude Opus 4.6,lama,2,1.9003
+snake,Gemini 3.1 Pro,decstar,2,2.7305
+visitall,DeepSeek-R1,decstar,2,0.0
+visitall,DeepSeek-R1,bfws,1,11.8759
+visitall,DeepSeek-R1,bfws,2,11.802
+snake,GPT-5.4,lama,3,1.9056
+visitall,DeepSeek-R1,bfws,3,12.0262
+visitall,DeepSeek-R1,madagascar,1,N/A (Invalid: INVALID_V4)
+snake,Claude Opus 4.6,lama,3,1.8999
+snake,Gemini 3.1 Pro,decstar,3,2.76
+snake,GPT-5.4,decstar,1,2.7562
+visitall,DeepSeek-R1,madagascar,2,0.0
+snake,Claude Opus 4.6,decstar,1,2.7627
+snake,Gemini 3.1 Pro,bfws,1,5.0525
+snake,GPT-5.4,decstar,2,2.7504
+snake,Gemini 3.1 Pro,bfws,2,5.1915
+snake,Gemini 3.1 Pro,bfws,3,N/A (Invalid: LLM_TokenLimitExceeded)
+snake,Claude Opus 4.6,decstar,2,2.8708
+snake,GPT-5.4,decstar,3,2.8671
+snake,Gemini 3.1 Pro,madagascar,1,4.3929
+snake,Claude Opus 4.6,decstar,3,2.8678
+snake,GPT-5.4,bfws,1,5.3169
+snake,Gemini 3.1 Pro,madagascar,2,4.2098
+snake,Claude Opus 4.6,bfws,1,7.4741
+snake,GPT-5.4,bfws,2,6.5207
+snake,Gemini 3.1 Pro,madagascar,3,3.3454
+visitall,Gemini 3.1 Pro,lama,1,14.1359
+snake,Claude Opus 4.6,bfws,2,6.5048
+visitall,Gemini 3.1 Pro,lama,2,14.1418
+visitall,Gemini 3.1 Pro,lama,3,14.0938
+snake,GPT-5.4,bfws,3,6.6715
+snake,Claude Opus 4.6,bfws,3,6.5971
+snake,GPT-5.4,madagascar,1,4.5629
+visitall,Gemini 3.1 Pro,decstar,1,0.0
+visitall,Gemini 3.1 Pro,bfws,1,13.5658
+visitall,Gemini 3.1 Pro,bfws,2,13.4501
+snake,Claude Opus 4.6,madagascar,1,4.5787
+visitall,Gemini 3.1 Pro,bfws,3,13.447
+snake,GPT-5.4,madagascar,2,4.2522
+snake,Claude Opus 4.6,madagascar,2,4.7891
+visitall,Gemini 3.1 Pro,madagascar,1,0.0
+snake,GPT-5.4,madagascar,3,4.2654
+visitall,GPT-5.4,lama,1,14.427
+visitall,GPT-5.4,lama,2,14.3564
+snake,Claude Opus 4.6,madagascar,3,4.124
+visitall,GPT-5.4,lama,3,14.6677
+visitall,Claude Opus 4.6,lama,1,14.6575
+visitall,Claude Opus 4.6,lama,2,14.9669
+visitall,Claude Opus 4.6,lama,3,14.964
+visitall,GPT-5.4,decstar,1,0.0
+visitall,GPT-5.4,bfws,1,14.8004
+visitall,GPT-5.4,bfws,2,14.7121
+visitall,GPT-5.4,bfws,3,14.8718
+visitall,Claude Opus 4.6,decstar,1,0.0
+visitall,Claude Opus 4.6,bfws,1,14.3714
+visitall,Claude Opus 4.6,bfws,2,14.7052
+visitall,Claude Opus 4.6,bfws,3,14.6504
+visitall,GPT-5.4,madagascar,1,0.0
+visitall,Claude Opus 4.6,madagascar,1,0.0
