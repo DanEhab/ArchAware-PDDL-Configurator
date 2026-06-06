@@ -1,0 +1,6 @@
+Planner,S1 Gain vs S0,S2 Gain vs S0,S3 Gain vs S0,Progressive?
+BFWS,0.2731,1.7534,3.7489,Yes
+LAMA,0.6721,1.1197,1.7003,Yes
+DecStar,0.0221,0.3465,0.001,No
+Madagascar,1.5302,2.1539,1.2316,No
+**Overall**,2.4975,5.3735,6.6818,Yes

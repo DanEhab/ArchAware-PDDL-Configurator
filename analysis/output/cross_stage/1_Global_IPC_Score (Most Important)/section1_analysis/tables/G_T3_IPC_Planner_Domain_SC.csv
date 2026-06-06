@@ -1,0 +1,21 @@
+Planner,Domain,S0 IPC,S1 Avg IPC,S2 Avg IPC,S3 Avg IPC,Best Stage
+BFWS,barman,6.8359,5.1983,6.9291,6.9606,S3
+BFWS,depots,10.5244,10.7078,11.2551,11.2175,S2
+BFWS,ricochet-robots,9.4141,5.9208,8.7958,10.2208,S3
+BFWS,snake,5.2427,5.0835,4.899,4.7553,S0
+BFWS,visitall,14.0651,13.5521,13.7418,13.7922,S0
+LAMA,barman,14.5065,10.6972,14.7602,14.6086,S2
+LAMA,depots,9.9359,9.8467,10.242,10.1155,S2
+LAMA,ricochet-robots,4.6564,3.6312,4.674,5.1798,S3
+LAMA,snake,1.1347,1.1705,1.186,1.183,S2
+LAMA,visitall,10.1612,10.224,10.3235,10.3635,S3
+DecStar,barman,1.9843,1.4823,1.9902,1.967,S2
+DecStar,depots,8.6,8.5326,8.7845,8.5186,S2
+DecStar,ricochet-robots,4.947,3.6297,4.9159,4.819,S0
+DecStar,snake,1.6732,1.7184,1.7282,1.706,S2
+DecStar,visitall,0.0,0.0,0.0,0.0,S0
+Madagascar,barman,1.8293,1.5148,1.6662,2.2449,S3
+Madagascar,depots,13.6799,13.311,14.5953,13.5686,S2
+Madagascar,ricochet-robots,0.0,0.0,0.0,0.0,S0
+Madagascar,snake,4.4852,4.6215,4.5461,4.3748,S1
+Madagascar,visitall,0.0,0.0,0.0,0.0,S0

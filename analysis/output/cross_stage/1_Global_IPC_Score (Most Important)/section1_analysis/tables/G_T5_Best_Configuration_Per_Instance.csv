@@ -1,0 +1,7 @@
+Source of Best Performance,Count,out of,Percentage
+Unsolvable,117,300,39.0%
+Stage 0 (Baseline),3,300,1.0%
+Stage 1 (General Prompt),14,300,4.7%
+Stage 2 (Arch-Aware),52,300,17.3%
+Stage 2 (Cross Test),46,300,15.3%
+Stage 3 (Feedback Loop),68,300,22.7%

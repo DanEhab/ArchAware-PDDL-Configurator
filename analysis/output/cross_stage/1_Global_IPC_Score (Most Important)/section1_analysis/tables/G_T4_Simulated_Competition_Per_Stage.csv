@@ -1,0 +1,5 @@
+Stage,Instances (n),Total IPC,Mean IPC,Median IPC,% Score > 0
+Stage 0 (Baseline),300,123.6759,0.4123,0.4365,56.0
+"Stage 1 (General, best LLM)",300,129.4702,0.4316,0.463,58.0
+"Stage 2 (Arch-Aware, target)",300,134.7067,0.449,0.468,58.3
+"Stage 3 (Feedback Loop, best)",300,136.0856,0.4536,0.4899,59.7

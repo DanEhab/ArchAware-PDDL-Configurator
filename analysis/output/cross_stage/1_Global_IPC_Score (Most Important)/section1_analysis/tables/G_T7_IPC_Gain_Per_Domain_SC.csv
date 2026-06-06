@@ -1,0 +1,6 @@
+Domain,S1 Gain vs S0,S2 Gain vs S0,S3 Gain vs S0,Progressive?
+barman,0.5656,0.6962,1.4786,Yes
+depots,-0.0574,2.7591,1.0257,No
+ricochet-robots,0.1376,0.3009,2.3629,Yes
+snake,1.7499,1.1686,0.3434,No
+visitall,0.1018,0.4487,1.4712,Yes
