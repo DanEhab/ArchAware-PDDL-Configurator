@@ -1,0 +1,6 @@
+Domain,S0 vs S1 Common (N),S0 Mean Runtime (s) [vs S1],S1 Mean Runtime (s),S1 Reduction (%),S0 vs S2 Common (N),S0 Mean Runtime (s) [vs S2],S2 Mean Runtime (s),S2 Reduction (%),S0 vs S3 Common (N),S0 Mean Runtime (s) [vs S3],S3 Mean Runtime (s),S3 Reduction (%)
+barman,38,41.42,51.06,-23.3%,38,41.42,34.68,+16.3%,38,41.42,33.73,+18.6%
+depots,59,2.72,2.26,+16.9%,59,2.72,1.98,+27.2%,59,2.72,2.25,+17.4%
+ricochet-robots,20,137.97,134.56,+2.5%,22,156.62,144.44,+7.8%,22,156.62,147.32,+5.9%
+snake,19,110.92,92.74,+16.4%,19,110.92,93.61,+15.6%,18,99.95,88.06,+11.9%
+visitall,30,30.79,28.65,+7.0%,30,30.79,28.44,+7.6%,30,30.79,24.61,+20.1%

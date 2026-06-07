@@ -1,0 +1,5 @@
+Planner,S0 vs S1 Common (N),S0 Mean Runtime (s) [vs S1],S1 Mean Runtime (s),S1 Reduction (%),S0 vs S2 Common (N),S0 Mean Runtime (s) [vs S2],S2 Mean Runtime (s),S2 Reduction (%),S0 vs S3 Common (N),S0 Mean Runtime (s) [vs S3],S3 Mean Runtime (s),S3 Reduction (%)
+BFWS,62,58.07,53.76,+7.4%,64,66.98,57.65,+13.9%,64,66.98,60.52,+9.6%
+LAMA,53,38.01,35.98,+5.4%,53,38.01,35.99,+5.3%,53,38.01,34.14,+10.2%
+DecStar,26,41.97,40.86,+2.7%,26,41.97,40.34,+3.9%,26,41.97,42.73,-1.8%
+Madagascar,25,32.74,43.35,-32.4%,25,32.74,23.91,+27.0%,24,21.26,7.72,+63.7%
