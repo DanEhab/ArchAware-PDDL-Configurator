@@ -1,0 +1,7 @@
+Metric,Value
+Instances unsolvable in S0 (total),132
+Instances unlocked by S1,8
+Instances unlocked by S2 (beyond S1),6
+Instances unlocked by S3 (beyond S2),1
+Total newly solvable instances,15
+Unlock rate (% of S0 timeouts),11.4%

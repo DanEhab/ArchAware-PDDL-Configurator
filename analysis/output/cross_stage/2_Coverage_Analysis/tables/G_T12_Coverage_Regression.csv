@@ -1,0 +1,4 @@
+Metric,S1,S2,S3
+Configurations with lower coverage than S0,2,0,1
+Configurations with same coverage as S0,290,287,287
+Configurations with higher coverage than S0,8,13,12
