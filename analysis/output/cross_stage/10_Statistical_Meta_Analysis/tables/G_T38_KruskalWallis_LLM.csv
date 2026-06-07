@@ -1,0 +1,4 @@
+Stage,H statistic,p-value,Significant (p<0.05)?,Best LLM (mean),Worst LLM (mean)
+S1,25.1488,1.44e-05,Yes,Claude Opus 4.6,DeepSeek-R1
+S2,1.6534,6.47e-01,No,Gemini 3.1 Pro,GPT-5.4
+S3,4.8996,1.79e-01,No,Claude Opus 4.6,DeepSeek-R1

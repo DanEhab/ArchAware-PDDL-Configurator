@@ -1,0 +1,3 @@
+Factor,Metric,χ²,p-value,Kendall's W,Significant (p<0.05)?
+Stage (S0/S1/S2/S3),IPC Score,267.058,1.34e-57,0.2967,Yes
+Stage (S0/S1/S2/S3),Coverage (binary),20.8966,1.11e-04,0.0232,Yes

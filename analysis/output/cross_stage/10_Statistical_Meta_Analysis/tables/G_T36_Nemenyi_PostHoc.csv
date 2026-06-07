@@ -1,0 +1,7 @@
+Pair,Mean Rank (Stage A),Mean Rank (Stage B),Rank Difference,Critical Difference (CD),Significant (diff > CD)?
+S0 vs S1,1.9017,2.18,0.2783,0.2708,Yes
+S0 vs S2,1.9017,3.04,1.1383,0.2708,Yes
+S0 vs S3,1.9017,2.8783,0.9767,0.2708,Yes
+S1 vs S2,2.18,3.04,0.86,0.2708,Yes
+S1 vs S3,2.18,2.8783,0.6983,0.2708,Yes
+S2 vs S3,3.04,2.8783,0.1617,0.2708,No

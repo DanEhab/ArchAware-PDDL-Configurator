@@ -1,0 +1,4 @@
+Stage,H statistic,p-value,Significant (p<0.05)?,Most Responsive Domain,Least Responsive Domain
+S1,10.6377,3.10e-02,Yes,Snake,Depots
+S2,85.898,9.78e-18,Yes,Barman,Visitall
+S3,34.5563,5.73e-07,Yes,Barman,Visitall

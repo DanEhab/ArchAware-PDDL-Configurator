@@ -1,0 +1,8 @@
+Distribution,n,W statistic,p-value,Normal? (α=0.05)
+S0 IPC Scores,300,0.689644,3.83e-23,No
+S1 IPC Scores,300,0.684536,2.61e-23,No
+S2 IPC Scores,300,0.647088,1.83e-24,No
+S3 IPC Scores,300,0.664549,6.14e-24,No
+IPC Gain (S1 vs S0),300,0.378748,9.56e-31,No
+IPC Gain (S2 vs S0),300,0.406274,3.25e-30,No
+IPC Gain (S3 vs S0),300,0.420201,6.14e-30,No

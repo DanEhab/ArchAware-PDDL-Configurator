@@ -1,0 +1,7 @@
+Comparison,n (non-zero diffs),W statistic,p-value,Effect Size (r),Significant (p<0.0083)?,Direction (mean),Positive / Negative
+S0 vs S1,176,4305.0,2.67e-07,0.4472,Yes,S1 > S0,110 / 66
+S0 vs S2,181,262.0,1.37e-29,0.9682,Yes,S2 > S0,174 / 7
+S0 vs S3,180,729.0,3.19e-26,0.9105,Yes,S3 > S0,164 / 16
+S1 vs S2,182,1569.0,2.21e-21,0.8116,Yes,S2 > S1,158 / 24
+S1 vs S3,180,2438.5,3.59e-16,0.7006,Yes,S3 > S1,141 / 39
+S2 vs S3,183,6230.5,2.30e-03,0.2599,Yes,S2 > S3,80 / 103

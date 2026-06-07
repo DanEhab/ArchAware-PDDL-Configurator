@@ -1,0 +1,4 @@
+Stage,H statistic,p-value,Significant (p<0.05)?,Best Planner,Worst Planner
+S1,26.569,7.25e-06,Yes,Madagascar,DecStar
+S2,39.9034,1.12e-08,Yes,Madagascar,DecStar
+S3,76.7212,1.55e-16,Yes,Madagascar,DecStar
