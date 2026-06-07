@@ -1,0 +1,301 @@
+Planner,Domain,Instance,IPC_Score,LLM,Iteration
+bfws,barman,instance-01.pddl,0.4258177994122236,DeepSeek-R1,3
+bfws,barman,instance-02.pddl,0.40728393222120907,DeepSeek-R1,1
+bfws,barman,instance-03.pddl,0.4205396333454794,Gemini 3.1 Pro,1
+bfws,barman,instance-04.pddl,0.763348204586744,DeepSeek-R1,1
+bfws,barman,instance-07.pddl,0.4176303170410659,DeepSeek-R1,1
+bfws,barman,instance-08.pddl,0.43004535151326406,DeepSeek-R1,2
+bfws,barman,instance-09.pddl,0.5444010899503371,DeepSeek-R1,3
+bfws,barman,instance-11.pddl,0.4451590126040674,Claude Opus 4.6,3
+bfws,barman,instance-12.pddl,0.46919818575044825,Gemini 3.1 Pro,3
+bfws,barman,instance-13.pddl,0.4105715685270495,Gemini 3.1 Pro,2
+bfws,barman,instance-14.pddl,0.5950619136011924,Gemini 3.1 Pro,1
+bfws,barman,instance-16.pddl,0.4554085826229384,DeepSeek-R1,2
+bfws,barman,instance-17.pddl,0.4660540453501605,GPT-5.4,3
+bfws,barman,instance-18.pddl,0.4412634368047682,Claude Opus 4.6,3
+bfws,barman,instance-19.pddl,0.44178613106716275,DeepSeek-R1,2
+bfws,depots,instance-01.pddl,0.8708759099155637,Claude Opus 4.6,1
+bfws,depots,instance-02.pddl,0.8487975395238209,Claude Opus 4.6,1
+bfws,depots,instance-03.pddl,0.7863701771335756,Claude Opus 4.6,1
+bfws,depots,instance-04.pddl,0.8490019327549165,Claude Opus 4.6,1
+bfws,depots,instance-07.pddl,0.8350836382679382,Claude Opus 4.6,3
+bfws,depots,instance-08.pddl,0.8215690250251848,Gemini 3.1 Pro,3
+bfws,depots,instance-09.pddl,0.8372498166535599,Gemini 3.1 Pro,3
+bfws,depots,instance-11.pddl,0.7774293106146845,Gemini 3.1 Pro,3
+bfws,depots,instance-12.pddl,0.7615065056810151,Claude Opus 4.6,3
+bfws,depots,instance-13.pddl,0.8217243459111684,Gemini 3.1 Pro,3
+bfws,depots,instance-14.pddl,0.7442529513613441,Claude Opus 4.6,3
+bfws,depots,instance-16.pddl,0.7988220406523105,Gemini 3.1 Pro,3
+bfws,depots,instance-17.pddl,0.7554538394689143,GPT-5.4,3
+bfws,depots,instance-18.pddl,0.7645131071645141,Claude Opus 4.6,2
+bfws,depots,instance-19.pddl,0.44091923093283697,DeepSeek-R1,3
+bfws,ricochet-robots,instance-01.pddl,0.9599071730444341,Gemini 3.1 Pro,3
+bfws,ricochet-robots,instance-02.pddl,1.0,GPT-5.4,2
+bfws,ricochet-robots,instance-03.pddl,0.850569553591343,GPT-5.4,2
+bfws,ricochet-robots,instance-04.pddl,0.9313814212559584,GPT-5.4,3
+bfws,ricochet-robots,instance-07.pddl,0.7563723595956869,Gemini 3.1 Pro,1
+bfws,ricochet-robots,instance-08.pddl,0.9856394530880812,Gemini 3.1 Pro,1
+bfws,ricochet-robots,instance-09.pddl,0.7797253436933131,Gemini 3.1 Pro,1
+bfws,ricochet-robots,instance-11.pddl,1.0,Gemini 3.1 Pro,1
+bfws,ricochet-robots,instance-12.pddl,0.9593808039415209,Gemini 3.1 Pro,1
+bfws,ricochet-robots,instance-13.pddl,0.48402786871056397,Gemini 3.1 Pro,1
+bfws,ricochet-robots,instance-14.pddl,0.0,Gemini 3.1 Pro,1
+bfws,ricochet-robots,instance-16.pddl,0.9767565689845511,Gemini 3.1 Pro,1
+bfws,ricochet-robots,instance-17.pddl,0.9074556621404921,Gemini 3.1 Pro,2
+bfws,ricochet-robots,instance-18.pddl,0.8688563205108719,Gemini 3.1 Pro,2
+bfws,ricochet-robots,instance-19.pddl,0.0,Gemini 3.1 Pro,1
+bfws,snake,instance-01.pddl,1.0,GPT-5.4,3
+bfws,snake,instance-02.pddl,0.5322779666214436,GPT-5.4,3
+bfws,snake,instance-03.pddl,0.5196487655395391,GPT-5.4,3
+bfws,snake,instance-04.pddl,0.9412916370326595,Claude Opus 4.6,1
+bfws,snake,instance-07.pddl,0.49570526631662903,GPT-5.4,2
+bfws,snake,instance-08.pddl,0.8033347320236323,Claude Opus 4.6,3
+bfws,snake,instance-09.pddl,0.5499654974674255,Claude Opus 4.6,1
+bfws,snake,instance-11.pddl,0.516359050575899,Claude Opus 4.6,2
+bfws,snake,instance-12.pddl,0.0,DeepSeek-R1,1
+bfws,snake,instance-13.pddl,0.0,DeepSeek-R1,1
+bfws,snake,instance-14.pddl,0.0,DeepSeek-R1,1
+bfws,snake,instance-16.pddl,0.0,DeepSeek-R1,1
+bfws,snake,instance-17.pddl,0.0,DeepSeek-R1,1
+bfws,snake,instance-18.pddl,0.0,DeepSeek-R1,1
+bfws,snake,instance-19.pddl,0.0,DeepSeek-R1,1
+bfws,visitall,instance-01.pddl,1.0,GPT-5.4,1
+bfws,visitall,instance-02.pddl,1.0,GPT-5.4,3
+bfws,visitall,instance-03.pddl,1.0,Claude Opus 4.6,1
+bfws,visitall,instance-04.pddl,1.0,GPT-5.4,3
+bfws,visitall,instance-07.pddl,0.9956336948871969,GPT-5.4,3
+bfws,visitall,instance-08.pddl,1.0,GPT-5.4,3
+bfws,visitall,instance-09.pddl,0.9997243615407985,GPT-5.4,3
+bfws,visitall,instance-11.pddl,1.0,GPT-5.4,3
+bfws,visitall,instance-12.pddl,1.0,Claude Opus 4.6,2
+bfws,visitall,instance-13.pddl,1.0,Claude Opus 4.6,2
+bfws,visitall,instance-14.pddl,1.0,Claude Opus 4.6,2
+bfws,visitall,instance-16.pddl,1.0,GPT-5.4,1
+bfws,visitall,instance-17.pddl,1.0,Claude Opus 4.6,3
+bfws,visitall,instance-18.pddl,1.0,Claude Opus 4.6,3
+bfws,visitall,instance-19.pddl,1.0,GPT-5.4,3
+decstar,barman,instance-01.pddl,0.0,GPT-5.4,1
+decstar,barman,instance-02.pddl,0.0,GPT-5.4,1
+decstar,barman,instance-03.pddl,0.35850364939070956,GPT-5.4,1
+decstar,barman,instance-04.pddl,0.46337853507942156,Gemini 3.1 Pro,1
+decstar,barman,instance-07.pddl,0.0,GPT-5.4,1
+decstar,barman,instance-08.pddl,0.0,GPT-5.4,1
+decstar,barman,instance-09.pddl,0.0,GPT-5.4,1
+decstar,barman,instance-11.pddl,0.0,GPT-5.4,1
+decstar,barman,instance-12.pddl,0.0,GPT-5.4,1
+decstar,barman,instance-13.pddl,0.0,GPT-5.4,1
+decstar,barman,instance-14.pddl,0.36776149808718983,Gemini 3.1 Pro,2
+decstar,barman,instance-16.pddl,0.0,GPT-5.4,1
+decstar,barman,instance-17.pddl,0.7869629713800286,Claude Opus 4.6,1
+decstar,barman,instance-18.pddl,0.0,GPT-5.4,1
+decstar,barman,instance-19.pddl,0.0,GPT-5.4,1
+decstar,depots,instance-01.pddl,0.7140394710635664,Claude Opus 4.6,2
+decstar,depots,instance-02.pddl,0.6895557136467527,Claude Opus 4.6,3
+decstar,depots,instance-03.pddl,0.6606099204190639,Claude Opus 4.6,1
+decstar,depots,instance-04.pddl,0.5881473627814279,Claude Opus 4.6,3
+decstar,depots,instance-07.pddl,0.6525909924820285,Claude Opus 4.6,3
+decstar,depots,instance-08.pddl,0.6158831993247595,Claude Opus 4.6,3
+decstar,depots,instance-09.pddl,0.33410562882127454,Claude Opus 4.6,2
+decstar,depots,instance-11.pddl,0.5737333461821565,Claude Opus 4.6,3
+decstar,depots,instance-12.pddl,0.0,DeepSeek-R1,1
+decstar,depots,instance-13.pddl,0.6286613797795074,Claude Opus 4.6,3
+decstar,depots,instance-14.pddl,0.6242861102157001,Claude Opus 4.6,3
+decstar,depots,instance-16.pddl,0.6165595838142454,Claude Opus 4.6,3
+decstar,depots,instance-17.pddl,0.6562453669715527,Claude Opus 4.6,3
+decstar,depots,instance-18.pddl,0.7331098965190705,Claude Opus 4.6,2
+decstar,depots,instance-19.pddl,0.5848445577176289,Claude Opus 4.6,2
+decstar,ricochet-robots,instance-01.pddl,0.0,DeepSeek-R1,1
+decstar,ricochet-robots,instance-02.pddl,0.9521426030961394,Gemini 3.1 Pro,1
+decstar,ricochet-robots,instance-03.pddl,0.9860695768457436,DeepSeek-R1,1
+decstar,ricochet-robots,instance-04.pddl,0.0,DeepSeek-R1,1
+decstar,ricochet-robots,instance-07.pddl,0.9749217004629669,DeepSeek-R1,1
+decstar,ricochet-robots,instance-08.pddl,0.0,DeepSeek-R1,1
+decstar,ricochet-robots,instance-09.pddl,0.9812536623481475,DeepSeek-R1,1
+decstar,ricochet-robots,instance-11.pddl,0.0,DeepSeek-R1,1
+decstar,ricochet-robots,instance-12.pddl,0.0,DeepSeek-R1,1
+decstar,ricochet-robots,instance-13.pddl,0.9774431106118994,DeepSeek-R1,1
+decstar,ricochet-robots,instance-14.pddl,0.0,DeepSeek-R1,1
+decstar,ricochet-robots,instance-16.pddl,0.0,DeepSeek-R1,1
+decstar,ricochet-robots,instance-17.pddl,0.0,DeepSeek-R1,1
+decstar,ricochet-robots,instance-18.pddl,0.0,DeepSeek-R1,1
+decstar,ricochet-robots,instance-19.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-01.pddl,0.885889103435389,Claude Opus 4.6,3
+decstar,snake,instance-02.pddl,0.4303997117821494,DeepSeek-R1,3
+decstar,snake,instance-03.pddl,0.4123396740537703,DeepSeek-R1,1
+decstar,snake,instance-04.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-07.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-08.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-09.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-11.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-12.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-13.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-14.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-16.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-17.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-18.pddl,0.0,DeepSeek-R1,1
+decstar,snake,instance-19.pddl,0.0,DeepSeek-R1,1
+decstar,visitall,instance-01.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-02.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-03.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-04.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-07.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-08.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-09.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-11.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-12.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-13.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-14.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-16.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-17.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-18.pddl,0.0,DeepSeek-R1,2
+decstar,visitall,instance-19.pddl,0.0,DeepSeek-R1,2
+lama,barman,instance-01.pddl,1.0,GPT-5.4,1
+lama,barman,instance-02.pddl,1.0,Gemini 3.1 Pro,2
+lama,barman,instance-03.pddl,1.0,Gemini 3.1 Pro,1
+lama,barman,instance-04.pddl,1.0,GPT-5.4,1
+lama,barman,instance-07.pddl,1.0,DeepSeek-R1,2
+lama,barman,instance-08.pddl,1.0,DeepSeek-R1,2
+lama,barman,instance-09.pddl,1.0,DeepSeek-R1,3
+lama,barman,instance-11.pddl,1.0,DeepSeek-R1,3
+lama,barman,instance-12.pddl,1.0,Claude Opus 4.6,2
+lama,barman,instance-13.pddl,0.9975003652470508,DeepSeek-R1,1
+lama,barman,instance-14.pddl,1.0,DeepSeek-R1,1
+lama,barman,instance-16.pddl,0.9964402963823128,DeepSeek-R1,3
+lama,barman,instance-17.pddl,1.0,DeepSeek-R1,2
+lama,barman,instance-18.pddl,0.9971369342995594,DeepSeek-R1,2
+lama,barman,instance-19.pddl,1.0,Claude Opus 4.6,2
+lama,depots,instance-01.pddl,0.7853652796571555,Claude Opus 4.6,2
+lama,depots,instance-02.pddl,0.7726388075572891,Claude Opus 4.6,3
+lama,depots,instance-03.pddl,0.737969662057044,DeepSeek-R1,1
+lama,depots,instance-04.pddl,0.7423804353259841,Claude Opus 4.6,3
+lama,depots,instance-07.pddl,0.7634703049636913,Claude Opus 4.6,1
+lama,depots,instance-08.pddl,0.6838632113127555,Claude Opus 4.6,3
+lama,depots,instance-09.pddl,0.5712070920660481,GPT-5.4,3
+lama,depots,instance-11.pddl,0.5709905002616212,Claude Opus 4.6,3
+lama,depots,instance-12.pddl,0.5250935503976203,Gemini 3.1 Pro,2
+lama,depots,instance-13.pddl,0.7436628384717072,Gemini 3.1 Pro,2
+lama,depots,instance-14.pddl,0.7365286053644128,Gemini 3.1 Pro,2
+lama,depots,instance-16.pddl,0.7308605386521769,Gemini 3.1 Pro,2
+lama,depots,instance-17.pddl,0.7354528817710505,Claude Opus 4.6,3
+lama,depots,instance-18.pddl,0.5659853622261067,Claude Opus 4.6,1
+lama,depots,instance-19.pddl,0.591554924692681,Claude Opus 4.6,1
+lama,ricochet-robots,instance-01.pddl,0.8133330567827219,GPT-5.4,2
+lama,ricochet-robots,instance-02.pddl,0.9035644537736662,Gemini 3.1 Pro,3
+lama,ricochet-robots,instance-03.pddl,0.46097771775290675,Gemini 3.1 Pro,3
+lama,ricochet-robots,instance-04.pddl,0.0,DeepSeek-R1,1
+lama,ricochet-robots,instance-07.pddl,0.8837271067541341,Gemini 3.1 Pro,3
+lama,ricochet-robots,instance-08.pddl,0.4835960665165949,Claude Opus 4.6,1
+lama,ricochet-robots,instance-09.pddl,0.0,DeepSeek-R1,1
+lama,ricochet-robots,instance-11.pddl,0.0,DeepSeek-R1,1
+lama,ricochet-robots,instance-12.pddl,0.0,DeepSeek-R1,1
+lama,ricochet-robots,instance-13.pddl,0.6638084135556905,Gemini 3.1 Pro,3
+lama,ricochet-robots,instance-14.pddl,0.9931719632152086,Claude Opus 4.6,1
+lama,ricochet-robots,instance-16.pddl,0.0,DeepSeek-R1,1
+lama,ricochet-robots,instance-17.pddl,0.0,DeepSeek-R1,1
+lama,ricochet-robots,instance-18.pddl,0.0,DeepSeek-R1,1
+lama,ricochet-robots,instance-19.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-01.pddl,0.805026925402831,DeepSeek-R1,1
+lama,snake,instance-02.pddl,0.3987120602651732,DeepSeek-R1,1
+lama,snake,instance-03.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-04.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-07.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-08.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-09.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-11.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-12.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-13.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-14.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-16.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-17.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-18.pddl,0.0,DeepSeek-R1,1
+lama,snake,instance-19.pddl,0.0,DeepSeek-R1,1
+lama,visitall,instance-01.pddl,0.7050943407407957,Claude Opus 4.6,2
+lama,visitall,instance-02.pddl,0.7166947676110902,Claude Opus 4.6,3
+lama,visitall,instance-03.pddl,0.692323743670248,Claude Opus 4.6,3
+lama,visitall,instance-04.pddl,0.6945316736159182,Claude Opus 4.6,3
+lama,visitall,instance-07.pddl,0.693533224438507,Claude Opus 4.6,3
+lama,visitall,instance-08.pddl,0.6991799633046637,Claude Opus 4.6,3
+lama,visitall,instance-09.pddl,0.6984287841896747,Claude Opus 4.6,3
+lama,visitall,instance-11.pddl,0.7132599415823537,Claude Opus 4.6,3
+lama,visitall,instance-12.pddl,0.7156632933257541,Claude Opus 4.6,2
+lama,visitall,instance-13.pddl,0.7286599251367193,Claude Opus 4.6,3
+lama,visitall,instance-14.pddl,0.8087868611175176,Claude Opus 4.6,2
+lama,visitall,instance-16.pddl,0.7296393584920587,Claude Opus 4.6,3
+lama,visitall,instance-17.pddl,0.7048837168574662,Claude Opus 4.6,2
+lama,visitall,instance-18.pddl,0.8116276271001576,Claude Opus 4.6,3
+lama,visitall,instance-19.pddl,0.7304445696692878,Claude Opus 4.6,3
+madagascar,barman,instance-01.pddl,0.3215682394975415,GPT-5.4,2
+madagascar,barman,instance-02.pddl,0.5054542002761226,Gemini 3.1 Pro,1
+madagascar,barman,instance-03.pddl,0.0,DeepSeek-R1,2
+madagascar,barman,instance-04.pddl,0.6936240295570263,Gemini 3.1 Pro,1
+madagascar,barman,instance-07.pddl,0.0,Gemini 3.1 Pro,1
+madagascar,barman,instance-08.pddl,0.0,Gemini 3.1 Pro,1
+madagascar,barman,instance-09.pddl,0.5252045728334669,DeepSeek-R1,3
+madagascar,barman,instance-11.pddl,0.41055583151753816,DeepSeek-R1,3
+madagascar,barman,instance-12.pddl,0.33971391334291046,Gemini 3.1 Pro,2
+madagascar,barman,instance-13.pddl,0.0,Gemini 3.1 Pro,1
+madagascar,barman,instance-14.pddl,0.39196910894727965,Gemini 3.1 Pro,3
+madagascar,barman,instance-16.pddl,0.32650236560313517,DeepSeek-R1,2
+madagascar,barman,instance-17.pddl,0.43998810470752375,GPT-5.4,3
+madagascar,barman,instance-18.pddl,0.5494318824482366,Gemini 3.1 Pro,1
+madagascar,barman,instance-19.pddl,0.0,Gemini 3.1 Pro,1
+madagascar,depots,instance-01.pddl,0.9321001963661707,Claude Opus 4.6,1
+madagascar,depots,instance-02.pddl,0.925086089210681,Gemini 3.1 Pro,3
+madagascar,depots,instance-03.pddl,0.9198671096422162,Claude Opus 4.6,1
+madagascar,depots,instance-04.pddl,0.9205617233136938,GPT-5.4,1
+madagascar,depots,instance-07.pddl,0.9329559619381326,DeepSeek-R1,2
+madagascar,depots,instance-08.pddl,0.9337945181043519,Gemini 3.1 Pro,1
+madagascar,depots,instance-09.pddl,0.9364970633145598,DeepSeek-R1,3
+madagascar,depots,instance-11.pddl,0.9135501161086812,Claude Opus 4.6,1
+madagascar,depots,instance-12.pddl,0.9131776569947415,GPT-5.4,2
+madagascar,depots,instance-13.pddl,0.9363851185362477,GPT-5.4,2
+madagascar,depots,instance-14.pddl,0.9320852970090039,Claude Opus 4.6,2
+madagascar,depots,instance-16.pddl,0.9169394678804265,Gemini 3.1 Pro,2
+madagascar,depots,instance-17.pddl,0.9447992441720914,Gemini 3.1 Pro,1
+madagascar,depots,instance-18.pddl,0.9363483905480163,Claude Opus 4.6,3
+madagascar,depots,instance-19.pddl,0.9198765692794737,Claude Opus 4.6,1
+madagascar,ricochet-robots,instance-01.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-02.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-03.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-04.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-07.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-08.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-09.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-11.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-12.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-13.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-14.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-16.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-17.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-18.pddl,0.0,DeepSeek-R1,1
+madagascar,ricochet-robots,instance-19.pddl,0.0,DeepSeek-R1,1
+madagascar,snake,instance-01.pddl,0.9281129998136326,Claude Opus 4.6,2
+madagascar,snake,instance-02.pddl,1.0,Claude Opus 4.6,1
+madagascar,snake,instance-03.pddl,1.0,GPT-5.4,3
+madagascar,snake,instance-04.pddl,0.0,DeepSeek-R1,1
+madagascar,snake,instance-07.pddl,0.922521735428687,Claude Opus 4.6,1
+madagascar,snake,instance-08.pddl,0.8108706020796508,Claude Opus 4.6,2
+madagascar,snake,instance-09.pddl,0.9459695996649968,Gemini 3.1 Pro,1
+madagascar,snake,instance-11.pddl,0.9498725660902374,Claude Opus 4.6,3
+madagascar,snake,instance-12.pddl,0.0,DeepSeek-R1,1
+madagascar,snake,instance-13.pddl,0.0,DeepSeek-R1,1
+madagascar,snake,instance-14.pddl,0.0,DeepSeek-R1,1
+madagascar,snake,instance-16.pddl,0.7028409674684233,Claude Opus 4.6,3
+madagascar,snake,instance-17.pddl,0.0,DeepSeek-R1,1
+madagascar,snake,instance-18.pddl,0.0,DeepSeek-R1,1
+madagascar,snake,instance-19.pddl,0.0,DeepSeek-R1,1
+madagascar,visitall,instance-01.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-02.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-03.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-04.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-07.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-08.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-09.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-11.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-12.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-13.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-14.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-16.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-17.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-18.pddl,0.0,DeepSeek-R1,2
+madagascar,visitall,instance-19.pddl,0.0,DeepSeek-R1,2

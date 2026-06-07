@@ -1,0 +1,301 @@
+Planner,Domain,Instance,IPC_Score,LLM,Prompt_Type,Prompt_ID
+bfws,barman,instance-01.pddl,0.4243351120948888,GPT-5.4,Arch_Aware,3.0
+bfws,barman,instance-02.pddl,0.40904977593781894,Claude Opus 4.6,Arch_Aware,3.0
+bfws,barman,instance-03.pddl,0.4159600378612125,Gemini 3.1 Pro,Arch_Aware,3.0
+bfws,barman,instance-04.pddl,0.945295974415019,Claude Opus 4.6,Cross_Test,2.0
+bfws,barman,instance-07.pddl,0.41525941624432267,GPT-5.4,Arch_Aware,3.0
+bfws,barman,instance-08.pddl,0.4284317299679841,DeepSeek-R1,Cross_Test,1.0
+bfws,barman,instance-09.pddl,0.5379923745247215,Claude Opus 4.6,Arch_Aware,3.0
+bfws,barman,instance-11.pddl,0.44407507283924574,Claude Opus 4.6,Cross_Test,2.0
+bfws,barman,instance-12.pddl,0.4672785058323673,GPT-5.4,Arch_Aware,3.0
+bfws,barman,instance-13.pddl,0.4216604703920574,Claude Opus 4.6,Cross_Test,2.0
+bfws,barman,instance-14.pddl,0.5904145378560596,Gemini 3.1 Pro,Arch_Aware,3.0
+bfws,barman,instance-16.pddl,0.4548821773014761,GPT-5.4,Arch_Aware,3.0
+bfws,barman,instance-17.pddl,0.4638679918166549,DeepSeek-R1,Cross_Test,1.0
+bfws,barman,instance-18.pddl,0.43549376494994785,Claude Opus 4.6,Arch_Aware,3.0
+bfws,barman,instance-19.pddl,0.5934660608262227,Claude Opus 4.6,Cross_Test,2.0
+bfws,depots,instance-01.pddl,0.8774262089235257,Gemini 3.1 Pro,Cross_Test,4.0
+bfws,depots,instance-02.pddl,0.8660500207923725,Claude Opus 4.6,Cross_Test,2.0
+bfws,depots,instance-03.pddl,0.777438001016026,DeepSeek-R1,Arch_Aware,3.0
+bfws,depots,instance-04.pddl,0.8503678982074782,Claude Opus 4.6,Arch_Aware,3.0
+bfws,depots,instance-07.pddl,0.8581949118451001,DeepSeek-R1,Arch_Aware,3.0
+bfws,depots,instance-08.pddl,0.830540963240613,Claude Opus 4.6,Arch_Aware,3.0
+bfws,depots,instance-09.pddl,0.8420104536905519,Claude Opus 4.6,Cross_Test,2.0
+bfws,depots,instance-11.pddl,0.7570414995456254,Gemini 3.1 Pro,Cross_Test,4.0
+bfws,depots,instance-12.pddl,0.7645746522592671,DeepSeek-R1,Cross_Test,2.0
+bfws,depots,instance-13.pddl,0.8412306302171942,Claude Opus 4.6,Arch_Aware,3.0
+bfws,depots,instance-14.pddl,0.7590757727725984,Gemini 3.1 Pro,Cross_Test,4.0
+bfws,depots,instance-16.pddl,0.8118213481783586,DeepSeek-R1,Cross_Test,2.0
+bfws,depots,instance-17.pddl,0.7859670148212166,Claude Opus 4.6,Cross_Test,2.0
+bfws,depots,instance-18.pddl,0.7676024169151824,DeepSeek-R1,Cross_Test,2.0
+bfws,depots,instance-19.pddl,0.6789755950870832,DeepSeek-R1,Cross_Test,2.0
+bfws,ricochet-robots,instance-01.pddl,1.0,Gemini 3.1 Pro,Arch_Aware,3.0
+bfws,ricochet-robots,instance-02.pddl,0.9964134536313297,DeepSeek-R1,Cross_Test,1.0
+bfws,ricochet-robots,instance-03.pddl,0.8484400405025887,DeepSeek-R1,Cross_Test,1.0
+bfws,ricochet-robots,instance-04.pddl,1.0,Gemini 3.1 Pro,Arch_Aware,3.0
+bfws,ricochet-robots,instance-07.pddl,0.767392165876118,Gemini 3.1 Pro,Arch_Aware,3.0
+bfws,ricochet-robots,instance-08.pddl,0.9896967787511972,Gemini 3.1 Pro,Arch_Aware,3.0
+bfws,ricochet-robots,instance-09.pddl,0.7884408920088957,Gemini 3.1 Pro,Arch_Aware,3.0
+bfws,ricochet-robots,instance-11.pddl,0.9809672668087853,Gemini 3.1 Pro,Arch_Aware,3.0
+bfws,ricochet-robots,instance-12.pddl,0.9585319633177819,DeepSeek-R1,Arch_Aware,3.0
+bfws,ricochet-robots,instance-13.pddl,0.4778195276850844,DeepSeek-R1,Arch_Aware,3.0
+bfws,ricochet-robots,instance-14.pddl,0.0,GPT-5.4,Arch_Aware,3.0
+bfws,ricochet-robots,instance-16.pddl,1.0,Claude Opus 4.6,Cross_Test,1.0
+bfws,ricochet-robots,instance-17.pddl,1.0,Claude Opus 4.6,Cross_Test,1.0
+bfws,ricochet-robots,instance-18.pddl,1.0,DeepSeek-R1,Arch_Aware,3.0
+bfws,ricochet-robots,instance-19.pddl,0.0,GPT-5.4,Arch_Aware,3.0
+bfws,snake,instance-01.pddl,0.9836409670989488,Gemini 3.1 Pro,Cross_Test,2.0
+bfws,snake,instance-02.pddl,0.5295834834037655,Claude Opus 4.6,Cross_Test,4.0
+bfws,snake,instance-03.pddl,0.5363542170600353,Claude Opus 4.6,Cross_Test,4.0
+bfws,snake,instance-04.pddl,1.0,Claude Opus 4.6,Cross_Test,4.0
+bfws,snake,instance-07.pddl,0.5048354758722726,Claude Opus 4.6,Cross_Test,4.0
+bfws,snake,instance-08.pddl,0.8173541194863614,Claude Opus 4.6,Cross_Test,4.0
+bfws,snake,instance-09.pddl,0.5667969973231839,Claude Opus 4.6,Cross_Test,4.0
+bfws,snake,instance-11.pddl,0.5227252872126334,Claude Opus 4.6,Cross_Test,4.0
+bfws,snake,instance-12.pddl,0.0,GPT-5.4,Arch_Aware,3.0
+bfws,snake,instance-13.pddl,0.0,GPT-5.4,Arch_Aware,3.0
+bfws,snake,instance-14.pddl,0.0,GPT-5.4,Arch_Aware,3.0
+bfws,snake,instance-16.pddl,0.0,GPT-5.4,Arch_Aware,3.0
+bfws,snake,instance-17.pddl,0.0,GPT-5.4,Arch_Aware,3.0
+bfws,snake,instance-18.pddl,0.0,GPT-5.4,Arch_Aware,3.0
+bfws,snake,instance-19.pddl,0.0,GPT-5.4,Arch_Aware,3.0
+bfws,visitall,instance-01.pddl,0.9731788634417905,Gemini 3.1 Pro,Arch_Aware,3.0
+bfws,visitall,instance-02.pddl,0.9943965978389089,GPT-5.4,Arch_Aware,3.0
+bfws,visitall,instance-03.pddl,0.992258246003036,GPT-5.4,Arch_Aware,3.0
+bfws,visitall,instance-04.pddl,0.9925773163140531,Claude Opus 4.6,Arch_Aware,3.0
+bfws,visitall,instance-07.pddl,1.0,Claude Opus 4.6,Arch_Aware,3.0
+bfws,visitall,instance-08.pddl,0.9895456083899024,Claude Opus 4.6,Arch_Aware,3.0
+bfws,visitall,instance-09.pddl,0.9950104756587124,GPT-5.4,Arch_Aware,3.0
+bfws,visitall,instance-11.pddl,0.9430743469677889,GPT-5.4,Arch_Aware,3.0
+bfws,visitall,instance-12.pddl,0.9562417165143591,Claude Opus 4.6,Arch_Aware,3.0
+bfws,visitall,instance-13.pddl,0.994856220247588,GPT-5.4,Arch_Aware,3.0
+bfws,visitall,instance-14.pddl,0.972189490139016,GPT-5.4,Arch_Aware,3.0
+bfws,visitall,instance-16.pddl,0.9674850426429664,Claude Opus 4.6,Arch_Aware,3.0
+bfws,visitall,instance-17.pddl,0.8800218564095549,Claude Opus 4.6,Arch_Aware,3.0
+bfws,visitall,instance-18.pddl,0.9498378338777019,Claude Opus 4.6,Arch_Aware,3.0
+bfws,visitall,instance-19.pddl,0.9665219830906463,Claude Opus 4.6,Arch_Aware,3.0
+decstar,barman,instance-01.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-02.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-03.pddl,0.3617680546033925,Claude Opus 4.6,Arch_Aware,2.0
+decstar,barman,instance-04.pddl,0.46877223373169435,GPT-5.4,Cross_Test,1.0
+decstar,barman,instance-07.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-08.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-09.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-11.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-12.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-13.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-14.pddl,0.3716505504591124,GPT-5.4,Cross_Test,3.0
+decstar,barman,instance-16.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-17.pddl,0.7949539771651875,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-18.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,barman,instance-19.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,depots,instance-01.pddl,0.7465177856596901,Claude Opus 4.6,Arch_Aware,2.0
+decstar,depots,instance-02.pddl,0.7126021998551126,Claude Opus 4.6,Arch_Aware,2.0
+decstar,depots,instance-03.pddl,0.6787169363871232,GPT-5.4,Cross_Test,4.0
+decstar,depots,instance-04.pddl,0.6009137714739471,Claude Opus 4.6,Arch_Aware,2.0
+decstar,depots,instance-07.pddl,0.6735436391295891,Claude Opus 4.6,Arch_Aware,2.0
+decstar,depots,instance-08.pddl,0.6295706578317531,Claude Opus 4.6,Arch_Aware,2.0
+decstar,depots,instance-09.pddl,0.33576348227073266,DeepSeek-R1,Cross_Test,4.0
+decstar,depots,instance-11.pddl,0.5783257813764239,Claude Opus 4.6,Arch_Aware,2.0
+decstar,depots,instance-12.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,depots,instance-13.pddl,0.6454101445363849,DeepSeek-R1,Arch_Aware,2.0
+decstar,depots,instance-14.pddl,0.6338399448342589,Gemini 3.1 Pro,Cross_Test,1.0
+decstar,depots,instance-16.pddl,0.6317089257575659,Gemini 3.1 Pro,Cross_Test,1.0
+decstar,depots,instance-17.pddl,0.6702531202562024,Gemini 3.1 Pro,Cross_Test,1.0
+decstar,depots,instance-18.pddl,0.73929226382518,GPT-5.4,Cross_Test,1.0
+decstar,depots,instance-19.pddl,0.5972357362930909,GPT-5.4,Cross_Test,4.0
+decstar,ricochet-robots,instance-01.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,ricochet-robots,instance-02.pddl,0.9740238214405557,Gemini 3.1 Pro,Cross_Test,3.0
+decstar,ricochet-robots,instance-03.pddl,1.0,Gemini 3.1 Pro,Arch_Aware,2.0
+decstar,ricochet-robots,instance-04.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,ricochet-robots,instance-07.pddl,1.0,Gemini 3.1 Pro,Arch_Aware,2.0
+decstar,ricochet-robots,instance-08.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,ricochet-robots,instance-09.pddl,0.9998180692827143,Gemini 3.1 Pro,Cross_Test,1.0
+decstar,ricochet-robots,instance-11.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,ricochet-robots,instance-12.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,ricochet-robots,instance-13.pddl,1.0,Gemini 3.1 Pro,Cross_Test,3.0
+decstar,ricochet-robots,instance-14.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,ricochet-robots,instance-16.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,ricochet-robots,instance-17.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,ricochet-robots,instance-18.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,ricochet-robots,instance-19.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-01.pddl,0.9301267047723274,Gemini 3.1 Pro,Cross_Test,1.0
+decstar,snake,instance-02.pddl,0.4350328962600004,Claude Opus 4.6,Cross_Test,4.0
+decstar,snake,instance-03.pddl,0.417229799711598,Claude Opus 4.6,Cross_Test,4.0
+decstar,snake,instance-04.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-07.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-08.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-09.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-11.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-12.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-13.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-14.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-16.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-17.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-18.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,snake,instance-19.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-01.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-02.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-03.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-04.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-07.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-08.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-09.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-11.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-12.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-13.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-14.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-16.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-17.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-18.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+decstar,visitall,instance-19.pddl,0.0,GPT-5.4,Arch_Aware,2.0
+lama,barman,instance-01.pddl,0.9718324132071081,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-02.pddl,0.9919499253020987,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-03.pddl,0.9980186046289857,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-04.pddl,0.9953994274706751,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-07.pddl,0.9784811669738193,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-08.pddl,0.9835079319904797,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-09.pddl,0.9995714931684687,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-11.pddl,0.9956395908705586,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-12.pddl,0.9931582174722364,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-13.pddl,1.0,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-14.pddl,0.9912362631648008,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-16.pddl,1.0,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-17.pddl,0.9994130413604299,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-18.pddl,1.0,DeepSeek-R1,Arch_Aware,1.0
+lama,barman,instance-19.pddl,0.9960630512658505,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-01.pddl,0.7983235946409976,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-02.pddl,0.7944392605733541,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-03.pddl,0.7525845371842578,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-04.pddl,0.7500504091111438,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-07.pddl,0.7808280600472947,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-08.pddl,0.691321590394932,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-09.pddl,0.5748488781942459,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-11.pddl,0.5730554270260825,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-12.pddl,0.5248753036874855,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-13.pddl,0.7516730041717756,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-14.pddl,0.7445491569743139,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-16.pddl,0.745285335116042,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-17.pddl,0.7441470967055349,DeepSeek-R1,Arch_Aware,1.0
+lama,depots,instance-18.pddl,0.7211416580838382,Claude Opus 4.6,Cross_Test,2.0
+lama,depots,instance-19.pddl,0.5932854579783413,DeepSeek-R1,Arch_Aware,1.0
+lama,ricochet-robots,instance-01.pddl,0.8099681453621053,Gemini 3.1 Pro,Cross_Test,3.0
+lama,ricochet-robots,instance-02.pddl,0.8997452600215045,Gemini 3.1 Pro,Cross_Test,3.0
+lama,ricochet-robots,instance-03.pddl,0.45967921717660126,Gemini 3.1 Pro,Cross_Test,3.0
+lama,ricochet-robots,instance-04.pddl,0.0,Claude Opus 4.6,Arch_Aware,1.0
+lama,ricochet-robots,instance-07.pddl,0.875965313993901,Gemini 3.1 Pro,Cross_Test,3.0
+lama,ricochet-robots,instance-08.pddl,0.481050233304277,Gemini 3.1 Pro,Cross_Test,3.0
+lama,ricochet-robots,instance-09.pddl,0.0,Claude Opus 4.6,Arch_Aware,1.0
+lama,ricochet-robots,instance-11.pddl,0.0,Claude Opus 4.6,Arch_Aware,1.0
+lama,ricochet-robots,instance-12.pddl,0.0,Claude Opus 4.6,Arch_Aware,1.0
+lama,ricochet-robots,instance-13.pddl,0.6624515607233097,DeepSeek-R1,Arch_Aware,1.0
+lama,ricochet-robots,instance-14.pddl,0.9936588757285403,DeepSeek-R1,Arch_Aware,1.0
+lama,ricochet-robots,instance-16.pddl,0.0,Claude Opus 4.6,Arch_Aware,1.0
+lama,ricochet-robots,instance-17.pddl,0.0,Claude Opus 4.6,Arch_Aware,1.0
+lama,ricochet-robots,instance-18.pddl,0.0,Claude Opus 4.6,Arch_Aware,1.0
+lama,ricochet-robots,instance-19.pddl,0.0,Claude Opus 4.6,Arch_Aware,1.0
+lama,snake,instance-01.pddl,0.79835277459403,Claude Opus 4.6,Cross_Test,4.0
+lama,snake,instance-02.pddl,0.39807644626245275,Claude Opus 4.6,Cross_Test,4.0
+lama,snake,instance-03.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-04.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-07.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-08.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-09.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-11.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-12.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-13.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-14.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-16.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-17.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-18.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,snake,instance-19.pddl,0.0,GPT-5.4,Arch_Aware,1.0
+lama,visitall,instance-01.pddl,0.6934564361637983,Gemini 3.1 Pro,Arch_Aware,1.0
+lama,visitall,instance-02.pddl,0.7018626216402922,Gemini 3.1 Pro,Arch_Aware,1.0
+lama,visitall,instance-03.pddl,0.6811402250888303,GPT-5.4,Arch_Aware,1.0
+lama,visitall,instance-04.pddl,0.6793296785545324,GPT-5.4,Arch_Aware,1.0
+lama,visitall,instance-07.pddl,0.6713220740996843,GPT-5.4,Arch_Aware,1.0
+lama,visitall,instance-08.pddl,0.6787685044786601,Gemini 3.1 Pro,Arch_Aware,1.0
+lama,visitall,instance-09.pddl,0.6710913293108679,DeepSeek-R1,Arch_Aware,1.0
+lama,visitall,instance-11.pddl,0.6793935958676091,GPT-5.4,Arch_Aware,1.0
+lama,visitall,instance-12.pddl,0.68517486529688,GPT-5.4,Arch_Aware,1.0
+lama,visitall,instance-13.pddl,0.6915424060401485,GPT-5.4,Arch_Aware,1.0
+lama,visitall,instance-14.pddl,0.7636635019889177,GPT-5.4,Arch_Aware,1.0
+lama,visitall,instance-16.pddl,0.6969223331234963,GPT-5.4,Arch_Aware,1.0
+lama,visitall,instance-17.pddl,0.6677286361266995,GPT-5.4,Arch_Aware,1.0
+lama,visitall,instance-18.pddl,0.7642718285831609,Claude Opus 4.6,Arch_Aware,1.0
+lama,visitall,instance-19.pddl,0.6789830829799169,Gemini 3.1 Pro,Arch_Aware,1.0
+madagascar,barman,instance-01.pddl,0.3972271070585318,DeepSeek-R1,Arch_Aware,4.0
+madagascar,barman,instance-02.pddl,0.3368241432228903,GPT-5.4,Cross_Test,1.0
+madagascar,barman,instance-03.pddl,0.3511815942825369,GPT-5.4,Cross_Test,3.0
+madagascar,barman,instance-04.pddl,0.9110155134479909,GPT-5.4,Cross_Test,1.0
+madagascar,barman,instance-07.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,barman,instance-08.pddl,0.3434066864519461,GPT-5.4,Cross_Test,3.0
+madagascar,barman,instance-09.pddl,0.5012069638244399,Gemini 3.1 Pro,Cross_Test,3.0
+madagascar,barman,instance-11.pddl,0.4414279861213761,GPT-5.4,Cross_Test,1.0
+madagascar,barman,instance-12.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,barman,instance-13.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,barman,instance-14.pddl,0.40885146950942425,Claude Opus 4.6,Cross_Test,2.0
+madagascar,barman,instance-16.pddl,0.7337689511796844,Claude Opus 4.6,Cross_Test,1.0
+madagascar,barman,instance-17.pddl,0.35395957490746144,Gemini 3.1 Pro,Arch_Aware,4.0
+madagascar,barman,instance-18.pddl,0.3760258865712826,GPT-5.4,Cross_Test,1.0
+madagascar,barman,instance-19.pddl,0.4470946594153599,Claude Opus 4.6,Cross_Test,2.0
+madagascar,depots,instance-01.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,depots,instance-02.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,depots,instance-03.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,depots,instance-04.pddl,1.0,DeepSeek-R1,Cross_Test,2.0
+madagascar,depots,instance-07.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,depots,instance-08.pddl,1.0,GPT-5.4,Arch_Aware,4.0
+madagascar,depots,instance-09.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,depots,instance-11.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,depots,instance-12.pddl,1.0,Gemini 3.1 Pro,Arch_Aware,4.0
+madagascar,depots,instance-13.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,depots,instance-14.pddl,1.0,DeepSeek-R1,Cross_Test,2.0
+madagascar,depots,instance-16.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,depots,instance-17.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,depots,instance-18.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,depots,instance-19.pddl,1.0,DeepSeek-R1,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-01.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-02.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-03.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-04.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-07.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-08.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-09.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-11.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-12.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-13.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-14.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-16.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-17.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-18.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,ricochet-robots,instance-19.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,snake,instance-01.pddl,0.9048390286131299,DeepSeek-R1,Arch_Aware,4.0
+madagascar,snake,instance-02.pddl,0.993085717505178,GPT-5.4,Cross_Test,1.0
+madagascar,snake,instance-03.pddl,0.7985455037908663,GPT-5.4,Cross_Test,3.0
+madagascar,snake,instance-04.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,snake,instance-07.pddl,1.0,Gemini 3.1 Pro,Arch_Aware,4.0
+madagascar,snake,instance-08.pddl,0.6951154808320149,Gemini 3.1 Pro,Arch_Aware,4.0
+madagascar,snake,instance-09.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,snake,instance-11.pddl,1.0,DeepSeek-R1,Cross_Test,2.0
+madagascar,snake,instance-12.pddl,0.9196200661276361,Claude Opus 4.6,Arch_Aware,4.0
+madagascar,snake,instance-13.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,snake,instance-14.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,snake,instance-16.pddl,1.0,Claude Opus 4.6,Cross_Test,2.0
+madagascar,snake,instance-17.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,snake,instance-18.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,snake,instance-19.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-01.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-02.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-03.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-04.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-07.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-08.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-09.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-11.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-12.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-13.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-14.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-16.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-17.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-18.pddl,0.0,GPT-5.4,Arch_Aware,4.0
+madagascar,visitall,instance-19.pddl,0.0,GPT-5.4,Arch_Aware,4.0
