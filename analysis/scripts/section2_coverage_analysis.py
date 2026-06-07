@@ -35,6 +35,11 @@ FB_CSV = RESULTS_DIR / "feedback_loop" / "feedback_loop_planner_execution_data.c
 PLANNERS = ["bfws", "lama", "decstar", "madagascar"]
 PLANNER_DISPLAY = {"bfws": "BFWS", "lama": "LAMA", "decstar": "DecStar", "madagascar": "Madagascar"}
 DOMAINS = ["barman", "depots", "ricochet-robots", "snake", "visitall"]
+INSTANCES = ['instance-01.pddl', 'instance-02.pddl', 'instance-03.pddl',
+             'instance-04.pddl', 'instance-07.pddl', 'instance-08.pddl',
+             'instance-09.pddl', 'instance-11.pddl', 'instance-12.pddl',
+             'instance-13.pddl', 'instance-14.pddl', 'instance-16.pddl',
+             'instance-17.pddl', 'instance-18.pddl', 'instance-19.pddl']
 
 STAGE_COLORS = {"S0": "#6c757d", "S1": "#2196F3", "S2": "#FF9800", "S3": "#4CAF50"}
 
