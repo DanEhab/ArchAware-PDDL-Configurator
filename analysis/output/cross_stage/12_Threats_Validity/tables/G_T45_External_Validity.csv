@@ -1,0 +1,5 @@
+Threat,Description,Mitigation
+Domain selection bias,Testing only 5 domains might not generalize to all possible PDDL structures or real-world industrial planning tasks.,"Selected diverse IPC benchmark domains featuring differing action complexities, object scaling, and heuristic difficulty."
+Planner selection bias,Optimizations discovered for 4 specific planners might fail on entirely different planning algorithms.,"Chosen planners represent distinct architectural paradigms (LAMA/DecStar for heuristic, BFWS for novelty, Madagascar for SAT)."
+LLM selection bias,Using 4 LLMs risks findings becoming obsolete as new models are released or if models share training biases.,"Evaluated the absolute State-Of-The-Art across three distinct providers (OpenAI, Anthropic, Google) and an open-weight model (DeepSeek)."
+Instance selection bias,Using 15 instances per domain might exclude highly complex edge cases where improvements regress.,Systematically selected a wide spread of difficulty levels from trivial to structurally complex within each benchmark dataset.

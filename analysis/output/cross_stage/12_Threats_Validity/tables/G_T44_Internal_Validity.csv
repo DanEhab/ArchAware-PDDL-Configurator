@@ -1,0 +1,5 @@
+Threat,Description,Mitigation
+Non-determinism in LLM outputs,"The same prompt might yield different results if executed multiple times, injecting noise into the baseline comparisons.",Enforced a deterministic temperature setting (0.0) across all LLMs to maximize reproducibility.
+Planner timeout sensitivity,"A cutoff of 360 seconds is arbitrary. Planners might solve instances at 361 seconds, skewing coverage gains.","Expanded the standard IPC Agile Track cutoff from 300s to 360s (+1 minute) to give a more fair chance for complex tuples, applied consistently across all stages."
+Validation pipeline strictness,"The V4 PDDL semantic validity checks could falsely flag valid optimizations or permit broken syntax, ruining downstream analysis.","Utilized a consistent, strictly-typed regex parsing and VAL validation pipeline equally across all stages."
+Docker container variability,Container startup times and CPU scheduling overhead add noise to the absolute wall-clock runtime measurements.,"Executed all tests on consistent hardware, treating startup overhead as a uniform constant penalty."

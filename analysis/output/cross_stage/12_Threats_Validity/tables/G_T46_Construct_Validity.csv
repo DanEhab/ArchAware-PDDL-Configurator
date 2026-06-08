@@ -1,0 +1,3 @@
+Threat,Description,Mitigation
+IPC Score limitations,"The IPC Score aggressively prioritizes runtime speed over plan quality or total action cost, potentially rewarding 'fast but sloppy' plans.","Reported and analyzed secondary metrics including Coverage %, PAR10, and mean Plan Cost to provide a holistic view."
+Improvement definitions,Labeling a configuration as an 'Improvement' based on binary criteria might mask underlying regressions in specific edge instances.,"Developed and enforced a strict 3-condition formal framework requiring statistical significance, practical magnitude, and neutral/positive coverage."
