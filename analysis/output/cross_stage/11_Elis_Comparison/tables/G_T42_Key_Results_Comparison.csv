@@ -1,0 +1,7 @@
+Metric,Elis Thesis,This Thesis,Significance / Why?
+Overall Valid Rate (Syntactic + Semantic),49.00% (343/700),93.00% (93/100 for S1+S2),Massive jump due to modern reasoning models and superior prompt structure
+Best LLM for Validity,GPT-4o (96%),Claude / Gemini (100%),Structural parsing is completely solved for the top-tier 2026 models
+% Configs Improved vs Baseline,~14% to 26%,80.9% (55/68 contestable),Feedback loops ensure almost guaranteed eventual optimization
+Best Planner to Benefit,SIW,LAMA,LAMA's heuristic dependency benefits heavily from architecture hints
+Mean IPC Gain,Weak / Mixed (Planner-dependent),Strong Positive (+0.0435 for Claude),Planner-aware prompts prevent the severe regressions seen in Elis's work
+Generation Efficiency (ROI),Low (700 generation attempts),High (100 base generation attempts),Structured agentic feedback is vastly more efficient than brute-force zero-shot sweeps

@@ -1,0 +1,11 @@
+Dimension,Elis Thesis,This Thesis
+LLMs Used,"7 (GPT-4o, o4-mini, Claude 3.7, etc.)","4 (Claude Opus 4.6, GPT-5.4, Gemini 3.1, DeepSeek-R1)"
+Prompt Strategies,"5 static (Zero/Few-Shot, CoT)",2 dynamic (General + Arch-Aware)
+Temperature,"4 settings (0.0, 0.2, 0.5, 0.7)",Fixed (0.0) for reproducibility
+Planners,"5 (SIW, FD, Mercury, Madagascar, SIW-BFSF)","4 (LAMA, BFWS, DecStar, Madagascar)"
+Domains,"5 (barman, genome, thoughtful, etc.)","5 (barman, depots, ricochet-robots, snake, visitall)"
+Instances per domain,20,15
+Total LLM Domain Generations,700,100 (20 in Stage 1 + 80 in Stage 2)
+Architecture Awareness,No,Yes (Planner-specific logic injected)
+Feedback Loop,No,Yes (3-iteration execution feedback loop)
+Improvement Detection,No formal criteria,Yes (3-condition formal framework)
