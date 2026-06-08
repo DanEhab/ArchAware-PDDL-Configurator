@@ -1,0 +1,5 @@
+LLM Model,S1 Mean IPC Gain,S2 Mean IPC Gain,S3 Mean IPC Gain,S1 Improvement,S2 Improvement,S3 Improvement
+Claude Opus 4.6,-0.0034,+0.0435,+0.0279,19.67%,49.00%,46.67%
+GPT-5.4,-0.0091,+0.0011,+0.0248,20.67%,46.00%,43.33%
+Gemini 3.1 Pro,-0.0067,+0.0315,+0.0248,21.33%,44.67%,39.33%
+DeepSeek-R1,-0.1903,+0.0251,-0.0312,13.00%,47.67%,30.33%

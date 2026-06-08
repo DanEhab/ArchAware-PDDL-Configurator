@@ -1,0 +1,5 @@
+Rank,Stage 1 Best LLM,Stage 2 Best LLM,Stage 3 Best LLM,Consistent?
+1st,Claude Opus 4.6,Claude Opus 4.6,Claude Opus 4.6,Yes
+2nd,Gemini 3.1 Pro,Gemini 3.1 Pro,GPT-5.4,No
+3rd,GPT-5.4,DeepSeek-R1,Gemini 3.1 Pro,No
+4th,DeepSeek-R1,GPT-5.4,DeepSeek-R1,No
