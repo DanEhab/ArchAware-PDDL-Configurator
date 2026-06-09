@@ -32,6 +32,7 @@ ENV/
 PDFs/
 *.pdf
 LLM Modulo Feedback Loop Implementation Helper/
+VIP Documents/
 
 # ──────────────────────────────────────────────────────────────
 # 4. Markdowns — Converted thesis PDFs (not for public commits)
