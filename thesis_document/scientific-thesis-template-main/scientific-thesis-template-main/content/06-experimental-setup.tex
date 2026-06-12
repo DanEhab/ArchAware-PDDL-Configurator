@@ -1,0 +1,45 @@
+\chapter{Experimental Setup}\label{ch:experimental_setup}
+% Defines the specific ingredients, rules, and measurement instruments of the experiment
+
+\section{Selection of Domains}
+\label{sec:setup:domains}
+% The 5 IPC benchmark domains: Depots, Snake, Visitall, Barman, Ricochet-Robots
+% Selection criteria: mix of old/new, different difficulty levels, structural diversity
+
+\section{Selection of Planners}
+\label{sec:setup:planners}
+% The 4 planners and their exact versions
+% Selection methodology and rationale (covering 4 distinct search paradigms)
+
+\section{Selection of LLMs}
+\label{sec:setup:llms}
+% The 4 LLMs: GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro, Llama 3
+% Selection criteria: mix of proprietary/open-source, reasoning/coding specialisation
+
+\section{Hardware and Environment}
+\label{sec:setup:hardware}
+% Physical specs: Intel i7-13650HX, 16GB RAM, OS
+% Local dedicated machine to prevent noisy-neighbour variance
+
+\section{Hyperparameters and Reproducibility}
+\label{sec:setup:hyperparameters}
+% LLM temperature = 0.0, fixed random seeds
+% Planner timeout/memout limits
+% Number of runs per configuration
+% Measures taken to ensure deterministic reproducibility
+
+\section{Evaluation Metrics}
+\label{sec:setup:metrics}
+% IPC Score: official International Planning Competition scoring formula
+% Coverage: how many problem instances were solved
+% PAR10: penalised average runtime for unsolved instances
+% Runtime and Plan Cost: speed and efficiency of the produced plan
+% Validation Rates: percentage of LLM outputs that pass the 4-level validation pipeline
+
+\section{Statistical Methods}
+\label{sec:setup:stats}
+% Friedman Test: proves at least one LLM/stage is significantly different
+% Wilcoxon Signed-Rank Test: pairwise comparison (Stage 2 vs. Stage 1)
+% Kruskal-Wallis Test: comparison across multiple groups
+% Cliff's Delta: effect size — not just "if" better, but "how much" better
+% Bonferroni / Nemenyi post-hoc corrections for multiple comparisons

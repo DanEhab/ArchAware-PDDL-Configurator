@@ -7,44 +7,38 @@
 \subsection{Planning Domain Definition Language (PDDL)}
 \label{sec:bg:pddl}
 
-\subsection{Domain Models and Configuration Spaces}
-\label{sec:bg:domain_models}
 
-\section{AI Planner Architectures}
-\label{sec:bg:architectures}
-
-\subsection{Heuristic Forward Search (LAMA / Fast Downward)}
-\label{sec:bg:lama}
-
-\subsection{Width-Based Search (BFWS)}
-\label{sec:bg:bfws}
-
-\subsection{Decoupled Search (DecStar)}
-\label{sec:bg:decstar}
-
-\subsection{SAT-Based Planning (Madagascar)}
-\label{sec:bg:madagascar}
+\subsection{Search Paradigms in Classical Planning}
+\label{sec:bg:search_paradigms}
+% General concepts only — NOT specific planners (those go in Ch.5 Implementation)
+% Heuristic forward-state-space search: expanding states guided by heuristic estimates of goal distance
+% Width-based search: novelty metrics that prioritise unexplored state features
+% Factored/decoupled search: decomposing problems along causal structure into independent factors
+% Compilation to SAT: encoding the bounded planning problem as a propositional satisfiability formula
 
 \section{Domain Model Configuration}
 \label{sec:bg:configuration}
 
 \subsection{Structural Sensitivity of Planners}
 \label{sec:bg:sensitivity}
-
-\subsection{Configuration Approaches}
-\label{sec:bg:config_approaches}
+% Explains the core problem: changing the textual order of actions, predicates, effects — without altering semantics —
+% can cause orders-of-magnitude differences in planner runtime and coverage
+% This is the conceptual motivation for the entire thesis
 
 \section{Large Language Models}
 \label{sec:bg:llms}
 
 \subsection{Architecture and Capabilities}
 \label{sec:bg:llm_arch}
+% Brief overview of transformer architecture, next-token prediction, scaling
+% Positions LLMs as advanced pattern matchers, not reasoning engines
 
 \subsection{Prompting Strategies}
 \label{sec:bg:prompting}
-
-\subsection{LLMs for Planning and Code Transformation}
-\label{sec:bg:llms_planning}
+% Zero-shot, few-shot, chain-of-thought prompting
+% Crucial because Stage 1 uses a "general" prompt and Stage 2 uses an "architecture-aware" prompt
 
 \section{The LLM-Modulo Framework}
 \label{sec:bg:llm_modulo}
+% Conceptual framework: LLMs generate, external verifiers validate, quantitative feedback drives iteration
+% Sets up the theoretical basis for Stage 3 (feedback loop)

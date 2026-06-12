@@ -3,35 +3,55 @@
 
 \section{System Overview and Pipeline Architecture}
 \label{sec:design:overview}
+% High-level flowchart of the entire 4-stage pipeline
+% How a PDDL file travels from Stage 0 through Stage 3
 
 \section{Stage 0: Baseline Establishment}
 \label{sec:design:stage0}
+% Running original, unmodified PDDL domains through all planners
+% Establishes the "before" measurement for comparison
 
 \section{Stage 1: General Prompt Configuration}
 \label{sec:design:stage1}
+% Design of a generic prompt that asks the LLM to "improve this domain file"
+% No architectural hints — serves as the control group
 
 \section{Stage 2: Architecture-Aware Prompt Configuration}
 \label{sec:design:stage2}
-% Will discuss Prompt Template Design, Planner-Specific Heuristic Rules, and Cross-Testing Protocol here.
+% Core intellectual contribution
+% Prompt template design
+% Planner-specific architectural rules (e.g., "LAMA likes goal-count heuristics")
+% Cross-Testing Protocol — running LAMA-optimised prompts on BFWS to prove rules matter
 
 \section{Stage 3: LLM-Modulo Feedback Loop}
 \label{sec:design:stage3}
-% Will discuss Meta-Controller, Diagnostic Feedback, Iterative Refinement, and Termination Criteria here.
+% Algorithm of the iterative loop
+% Meta-Controller catches validation errors, feeds them back to the LLM
+% Diagnostic natural language feedback from quantitative execution telemetry
+% Termination criteria: success or maximum turn limit
 
 \section{Validation Pipeline}
 \label{sec:design:validation}
 
 \subsection{V1: PDDL Extraction}
 \label{sec:design:v1_extraction}
+% Safely extracting raw PDDL code from the LLM's markdown output
 
 \subsection{V2: VAL Syntactic Check}
 \label{sec:design:v2_val}
+% Using the official IPC VAL tool to ensure PDDL syntax compiles
 
 \subsection{V3: Identity Check}
 \label{sec:design:v3_identity}
+% Ensuring the LLM actually changed something (not a copy-paste of the original)
 
 \subsection{V4: Semantic Equivalence}
 \label{sec:design:v4_semantic}
+% The most crucial check: ensuring the LLM did not change start states, goal states,
+% or make the problem fundamentally easier
 
 \section{Computational Safeguards}
 \label{sec:design:safeguards}
+% TIMEOUTs — stopping a planner if it takes too long
+% MEMOUTs — stopping it if it uses too much RAM
+% Ensures scientific rigour and fair comparison

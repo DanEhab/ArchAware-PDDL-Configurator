@@ -1,0 +1,45 @@
+\chapter{Implementation}\label{ch:implementation}
+% Provides implementation details — How is the design practically realised?
+
+\section{System Architecture and Codebase}
+\label{sec:impl:codebase}
+% Python codebase structure, module organisation
+% How the pipeline stages are orchestrated programmatically
+
+\section{Docker Containerisation}
+\label{sec:impl:docker}
+% How the C++ planners are wrapped in Docker containers
+% Ensures consistent, reproducible execution across platforms
+% Isolates fragile planner dependencies from the host system
+
+\section{Planner Integration}
+\label{sec:impl:planners}
+% How each planner is integrated into the pipeline
+% Described in the context of integration (command-line interfaces, output parsing, Docker images)
+% NOT abstract background — the reader encounters planners here after understanding the pipeline design
+
+\subsection{LAMA (Fast Downward)}
+\label{sec:impl:lama}
+% Heuristic forward search planner
+% Integration specifics: Fast Downward build, command-line flags, output format
+
+\subsection{BFWS}
+\label{sec:impl:bfws}
+% Width-based search planner
+% Integration specifics: build process, novelty parameters, output parsing
+
+\subsection{DecStar}
+\label{sec:impl:decstar}
+% Decoupled/factored search planner
+% Integration specifics: factoring configuration, Docker setup
+
+\subsection{Madagascar}
+\label{sec:impl:madagascar}
+% SAT-based planner
+% Integration specifics: SAT encoding parameters, bounded horizon, output format
+
+\section{LLM Integration}
+\label{sec:impl:llm_integration}
+% LiteLLM API abstraction layer
+% How models are called uniformly across providers (OpenAI, Anthropic, Google, Meta)
+% Prompt injection, response parsing, error handling

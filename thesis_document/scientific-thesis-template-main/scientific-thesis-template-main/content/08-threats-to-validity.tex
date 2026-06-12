@@ -1,0 +1,34 @@
+\chapter{Threats to Validity}\label{ch:threats}
+% Dedicated chapter discussing potential threats following the standard four-type framework
+
+\section{Internal Validity}
+\label{sec:threats:internal}
+% Factors that could compromise causal conclusions within the experiment
+% Hardware noise: mitigated by dedicated local machine, but single-machine variance remains
+% API non-determinism: LLM outputs may vary despite temperature=0.0 due to provider-side batching
+% Docker overhead: containerisation adds latency that may affect absolute runtime measurements
+% Order effects: whether the sequence of problem instances affects planner warm-up behaviour
+
+\section{External Validity}
+\label{sec:threats:external}
+% Generalisability of findings beyond this specific experiment
+% Limited to 5 IPC benchmark domains — results may not generalise to all PDDL structures
+% Limited to 4 planners — other planner architectures (e.g., temporal, HTN) are untested
+% STRIPS subset of PDDL — does not cover numeric fluents, temporal planning, or ADL features
+% LLM model versions: results are tied to specific model snapshots that may be deprecated
+
+\section{Construct Validity}
+\label{sec:threats:construct}
+% Whether the measurements actually capture the intended constructs
+% IPC score as a proxy for "planner efficiency" — may not capture all dimensions of planning quality
+% "Architecture-awareness" operationalised as manually crafted rules — other operationalisations are possible
+% Semantic equivalence check (V4) relies on structural comparison, not formal verification
+% Prompt design decisions may introduce experimenter bias
+
+\section{Statistical Conclusion Validity}
+\label{sec:threats:statistical}
+% Reliability of statistical inferences drawn from the data
+% Sample size per experimental cell: whether sufficient for non-parametric test power
+% Multiple comparisons: risk of Type I errors across the many pairwise tests conducted
+% Non-parametric test assumptions: ordinal data requirements, independence assumptions
+% Effect size interpretation: Cliff's Delta thresholds are conventional, not domain-specific

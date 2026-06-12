@@ -1,19 +1,39 @@
 \chapter{Related Work}\label{ch:related_work}
 % Identify and describe the key research areas related to your topic
-
-\section{Domain Model Configuration in Classical Planning}
-\label{sec:rw:classical_config}
-
-\section{LLMs as Planners}
-\label{sec:rw:llms_as_planners}
-
-\section{LLMs as Domain Modellers}
-\label{sec:rw:llms_domain_modellers}
+% Ordered by relevance to this thesis: most relevant first
 
 \section{LLM-Based Domain Model Configuration}
 \label{sec:rw:llm_config}
-% Discuss Elis & Georgievski et al.
+% MOST RELEVANT — the exact niche of this thesis
+% Deep analysis of Daniel Elis's bachelor thesis and Dr. Ilche's paper (Georgievski et al., 2025)
+% Elis proved LLMs can restructure domain files to make planners faster
+% Limitation: used a "general prompt" treating all planners the same, no automated feedback loop
+
+\section{LLMs as Domain Modellers}
+\label{sec:rw:llms_domain_modellers}
+% LLMs translating natural language descriptions into PDDL code from scratch
+% Oswald et al., Guan et al., Smirnov et al.
+% Limitation: LLMs can write syntax but not efficient syntax; output often makes planners slow
+
+\section{LLMs as Planners}
+\label{sec:rw:llms_as_planners}
+% Attempts to make LLMs solve planning problems directly
+% Valmeekam et al., Silver et al.
+% Limitation: LLMs hallucinate invalid moves, fail at long-horizon reasoning
+% Justifies why we use LLMs to help planners, not replace them
+
+\section{Domain Model Configuration in Classical Planning}
+\label{sec:rw:classical_config}
+% Traditional (non-LLM) approaches to optimising PDDL domain structure
+% Vallati et al. (2015, 2021) — SMAC-based configuration, macro-operators
+% McCluskey et al. — domain model engineering quality criteria
+% Also absorbs content from old §2.3.2 (Configuration Approaches)
+% Limitation: mathematically rigid, slow, doesn't scale across different planner architectures
 
 \section{Research Gap and Positioning}
 \label{sec:rw:gap}
-% Position your own research within this context; show how it addresses identified gaps
+% Grand finale: explicitly state the gap
+% No one has tested architecture-aware prompting (tailoring LLM instructions to specific planner algorithms)
+% No one has combined this with an automated closed feedback loop
+% This thesis fills the gap by introducing the Architecture-Aware Prompt (Stage 2)
+% and the LLM-Modulo Feedback Loop (Stage 3)

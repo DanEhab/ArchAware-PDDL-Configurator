@@ -1,0 +1,49 @@
+\chapter{Results}\label{ch:results}
+% Pure results presentation and interpretation — no design or methodology
+
+\section{Baseline Characterisation (Stage 0)}
+\label{sec:results:stage0}
+% Tables showing planner performance on original, unmodified domains
+% Interpretation: which domains are inherently hard, which planners struggle the most
+% Establishes the reference point for all subsequent comparisons
+
+\section{General Prompt Results (Stage 1)}
+\label{sec:results:stage1}
+% Did a simple "improve this code" prompt work?
+% Validation rates, IPC score gains, coverage changes
+% Analysis: worked partially, but often generated broken or unhelpful code
+
+\section{Architecture-Aware Prompt Results (Stage 2)}
+\label{sec:results:stage2}
+% The breakthrough results
+% Validation rates, IPC score jumps, coverage improvements
+% Cross-testing analysis: proving architectural rules actually matter
+% Comparison with Stage 1: interpreting why architecture-aware hints outperform generic ones
+
+\section{Feedback Loop Results (Stage 3)}
+\label{sec:results:stage3}
+% Validation and convergence analysis
+% How the loop caught errors and fixed them iteratively
+% Success rate improvement (e.g., ~44\% to ~80\%)
+% Iterative learning patterns and failure recovery analysis
+
+\section{Cross-Stage Comparative Analysis}
+\label{sec:results:cross_stage}
+% Full pipeline progression: Stages 0 → 1 → 2 → 3 side-by-side
+% Ablation study isolating the value of each stage
+% LLM effectiveness comparison: which model was smartest
+% Planner responsiveness: which planner benefited most from good code
+% Domain sensitivity: which domains responded best
+% Token efficiency and cost analysis
+
+\section{Statistical Validation}
+\label{sec:results:statistical_validation}
+% Omnibus tests (Friedman): proving overall significance
+% Pairwise comparisons (Wilcoxon): Stage 2 vs. Stage 1, Stage 3 vs. Stage 2
+% Effect sizes (Cliff's Delta): magnitude of improvements
+% Proving to the committee that the results are not coincidence
+
+\section{Comparison with Prior Work}
+\label{sec:results:prior_work}
+% Direct comparison with Daniel Elis's thesis results
+% How the architecture-aware, feedback-loop pipeline outperforms the generic baseline

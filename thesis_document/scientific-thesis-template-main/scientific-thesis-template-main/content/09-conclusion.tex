@@ -1,0 +1,31 @@
+\chapter{Conclusion and Outlook}\label{ch:conclusion}
+
+\section{Summary of Contributions}
+\label{sec:concl:summary}
+% State the most important outcomes:
+% 1. Introduced a 4-stage pipeline for architecture-aware domain model configuration
+% 2. Proved that architecture-aware prompting mathematically outperforms generic prompting
+% 3. Demonstrated that a closed feedback loop increases validation/improvement rates significantly
+% 4. Showed that the engineering methodology matters more than the choice of LLM
+
+\section{Answers to Research Questions}
+\label{sec:concl:rq_answers}
+% Copy the research questions from Chapter 1 and provide definitive, data-backed answers
+% Each question gets a clear response grounded in the findings from Chapter 7
+
+\section{Limitations}
+\label{sec:concl:limitations}
+% Software and practical limitations ONLY (experimental validity is in Chapter 8)
+% API latency: feedback loop takes several minutes per domain
+% Cost: token consumption across multiple LLM calls
+% Manual rule engineering: architecture-aware rules were hand-crafted from planner source code
+% Single-machine execution: limits the scale of experiments that can be run
+
+\section{Future Work}
+\label{sec:concl:future_work}
+% Each limitation should spawn an idea for future work
+% Automated rule extraction: use a separate LLM agent to read planner C++ source code and extract rules
+% Scaling to more planners/domains: temporal, HTN, numeric PDDL
+% Online adaptation: real-time feedback during planning, not just offline batch processing
+% Fine-tuning LLMs specifically for PDDL configuration tasks
+% Integration into planning competition infrastructure
