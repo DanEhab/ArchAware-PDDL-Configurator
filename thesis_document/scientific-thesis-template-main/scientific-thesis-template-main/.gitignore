@@ -2,14 +2,9 @@ main-english.pdf
 main-english-*.pdf
 figures/*.pdf_tex
 
-main-english.tex
-main-english-university-of-hamburg.tex
-main-german.tex
-main-german-university-of-hamburg.tex
-main-minted-english.tex
-main-minted-english-university-of-hamburg.tex
-main-minted-german.tex
-main-minted-german-university-of-hamburg.tex
+# main document files are tracked
+# main-english.tex
+# main-german.tex
 
 # glossaries
 *.glo-abr
