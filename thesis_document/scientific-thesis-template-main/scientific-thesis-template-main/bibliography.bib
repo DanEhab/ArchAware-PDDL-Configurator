@@ -1,37 +1,277 @@
 % Encoding: UTF-8
 
-@InProceedings{Winery,
-  author    = {Oliver Kopp and others},
-  booktitle = {Proceedings of 11\textsuperscript{th} International Conference on Service-Oriented Computing (ICSOC'13)},
-  title     = {{Winery -- A Modeling Tool for {TOSCA}-based Cloud Applications}},
-  year      = {2013},
-  pages     = {700--704},
-  publisher = {Springer Berlin Heidelberg},
-  series    = {LNCS},
-  volume    = {8274},
-  doi       = {10.1007/978-3-642-45005-1_64},
-  keywords  = {Cloud Applications; Modeling; TOSCA; Management; Portability},
+% ==========================================
+% Domain Model Configuration & Engineering
+% ==========================================
+
+@Article{Vallati2021,
+  author    = {Mauro Vallati and Luk{\'a}{\v{s}} Chrpa and Thomas Leo McCluskey and Frank Hutter},
+  journal   = {Journal of Automated Reasoning},
+  title     = {{On the Importance of Domain Model Configuration for Automated Planning Engines}},
+  year      = {2021},
+  number    = {6},
+  pages     = {727--773},
+  volume    = {65},
+  doi       = {10.1007/s10817-021-09587-x},
 }
 
-@Article{Binz2009,
-  author    = {Tobias Binz and Gerd Breiter and Frank Leymann and Thomas Spatzier},
-  journal   = {IEEE Internet Computing},
-  title     = {{Portable Cloud Services Using TOSCA}},
-  year      = {2012},
-  issn      = {1089-7801},
-  month     = may,
-  number    = {03},
-  pages     = {80--85},
-  volume    = {16},
-  doi       = {10.1109/mic.2012.43},
-  publisher = {IEEE Computer Society},
+@InProceedings{Vallati2015,
+  author    = {Mauro Vallati and Frank Hutter and Luk{\'a}{\v{s}} Chrpa and Thomas Leo McCluskey},
+  booktitle = {Proceedings of the 24th International Joint Conference on Artificial Intelligence (IJCAI)},
+  title     = {{On the Effective Configuration of Planning Domain Models}},
+  year      = {2015},
+  publisher = {AAAI Press},
 }
 
-@Manual{mwe,
-  title  = {The \texttt{mwe} Package},
-  author = {Martin Scharrer},
-  year   = {2017},
-  url    = {http://texdoc.net/mwe},
+@InProceedings{McCluskey2017,
+  author    = {Thomas Leo McCluskey and Tiago Stegun Vaquero and Mauro Vallati},
+  booktitle = {Proceedings of the 9th International Conference on Knowledge Capture (K-CAP)},
+  title     = {{Engineering Knowledge for Automated Planning: Towards a Notion of Quality}},
+  year      = {2017},
+  pages     = {1--8},
+}
+
+% ==========================================
+% LLMs and Planning — Core References
+% ==========================================
+
+@InProceedings{Kambhampati2024,
+  author    = {Subbarao Kambhampati and Karthik Valmeekam and Lin Guan and Kaya Stechly and Mudit Verma and Siddhant Bhambri and Lucas Saldyt and Anil Murthy},
+  booktitle = {Proceedings of the 41st International Conference on Machine Learning (ICML)},
+  title     = {{Position: LLMs Can't Plan, But Can Help Planning in LLM-Modulo Frameworks}},
+  year      = {2024},
+}
+
+@InProceedings{Valmeekam2023,
+  author    = {Karthik Valmeekam and Alberto Olmo and Sarath Sreedharan and Subbarao Kambhampati},
+  booktitle = {NeurIPS 2022 Foundation Models for Decision Making Workshop},
+  title     = {{Large Language Models Still Can't Plan (A Benchmark for LLMs on Planning and Reasoning About Change)}},
+  year      = {2023},
+}
+
+% ==========================================
+% Predecessor Thesis and Associated Paper
+% ==========================================
+
+@PhdThesis{Elis2025,
+  author    = {Daniel Elis},
+  school    = {University of Stuttgart},
+  title     = {{Investigating the Potential of Large Language Models to Enhance AI Planner Efficiency Through Automated Domain Model Configuration}},
+  year      = {2025},
+  type      = {Bachelor Thesis},
+}
+
+@Unpublished{Georgievski2025,
+  author    = {Ilche Georgievski and Daniel Elis and Mauro Vallati},
+  title     = {{On the Use of Large Language Models as Domain Model Configurators}},
+  year      = {2025},
+  note      = {Preprint},
+}
+
+% ==========================================
+% LLMs as Domain Modellers / Generators
+% ==========================================
+
+@InProceedings{Oswald2024,
+  author    = {James Oswald and Kavitha Srinivas and Harsha Kokel and Junkyu Lee and Michael Katz and Shirin Sohrabi},
+  booktitle = {Proceedings of the International Conference on Automated Planning and Scheduling (ICAPS)},
+  title     = {{Large Language Models as Planning Domain Generators}},
+  year      = {2024},
+  pages     = {423--431},
+  volume    = {34},
+}
+
+@InProceedings{Guan2023,
+  author    = {Lin Guan and Karthik Valmeekam and Sarath Sreedharan and Subbarao Kambhampati},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  title     = {{Leveraging Pre-trained Large Language Models to Construct and Utilize World Models for Model-based Task Planning}},
+  year      = {2023},
+  pages     = {79081--79094},
+  volume    = {36},
+}
+
+@Article{Smirnov2024,
+  author    = {Pavel Smirnov and Frank Joublin and Antonello Ceravola and Michael Gienger},
+  title     = {{Generating Consistent PDDL Domains with Large Language Models}},
+  year      = {2024},
+  journal   = {arXiv preprint arXiv:2404.07751},
+}
+
+@InProceedings{Casciani2025,
+  author    = {Alessandro Casciani and Giuseppe {De Giacomo} and Andrea Marrella and Clara Weinhuber},
+  booktitle = {ICAPS 2025 Workshop LM4Plan},
+  title     = {{A Requirements Engineering-Driven Methodology for Planning Domain Generation via LLMs with Invariant-Based Refinement}},
+  year      = {2025},
+}
+
+@InProceedings{Huang2025,
+  author    = {Can Huang and Lihao Zhang},
+  booktitle = {Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  title     = {{On the Limit of Language Models as Planning Formalizers}},
+  year      = {2025},
+  pages     = {4880--4904},
+}
+
+@InProceedings{Tantakoun2025,
+  author    = {Matthew Tantakoun and Christian Muise and Xiaodan Zhu},
+  booktitle = {Findings of the Association for Computational Linguistics: ACL 2025},
+  title     = {{LLMs as Planning Formalizers: A Survey for Leveraging Large Language Models to Construct Automated Planning Models}},
+  year      = {2025},
+  pages     = {25167--25188},
+}
+
+% ==========================================
+% Domain Model Repair
+% ==========================================
+
+@InProceedings{Bercher2025,
+  author    = {Pascal Bercher and Sunandha Sreetharan and Mauro Vallati},
+  booktitle = {Proceedings of the 34th International Joint Conference on Artificial Intelligence (IJCAI)},
+  title     = {{A Survey on Model Repair in AI Planning}},
+  year      = {2025},
+  publisher = {IJCAI Organization},
+}
+
+% ==========================================
+% LLM Heuristics and Action Choice
+% ==========================================
+
+@InProceedings{Stein2025,
+  author    = {Katharina Stein and Daniel Fi{\v{s}}er and J{\"o}rg Hoffmann and Alexander Koller},
+  booktitle = {Proceedings of the 35th International Conference on Automated Planning and Scheduling (ICAPS)},
+  title     = {{Automating the Generation of Prompts for LLM-based Action Choice in PDDL Planning}},
+  year      = {2025},
+  publisher = {AAAI Press},
+}
+
+@Unpublished{Tuisov2025,
+  author    = {Artem Tuisov and Yonathan Vernik and Alexander Shleyfman},
+  title     = {{LLM-Generated Heuristics for AI Planning: Do We Even Need Domain-Independence Anymore?}},
+  year      = {2025},
+  note      = {arXiv:2501.18784},
+}
+
+% ==========================================
+% Knowledge Engineering for Planning in the LLM Era
+% ==========================================
+
+@InProceedings{Vallati2025,
+  author    = {Mauro Vallati and Roman Bart{\'a}k and Luk{\'a}{\v{s}} Chrpa and Thomas Leo McCluskey and Ron Petrick},
+  booktitle = {Proceedings of the International Conference on Automated Planning and Scheduling (ICAPS)},
+  title     = {{Knowledge Engineering for Planning and Scheduling in the LLM Era}},
+  year      = {2025},
+  pages     = {391--395},
+  volume    = {35},
+}
+
+% ==========================================
+% Reformulation Techniques
+% ==========================================
+
+@Article{Alarnaouti2023,
+  author    = {Diya Alarnaouti and George Baryannis and Mauro Vallati},
+  journal   = {The Knowledge Engineering Review},
+  title     = {{Reformulation Techniques for Automated Planning: A Systematic Review}},
+  year      = {2023},
+  volume    = {38},
+  pages     = {e9},
+}
+
+% ==========================================
+% Classical Planning and PDDL
+% ==========================================
+
+@Unpublished{Chrpa2020,
+  author = {Luk{\'a}{\v{s}} Chrpa},
+  title  = {{Efficient Modelling and Reformulation of Planning Tasks}},
+  year   = {2020},
+  note   = {Unpublished},
+}
+
+@TechReport{McDermott1998,
+  author      = {Drew McDermott and Malik Ghallab and Adele Howe and Craig Knoblock and Ashwin Ram and Manuela Veloso and Daniel Weld and David Wilkins},
+  institution = {Yale Center for Computational Vision and Control},
+  title       = {{PDDL --- The Planning Domain Definition Language}},
+  year        = {1998},
+  number      = {CVC TR-98-003/DCS TR-1165},
+}
+
+@Article{HoweDahlman2002,
+  author    = {Adele E. Howe and Eric Dahlman},
+  journal   = {Journal of Artificial Intelligence Research},
+  title     = {{A Critical Assessment of Benchmark Comparison in Planning}},
+  year      = {2002},
+  pages     = {1--33},
+  volume    = {17},
+}
+
+@InProceedings{RiddleHolteBarley2011,
+  author    = {Patricia J. Riddle and Robert C. Holte and Michael W. Barley},
+  booktitle = {Symposium on Abstraction, Reformulation, and Approximation (SARA)},
+  title     = {{Does Representation Matter in the Planning Competition?}},
+  year      = {2011},
+}
+
+@Article{Helmert2009,
+  author    = {Malte Helmert},
+  journal   = {Artificial Intelligence},
+  title     = {{Concise Finite-Domain Representations for PDDL Planning Tasks}},
+  year      = {2009},
+  number    = {5--6},
+  pages     = {503--535},
+  volume    = {173},
+}
+
+% ==========================================
+% Transformer Architecture
+% ==========================================
+
+@InProceedings{Vaswani2017,
+  author    = {Ashish Vaswani and Noam Shazeer and Niki Parmar and Jakob Uszkoreit and Llion Jones and Aidan N. Gomez and {\L}ukasz Kaiser and Illia Polosukhin},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  title     = {{Attention Is All You Need}},
+  year      = {2017},
+  pages     = {6000--6010},
+  publisher = {Curran Associates Inc.},
+}
+
+% ==========================================
+% LLM Surveys
+% ==========================================
+
+@Unpublished{Zhao2023,
+  author    = {Wayne Xin Zhao and Kun Zhou and Junyi Li and Tianyi Tang and Xiaolian Wang and Yupeng Hou and Yingqian Min and Beichen Zhang and Junjie Zhang and Zican Dong and others},
+  title     = {{A Survey of Large Language Models}},
+  year      = {2023},
+  note      = {arXiv:2303.18223},
+}
+
+@Unpublished{Minaee2024,
+  author    = {Shervin Minaee and Tomas Mikolov and Narjes Nikzad and Meysam Chenaghlu and Richard Socher and Xavier Amatriain and Jianfeng Gao},
+  title     = {{Large Language Models: A Survey}},
+  year      = {2024},
+  note      = {arXiv:2402.06196},
+}
+
+% ==========================================
+% AI Planning Applications
+% ==========================================
+
+@InProceedings{Georgievski2023,
+  author    = {Ilche Georgievski},
+  booktitle = {Proceedings of the 18th International Conference on Software Technologies (ICSOFT)},
+  title     = {{Software Development Lifecycle for Engineering AI Planning Systems}},
+  year      = {2023},
+  pages     = {751--760},
+}
+
+@InProceedings{Pallagani2024,
+  author    = {Vishal Pallagani and Bharath Chandra Muppasani and Keerthiram Roy and Francesco Fabiano and Andrea Loreggia and Keerthana Murugesan and Biplav Srivastava and Francesca Rossi and Lior Horesh and Amit Sheth},
+  booktitle = {Proceedings of the International Conference on Automated Planning and Scheduling (ICAPS)},
+  title     = {{On the Prospects of Incorporating Large Language Models (LLMs) in Automated Planning and Scheduling (APS)}},
+  year      = {2024},
+  pages     = {432--444},
+  volume    = {34},
 }
 
 @Comment{jabref-meta: databaseType:biblatex;}
