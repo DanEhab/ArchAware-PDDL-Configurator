@@ -1,44 +1,349 @@
-\chapter{Background}\label{ch:background}
-% Theories and concepts that may be unfamiliar to the audience and are essential for understanding the remainder of the paper
+% !TeX root = ../main-english.tex
+% LTeX: language=en-US
 
+\chapter{Background}\label{ch:background}
+
+Automated planning, domain model configuration, and large language models constitute the foundational pillars of the present work.
+This chapter introduces the theories and concepts essential for understanding the approach, experimental design, and results presented in subsequent chapters.
+\Cref{sec:bg:planning} formalises the planning problem and the language used to express domain models, then surveys the major search paradigms in classical planning.
+\Cref{sec:bg:configuration} defines domain model configuration and explains the structural sensitivity phenomenon that motivates the thesis.
+\Cref{sec:bg:llms} provides an overview of \glspl{llm} and the prompting strategies used to guide their behaviour.
+Finally, \Cref{sec:bg:llm_modulo} introduces the LLM-Modulo framework, which supplies the conceptual foundation for iterative refinement through external feedback.
+
+%% -----------------------------------------------------------------------
+%%  2.1  AUTOMATED PLANNING
+%% -----------------------------------------------------------------------
 \section{Automated Planning}
 \label{sec:bg:planning}
 
-\subsection{Planning Domain Definition Language (PDDL)}
+Automated planning is a discipline within \gls{ai} concerned with the automated synthesis of action sequences---called \emph{plans}---that transition a system from a given initial state to a desired goal state~\cite{GhallabNauTraverso2004, RussellNorvig2021}.
+Classical planning, the most studied form, operates under the assumptions of a finite, deterministic, and fully observable environment with no temporal constraints~\cite{GhallabNauTraverso2004}.
+A defining characteristic of modern planning is its \emph{domain-independent} design: the planning engine (the search algorithm) is strictly separated from the domain model (the formal description of the environment's dynamics), enabling a single planner to operate across diverse application domains without modification~\cite{McDermott1998}.
+
+The following formal definitions, adapted from \citeauthor{Georgievski2025}~\cite{Georgievski2025}, provide the foundation for the remainder of this work.
+
+\begin{definition}[Planning Formalism]\label{def:planning}
+  Let $F$ be a finite set of \emph{predicates} that describe properties and relations in the world, and let $F_g$ denote the corresponding set of \emph{ground predicates} obtained by substituting all variables with concrete objects.
+  A \emph{state} $s \subseteq F_g$ is a set of ground predicates representing all facts that hold at a given point in time.
+  An \emph{action schema} $a$ is a tuple $\langle \mathit{pre}(a),\; \mathit{del}(a),\; \mathit{add}(a) \rangle$, where $\mathit{pre}(a) \subseteq F$ is a set of predicates that must hold to apply the action (\emph{preconditions}), $\mathit{del}(a) \subseteq F$ is a set of predicates that become false (\emph{delete effects}), and $\mathit{add}(a) \subseteq F$ is a set of predicates that become true (\emph{add effects}) after the action is applied.
+  \emph{Actions} are ground instances of action schemas.
+  A ground action $a_g = \langle \mathit{pre}_g(a_g),\; \mathit{del}_g(a_g),\; \mathit{add}_g(a_g) \rangle$ is \emph{applicable} in state~$s$ if and only if $\mathit{pre}_g(a_g) \subseteq s$.
+  Applying $a_g$ in $s$ yields the successor state $s' = (s \setminus \mathit{del}_g(a_g)) \cup \mathit{add}_g(a_g)$.
+\end{definition}
+
+\begin{definition}[Domain Model and Planning Task]\label{def:domain_task}
+  A \emph{domain model} $D$ is a pair $\langle F,\; A \rangle$, where $A$ is a set of action schemas.
+  A \emph{planning task} is a pair $\mathcal{T} = \langle D_{\mathcal{T}},\; P_{\mathcal{T}} \rangle$, where $D_{\mathcal{T}}$ is a domain model and $P_{\mathcal{T}}$ is a triple $\langle F_g,\; s_I,\; s_G \rangle$ consisting of the ground predicates, an initial state~$s_I$, and a set of goal ground predicates~$s_G$.
+  A \emph{solution plan} $\pi = \langle a_1, a_2, \ldots, a_n \rangle$ of $\mathcal{T}$ is a sequence of ground actions such that their consecutive application starting in $s_I$ results in a state satisfying~$s_G$.
+  We denote $\mathit{Plans}(D_{\mathcal{T}},\; P_{\mathcal{T}})$ as the set of all solution plans for the problem instance $P_{\mathcal{T}}$ when evaluated under domain~$D_{\mathcal{T}}$.
+\end{definition}
+
+Research progress in automated planning has been substantially driven by the \gls{ipc}, a standardised benchmarking platform for evaluating state-of-the-art planning systems on diverse benchmark problems~\cite{HoweDahlman2002}.
+The IPC defines several tracks that assess different aspects of planner performance; the \emph{Agile Track}, which this thesis uses for benchmarking, measures how quickly planners can find satisficing plans under a heavily reduced time limit, prioritising runtime efficiency over solution quality~\cite{Elis2025}.
+
+%% -----------------------------------------------------------------------
+%%  2.1.1  PDDL
+%% -----------------------------------------------------------------------
+\subsection{Planning Domain Definition Language}
 \label{sec:bg:pddl}
 
+The \gls{pddl} is the standard input language for domain-independent planning systems~\cite{McDermott1998}.
+\citeauthor{McDermott1998}~\cite{McDermott1998} introduced PDDL for the first \gls{ipc} in 1998 to provide a common, machine-readable notation that allows different planners to operate on identical domain and problem specifications.
+The language draws from earlier formalisms, notably the Stanford Research Institute Problem Solver (STRIPS) formalism and the Action Description Language (ADL), extending them into a more expressive and standardised framework~\cite{McDermott1998, GhallabNauTraverso2004}.
+Subsequent versions, such as PDDL~2.1~\cite{FoxLong2003}, introduced temporal and numeric features; however, the present work focuses on the classical STRIPS fragment.
 
+PDDL separates the specification of a planning task into two complementary files:
+
+\paragraph{Domain file.}
+The domain file defines the general dynamics of the environment---what actions are possible and how they affect the world.
+It comprises the following components~\cite{McDermott1998, GhallabNauTraverso2004}:
+\begin{itemize}
+  \item \textbf{Requirements:} specify which PDDL features or extensions the domain uses (e.g., \texttt{:strips}, \texttt{:typing}).
+  \item \textbf{Types:} define the classes of objects that can exist in the domain, enabling typed parameters in action schemas.
+  \item \textbf{Predicates:} declare relations or properties that describe facts about objects; these are used to express states, preconditions, and effects.
+  \item \textbf{Actions:} define the operators available to the planner. Each action schema consists of a \emph{name}, a list of typed \emph{parameters}, a set of \emph{preconditions} (logical expressions that must hold for the action to be applicable), and a set of \emph{effects} (specifications of how the state changes, divided into add effects and delete effects).
+\end{itemize}
+
+\paragraph{Problem file.}
+The problem file specifies a concrete scenario within the domain~\cite{McDermott1998}:
+\begin{itemize}
+  \item \textbf{Objects:} instances of the types defined in the domain file.
+  \item \textbf{Initial state:} the starting configuration described using ground predicates.
+  \item \textbf{Goal:} the desired end state as a logical expression over ground predicates.
+  \item \textbf{Domain reference:} a link to the corresponding domain file.
+\end{itemize}
+
+This separation enables domain-independent planning: a single planner can handle diverse problem types by using the same algorithmic approach with different domain and problem specifications~\cite{Helmert2009}.
+\Cref{lst:blocksworld_domain} and \Cref{lst:blocksworld_problem} illustrate this structure using the classic \emph{Blocksworld} domain, in which a robotic arm manipulates blocks on a table.
+The domain file in \Cref{lst:blocksworld_domain} declares five predicates that describe the world state and four action schemas that define legal state transitions.
+The corresponding problem file in \Cref{lst:blocksworld_problem} instantiates a specific scenario with three blocks and a goal configuration.
+
+\begin{lstlisting}[
+  language=PDDL,
+  caption={PDDL domain file for the Blocksworld domain. Five predicates describe the world state and four action schemas define how blocks can be picked up, put down, stacked, and unstacked by a robotic arm.},
+  label={lst:blocksworld_domain},
+  float=htbp
+]
+(define (domain blocksworld)
+  (:requirements :strips)
+  (:predicates
+    (on ?x ?y)      ; block ?x is on top of block ?y
+    (ontable ?x)    ; block ?x is on the table
+    (clear ?x)      ; nothing is on top of block ?x
+    (handempty)     ; the robotic arm is empty
+    (holding ?x))   ; the arm is holding block ?x
+
+  (:action pick-up
+    :parameters (?x)
+    :precondition (and (clear ?x) (ontable ?x)
+                       (handempty))
+    :effect (and (not (ontable ?x)) (not (clear ?x))
+                 (not (handempty)) (holding ?x)))
+
+  (:action put-down
+    :parameters (?x)
+    :precondition (holding ?x)
+    :effect (and (not (holding ?x)) (clear ?x)
+                 (handempty) (ontable ?x)))
+
+  (:action stack
+    :parameters (?x ?y)
+    :precondition (and (holding ?x) (clear ?y))
+    :effect (and (not (holding ?x)) (not (clear ?y))
+                 (clear ?x) (handempty) (on ?x ?y)))
+
+  (:action unstack
+    :parameters (?x ?y)
+    :precondition (and (on ?x ?y) (clear ?x)
+                       (handempty))
+    :effect (and (holding ?x) (clear ?y)
+                 (not (clear ?x)) (not (handempty))
+                 (not (on ?x ?y)))))
+\end{lstlisting}
+
+\begin{lstlisting}[
+  language=PDDL,
+  caption={PDDL problem file for a three-block instance of the Blocksworld domain. The initial state places block \texttt{b1} on \texttt{b2} with \texttt{b3} on the table; the goal is to construct a tower \texttt{b1}--\texttt{b2}--\texttt{b3}.},
+  label={lst:blocksworld_problem},
+  float=htbp
+]
+(define (problem blocks-3-0)
+  (:domain blocksworld)
+  (:objects b1 b2 b3)
+  (:init (clear b1) (clear b3)
+         (ontable b2) (ontable b3)
+         (on b1 b2) (handempty))
+  (:goal (and (on b1 b2) (on b2 b3))))
+\end{lstlisting}
+
+%% -----------------------------------------------------------------------
+%%  2.1.2  SEARCH PARADIGMS
+%% -----------------------------------------------------------------------
 \subsection{Search Paradigms in Classical Planning}
 \label{sec:bg:search_paradigms}
-% General concepts only — NOT specific planners (those go in Ch.5 Implementation)
-% Heuristic forward-state-space search: expanding states guided by heuristic estimates of goal distance
-% Width-based search: novelty metrics that prioritise unexplored state features
-% Factored/decoupled search: decomposing problems along causal structure into independent factors
-% Compilation to SAT: encoding the bounded planning problem as a propositional satisfiability formula
 
+Classical planning engines can be categorised by their underlying search strategy.
+Understanding these paradigms is essential for the present thesis because different search architectures process domain models in fundamentally different ways, making them differentially sensitive to the structural arrangement of domain elements.
+We survey the four paradigms most relevant to the planner selection in this work; specific planner implementations are described in \Cref{ch:implementation}.
+
+\paragraph{Heuristic forward-state-space search.}
+The dominant paradigm in modern classical planning is heuristic forward search, which traverses the state space from the initial state~$s_I$ toward the goal~$s_G$ by repeatedly applying applicable actions and evaluating successor states using a heuristic function $h(s)$~\cite{BonetGeffner2001}.
+The heuristic estimates the remaining cost to reach the goal and guides the search toward promising regions of the state space.
+Among the most influential heuristic families are \emph{delete-relaxation heuristics}, which compute estimates by solving a relaxed version of the planning task in which all delete effects are ignored~\cite{HoffmannNebel2001, BonetGeffner2001}.
+By removing delete effects, the relaxed task becomes solvable in polynomial time, and the length of its solution provides a heuristic estimate for the original task.
+Another prominent family is \emph{landmark-based heuristics}, which identify \emph{landmarks}---facts or actions that must appear in every valid plan---and use the number of unachieved landmarks as a lower bound on the remaining cost~\cite{RichterWestphal2010}.
+Domain model structure can affect heuristic forward search because the order in which predicates and actions are processed during grounding and heuristic evaluation influences tie-breaking, successor ordering, and the overall search trajectory~\cite{Vallati2021}.
+
+\paragraph{Width-based search.}
+Width-based search, introduced by \citeauthor{LipovetzkyGeffner2012}~\cite{LipovetzkyGeffner2012}, employs an entirely different exploration mechanism.
+Instead of relying on domain-specific heuristic estimates, it uses a measure of \emph{novelty} as the primary criterion for state expansion.
+The novelty $w(s)$ of a newly generated state~$s$ is defined as the size of the smallest subset of atomic features in~$s$ that has not appeared in any previously expanded state.
+The algorithm IW($k$) performs a breadth-first search that prunes all states with novelty greater than~$k$~\cite{LipovetzkyGeffner2012}.
+\citeauthor{LipovetzkyGeffner2017}~\cite{LipovetzkyGeffner2017} later combined width-based exploration with heuristic evaluation, creating planners that balance structural exploration with goal-directed search.
+The order in which predicates are defined in the domain file can influence the novelty computation, as the evaluation of atomic feature tuples follows the predicate ordering during the grounding phase.
+
+\paragraph{Factored and decoupled search.}
+Factored search strategies decompose the planning task along its causal structure into semi-independent components, called \emph{factors}~\cite{GnadHoffmann2018}.
+A \emph{star-topology decomposition} identifies a central factor (the \enquote{centre}) that coordinates interactions, and multiple independent \emph{leaf factors} that are solved conditionally on the centre's state.
+Each leaf factor can be explored independently, reducing the effective state space exponentially in favourable cases.
+The decomposition is derived from the \emph{causal graph} of the planning task, which encodes the dependency relationships between state variables as induced by action preconditions and effects.
+Because the causal graph is directly constructed from the structural arrangement of actions and their precondition-effect relationships in the domain model, the order and grouping of these elements can influence the factoring and, consequently, the search behaviour~\cite{GnadHoffmann2018}.
+
+\paragraph{Compilation to Boolean satisfiability.}
+An alternative paradigm encodes the bounded planning problem as a propositional \gls{sat} formula~\cite{KautzSelman1992}.
+For a given planning horizon~$h$, the encoding creates Boolean variables representing action occurrences and fluent values at each time step, then generates clauses that encode action preconditions, effects, frame axioms (persistence of unchanged fluents), and mutual exclusion constraints~\cite{Rintanen2012}.
+A SAT solver then searches for a satisfying assignment, which, if found, is decoded into a valid plan.
+The solver incrementally increases the horizon until a plan is found or a resource limit is reached.
+SAT-based planning is sensitive to domain model structure because the variable and clause ordering in the generated formula is derived from the ordering of actions and predicates in the domain file, which directly affects the branching heuristics of the underlying SAT solver~\cite{Rintanen2012}.
+
+The diversity of these search paradigms is central to the motivation of this thesis: because each paradigm processes the domain model through a fundamentally different algorithmic pipeline, a structural configuration that benefits one paradigm may be irrelevant or even detrimental to another.
+Generic, planner-agnostic configuration strategies cannot account for these differences, motivating the need for architecture-aware approaches.
+
+%% -----------------------------------------------------------------------
+%%  2.2  DOMAIN MODEL CONFIGURATION
+%% -----------------------------------------------------------------------
 \section{Domain Model Configuration}
 \label{sec:bg:configuration}
 
+A domain model is a central artefact of knowledge engineering for automated planning.
+Its construction is often ad hoc, and the modelling choices made by knowledge engineers can substantially influence planner performance~\cite{McCluskey2017, Georgievski2023}.
+Domain model configuration aims to exploit this sensitivity by systematically modifying the structural arrangement of domain elements to improve planner efficiency, without altering the semantics of the model~\cite{Vallati2021}.
+
 \subsection{Structural Sensitivity of Planners}
 \label{sec:bg:sensitivity}
-% Explains the core problem: changing the textual order of actions, predicates, effects — without altering semantics —
-% can cause orders-of-magnitude differences in planner runtime and coverage
-% This is the conceptual motivation for the entire thesis
 
+Although the formal definitions in \Cref{def:planning,def:domain_task} treat predicates, action schemas, and their internal components as unordered sets, their ordering in concrete PDDL specifications can significantly affect the behaviour of planning engines~\cite{HoweDahlman2002, RiddleHolteBarley2011}.
+\citeauthor{HoweDahlman2002}~\cite{HoweDahlman2002} were among the first to observe that the representation of planning tasks influences benchmark results, showing that seemingly minor notational choices can alter planner outcomes.
+\citeauthor{RiddleHolteBarley2011}~\cite{RiddleHolteBarley2011} later demonstrated that representation choices can even change planner rankings in competitions, calling into question the robustness of comparative evaluations.
+\citeauthor{Vallati2015}~\cite{Vallati2015} subsequently formalised domain model configuration as an algorithm configuration problem, applying sequential model-based optimisation to identify structural orderings that improve planner performance.
+In an extended study, \citeauthor{Vallati2021}~\cite{Vallati2021} deepened this investigation by expanding the set of configurable elements and confirming that structural reorderings alone---without any change in semantics---can cause orders-of-magnitude differences in planner runtime and coverage.
+
+To make this structural sensitivity precise, we adopt the following formalism from \citeauthor{Georgievski2025}~\cite{Georgievski2025}, building on the work of \citeauthor{Vallati2021}~\cite{Vallati2021}.
+
+\begin{definition}[Domain Model Configuration]\label{def:configuration}
+  Let $D = \langle F,\; A \rangle$ be a domain model.
+  We equip $F$ and $A$ with total order relations $\preceq_F$ and $\preceq_A$, respectively.
+  For each action schema $a \in A$, we define total order relations $\preceq_{\mathit{pre}(a)}$ over the preconditions $\mathit{pre}(a)$ and $\preceq_{\mathit{eff}(a)}$ over the effects $\mathit{eff}(a) = \mathit{del}(a) \cup \mathit{add}(a)$.
+  Let $\preceq$ denote the set of all these relations.
+  A \emph{domain model configuration} $D_{\preceq}$ of $D$ is obtained by writing the domain elements according to the orderings in~$\preceq$.
+\end{definition}
+
+The \emph{configuration space} $\mathcal{C}(D)$ consists of all possible domain model configurations, that is, all possible choices of~$\preceq$.
+Its cardinality is determined by the number of permutations of each ordered component:
+
+\begin{equation}\label{eq:config_space}
+  |\mathcal{C}(D)| \;=\; |F|! \;\cdot\; |A|! \;\cdot\; \prod_{a \in A} \bigl( |\mathit{pre}(a)|! \;\cdot\; |\mathit{eff}(a)|! \bigr),
+\end{equation}
+
+\noindent which grows factorially in the size of the domain.
+Even for relatively small models, $|\mathcal{C}(D)|$ becomes very large, making exhaustive exploration computationally infeasible and motivating the need for automated techniques that can efficiently identify promising configurations~\cite{Vallati2021}.
+
+A valid domain model configuration must satisfy two properties~\cite{Georgievski2025}:
+\begin{enumerate}
+  \item \textbf{Syntactic validity:} $D_{\preceq}$ is a well-formed PDDL domain that can be parsed without errors.
+  \item \textbf{Semantic equivalence:} For all problem instances $P_i$ over $D$, the set of solution plans is preserved: $\mathit{Plans}(D,\; P_i) = \mathit{Plans}(D_{\preceq},\; P_i)$.
+\end{enumerate}
+
+\noindent These properties ensure that configuration preserves the correctness of all solution plans while potentially altering the efficiency with which planners find them.
+The structural sensitivity of planners, combined with the factorial growth of the configuration space, constitutes the core motivation of the present thesis: automated tools are needed to navigate this space effectively, and the diversity of planner architectures described in \Cref{sec:bg:search_paradigms} demands that such tools account for the specific search strategy of the target planner.
+
+%% -----------------------------------------------------------------------
+%%  2.3  LARGE LANGUAGE MODELS
+%% -----------------------------------------------------------------------
 \section{Large Language Models}
 \label{sec:bg:llms}
 
+\Glspl{llm} are neural networks trained on extensive text corpora to predict the next token in a sequence, enabling them to generate coherent and contextually relevant text~\cite{Brown2020, Zhao2023}.
+Over the past several years, \glspl{llm} have demonstrated remarkable capabilities in code generation, editing, and refactoring of code-like artefacts from natural-language instructions, making them candidates for tasks that involve structured formal languages such as PDDL~\cite{Minaee2024}.
+
 \subsection{Architecture and Capabilities}
 \label{sec:bg:llm_arch}
-% Brief overview of transformer architecture, next-token prediction, scaling
-% Positions LLMs as advanced pattern matchers, not reasoning engines
 
+Modern \glspl{llm} are built almost exclusively on the \emph{Transformer} architecture introduced by \citeauthor{Vaswani2017}~\cite{Vaswani2017}.
+The central innovation of the Transformer is the \emph{self-attention mechanism}, which allows the model to weigh the relevance of every token in the input sequence when generating each output token.
+Given an input sequence of $n$ tokens, self-attention computes a weighted combination of all token representations, where the weights are determined by learned compatibility functions.
+This enables the model to capture long-range dependencies without the sequential processing bottleneck of recurrent architectures~\cite{Vaswani2017}.
+
+Current-generation \glspl{llm} typically employ a \emph{decoder-only} Transformer architecture and are trained on the objective of \emph{next-token prediction}: given a sequence of tokens $(t_1, t_2, \ldots, t_{k})$, the model outputs a probability distribution $P(t_{k+1} \mid t_1, \ldots, t_k)$ over possible continuations, and a decoding strategy selects concrete tokens from this distribution~\cite{Zhao2023, Minaee2024}.
+Through training on massive text corpora containing billions to trillions of tokens, \glspl{llm} learn statistical patterns in language, code, and structured data that enable them to generate syntactically correct and contextually appropriate outputs across a wide range of tasks~\cite{Brown2020}.
+
+Two key parameters govern the generation behaviour of \glspl{llm}:
+
+\begin{itemize}
+  \item \textbf{Temperature:} a decoding hyperparameter that controls sampling stochasticity. It scales the logit vector before applying the softmax function: lower temperatures (e.g., $T{=}0.0$) produce more deterministic, greedy outputs, while higher temperatures (e.g., $T{=}0.7$) increase output diversity by flattening the probability distribution~\cite{Zhao2023}.
+
+  \item \textbf{Context window:} the maximum number of tokens the model can condition on during generation. This limit constrains the combined length of the input prompt and the generated output, which is particularly relevant for tasks involving long PDDL domain files~\cite{Minaee2024}.
+\end{itemize}
+
+A crucial distinction for the present work is that \glspl{llm} are fundamentally \emph{probabilistic pattern matchers}, not formal reasoning engines.
+They predict likely continuations based on statistical regularities learned during training, rather than performing sound logical inference~\cite{Kambhampati2024, Valmeekam2023}.
+While \glspl{llm} can generate syntactically correct PDDL structures, they lack intrinsic mechanisms to guarantee semantic correctness or to verify that a structural transformation preserves the solution space of a planning task.
+This limitation motivates the need for external validation mechanisms. The conceptual foundations for such mechanisms are introduced in \Cref{sec:bg:llm_modulo}, while our concrete validation pipeline is discussed in Section~4.6.
+
+%% -----------------------------------------------------------------------
+%%  2.3.2  PROMPTING STRATEGIES
+%% -----------------------------------------------------------------------
 \subsection{Prompting Strategies}
 \label{sec:bg:prompting}
-% Zero-shot, few-shot, chain-of-thought prompting
-% Crucial because Stage 1 uses a "general" prompt and Stage 2 uses an "architecture-aware" prompt
 
+The primary mechanism for controlling \gls{llm} behaviour is the \emph{prompt}---a natural-language instruction that specifies the task to be performed~\cite{Brown2020}.
+Different prompting strategies vary in the amount and type of guidance provided to the model.
+Three principal strategies, widely employed in planning research~\cite{Georgievski2025, Elis2025}, are most relevant to this thesis:
+
+\paragraph{Zero-shot prompting.}
+Zero-shot prompting provides the \gls{llm} with only a task instruction, without any demonstrations or examples~\cite{Kojima2022}.
+The model relies entirely on its pre-trained knowledge and instruction-tuning to interpret the task and generate a response.
+Zero-shot prompting serves as a baseline for evaluating whether a model possesses sufficient inherent understanding of a domain to perform the requested task without additional guidance.
+
+\paragraph{Few-shot prompting.}
+Few-shot prompting supplements the task instruction with a small number of concrete input-output examples, a technique sometimes called \emph{in-context learning}~\cite{Brown2020}.
+By observing annotated examples of the desired transformation, the \gls{llm} can better infer the task requirements and adapt its response accordingly.
+\citeauthor{Brown2020}~\cite{Brown2020} demonstrated that few-shot prompting can dramatically improve task performance across a wide range of benchmarks, particularly when the examples are representative of the target distribution.
+The number of examples (one-shot, three-shot, etc.) and their diversity influence the effectiveness of this strategy.
+
+\paragraph{\gls{cot} prompting.}
+\gls{cot} prompting, introduced by \citeauthor{Wei2022}~\cite{Wei2022}, explicitly instructs the model to produce intermediate reasoning steps before generating the final output.
+Rather than directly mapping an input to an output, the model first articulates an explicit reasoning trace---an analysis of the input, identification of relevant patterns, and a step-by-step transformation plan---before executing the transformation.
+This strategy has been shown to significantly improve performance on tasks that require multi-step reasoning~\cite{Wei2022}.
+\citeauthor{Kojima2022}~\cite{Kojima2022} further demonstrated that appending a simple trigger phrase such as \enquote{Let's think step by step} can elicit reasoning behaviour even in a zero-shot setting (\emph{zero-shot \gls{cot}}).
+
+These prompting strategies form the basis for the prompt designs used in this thesis, as described in \Cref{ch:design}.
+
+%% -----------------------------------------------------------------------
+%%  2.4  THE LLM-MODULO FRAMEWORK
+%% -----------------------------------------------------------------------
 \section{The LLM-Modulo Framework}
 \label{sec:bg:llm_modulo}
-% Conceptual framework: LLMs generate, external verifiers validate, quantitative feedback drives iteration
-% Sets up the theoretical basis for Stage 3 (feedback loop)
+
+A growing body of research has established that \glspl{llm} alone cannot reliably generate correct plans or formally sound domain models due to their inherent inability to perform guaranteed logical reasoning~\cite{Valmeekam2023, Kambhampati2024}.
+\citeauthor{Kambhampati2024}~\cite{Kambhampati2024} address this limitation by proposing the \emph{LLM-Modulo} framework, a conceptual architecture in which \glspl{llm} serve not as autonomous problem solvers but as \emph{idea generators} within a modular system that incorporates external verification and feedback.
+
+The framework operates through an iterative \emph{generate--test--critique} loop, illustrated in \Cref{fig:llm_modulo}:
+
+\begin{enumerate}
+  \item \textbf{Generate.} The \gls{llm} receives a prompt describing the task and produces a candidate solution (e.g., a plan, a domain model, or a structural configuration).
+
+  \item \textbf{Test.} An external verifier---independent of the \gls{llm}---evaluates the candidate against formal correctness criteria. The verifier can be a syntactic checker, a semantic validator, a planner, or any domain-specific tool that provides objective quality assessments.
+
+  \item \textbf{Critique.} If the candidate fails verification or does not meet performance targets, diagnostic feedback is generated and provided to the \gls{llm} as additional context for a subsequent generation attempt. The feedback translates quantitative verification results into natural-language descriptions that the model can interpret and act upon.
+\end{enumerate}
+
+\noindent This loop continues until the candidate passes all verification criteria, a performance target is met, or a computational budget is exhausted~\cite{Kambhampati2024}.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[
+      node distance=1.8cm and 2.8cm,
+      box/.style={draw, rounded corners=4pt, minimum width=2.6cm, minimum height=1cm,
+          align=center, font=\small, thick},
+      arrow/.style={-{Stealth[length=3mm, width=2mm]}, thick}
+    ]
+    % Main nodes
+    \node[box] (llm) {LLM\\[-2pt]{\footnotesize Generator}};
+    \node[box, right=2.8cm of llm] (verifier) {External\\[-2pt]{\footnotesize Verifier}};
+    \node[box, below=1.8cm of verifier] (feedback) {Diagnostic\\[-2pt]{\footnotesize Feedback}};
+
+    % Generate arrow
+    \draw[arrow] (llm) -- node[above, font=\footnotesize] {candidate} (verifier);
+
+    % Accept path
+    \node[right=1.5cm of verifier, font=\small] (accept) {\dingcheck\ \textbf{Accept}};
+    \draw[arrow, green!50!black] (verifier) -- (accept);
+
+    % Critique arrow (verifier down to feedback)
+    \draw[arrow] (verifier) -- node[right, font=\footnotesize] {critique} (feedback);
+
+    % Refine arrow (feedback left and up to llm)
+    \draw[arrow] (feedback) -- node[below, font=\footnotesize] {refine} (llm |- feedback) -- (llm);
+
+  \end{tikzpicture}
+  \caption{The LLM-Modulo generate--test--critique loop~\cite{Kambhampati2024}. The \gls{llm} generates a candidate solution, an external verifier evaluates it, and diagnostic feedback drives iterative refinement until the candidate is accepted or a computational budget is exhausted.}
+  \label{fig:llm_modulo}
+\end{figure}
+
+The key insight of the LLM-Modulo framework is that it decouples the \emph{creative capacity} of \glspl{llm}---their ability to rapidly generate diverse structural variants---from the \emph{correctness guarantees} that formal verification provides.
+The \gls{llm} explores the solution space, while external verifiers ensure that only valid solutions are accepted.
+This architecture addresses the fundamental unreliability of \glspl{llm} for tasks requiring formal correctness by placing the burden of verification on sound, deterministic components~\cite{Kambhampati2024}.
+
+Although the LLM-Modulo framework was originally proposed in the context of plan generation, its conceptual architecture is directly applicable to domain model configuration, where the external verifier can assess whether a structurally reconfigured domain preserves semantic equivalence and improves planner performance.
+\Cref{ch:design} describes how this thesis instantiates the framework for architecture-aware configuration.

@@ -258,6 +258,9 @@
 
 \usepackage{graphicx}
 
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
+
 % Base folder, so there is no need to repeat this over and over again.
 \graphicspath{ {figures/} }
 
@@ -310,6 +313,15 @@
     {7}{{{\color{numb}7}}}{1}
     {8}{{{\color{numb}8}}}{1}
     {9}{{{\color{numb}9}}}{1}
+}
+
+% PDDL language definition for planning domain listings
+\lstdefinelanguage{PDDL}{
+  morekeywords={define, domain, problem, requirements, strips, typing, equality,
+    predicates, action, parameters, precondition, effect, objects, init, goal,
+    and, not, or, types, constants, functions, either, forall, exists, when, imply},
+  sensitive=false,
+  morecomment=[l]{;},
 }
 
 \lstset{
