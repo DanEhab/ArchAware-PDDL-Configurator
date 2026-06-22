@@ -9,17 +9,24 @@
 \section{Context and Motivation}
 \label{sec:intro:context}
 
-\gls{ai} planning is a subfield of Artificial Intelligence that focuses on the automated generation of action sequences, known as \emph{plans}, to transition a system from an initial state to a desired goal state~\cite{Georgievski2023}.
-As a core technology for deliberative reasoning, \gls{ai} planning enables autonomous agents to devise and execute strategies for efficiently achieving complex objectives~\cite{Chrpa2020, Guan2023}.
+% Comment 1: replaced [Geo23] with standard textbooks [GNT04, RN21].
+% Comment 2: removed Chrpa2020 (habilitation, not suitable for this claim).
+% Comment 3: removed Guan2023 from this position (not relevant for this claim).
+\gls{ai} planning is a subfield of Artificial Intelligence that focuses on the automated generation of action sequences, known as \emph{plans}, to transition a system from an initial state to a desired goal state~\cite{GhallabNauTraverso2004, RussellNorvig2021}.
+As a core technology for deliberative reasoning, \gls{ai} planning enables autonomous agents to devise and execute strategies for achieving complex objectives across domains ranging from robotics and logistics to cloud orchestration and intelligent buildings~\cite{GhallabNauTraverso2004}.
 
-A defining characteristic of modern, domain-independent planning is its strict \emph{modular separation} between the planning engine (the search algorithm) and the domain model (the formal description of the environment's dynamics).
+% Comment 4: removed "(the search algorithm)" — planning engine encompasses more than search.
+A defining characteristic of modern, domain-independent planning is its strict \emph{modular separation} between the planning engine and the domain model (the formal description of the environment's dynamics).
 Domain models are typically specified in the \gls{pddl}~\cite{McDermott1998}, a standardised representation that declaratively describes the predicates, actions, preconditions, and effects of a planning task.
 This modularity enables a single planner to operate across diverse application domains without modification, greatly increasing the reusability and versatility of planning technology~\cite{McDermott1998}.
 
+% Comment 5: reordered chronologically (Howe 2002 → Riddle 2011 → Vallati 2015/2021).
+% Comment 6: Howe and Riddle predated Vallati, so they cannot "corroborate" — they were the
+%             earlier observations that Vallati later operationalised.
 While this separation makes planners highly general, it introduces a subtle but consequential challenge: \emph{structural sensitivity}.
 Planning engines employ vastly different internal algorithms to parse \gls{pddl} files, construct intermediate representations, and search for valid plans.
-\citeauthor{Vallati2015}~\cite{Vallati2015, Vallati2021} have demonstrated that the purely textual arrangement of a domain model---the ordering of actions, predicates, preconditions, and effects---can cause orders-of-magnitude differences in planner runtime, coverage, and even competition rankings, \emph{without any change to the domain's semantics}.
-Earlier studies by \citeauthor{HoweDahlman2002}~\cite{HoweDahlman2002} and \citeauthor{RiddleHolteBarley2011}~\cite{RiddleHolteBarley2011} corroborate this finding, showing that a structural configuration beneficial for one planner may simultaneously degrade the performance of another.
+Early empirical studies by \citeauthor{HoweDahlman2002}~\cite{HoweDahlman2002} and \citeauthor{RiddleHolteBarley2011}~\cite{RiddleHolteBarley2011} observed that even minor structural changes to a domain model---such as the ordering of actions, predicates, or preconditions---can substantially influence planner performance and even alter competition rankings, \emph{without any change to the domain's semantics}.
+Building on these observations, \citeauthor{Vallati2015}~\cite{Vallati2015, Vallati2021} provided the first systematic evidence that such textual arrangements can cause orders-of-magnitude differences in planner runtime and coverage, and that a structural configuration beneficial for one planner may simultaneously degrade the performance of another.
 
 Currently, optimising the textual structure of domain models is a manual, trial-and-error process that demands expert intuition and deep knowledge of planner internals~\cite{McCluskey2017}.
 Automated configuration tools are needed not only to reduce this labour-intensive effort, but also to tailor domain models specifically for the planner that will ultimately process them, thereby achieving faster planning times, higher solution quality, and more energy-efficient computation.
@@ -30,34 +37,47 @@ Automated configuration tools are needed not only to reduce this labour-intensiv
 \section{State of the Art and Research Gap}
 \label{sec:intro:gap}
 
-The sensitivity of planners to domain model structure is well established in the planning literature.
-\citeauthor{Vallati2015}~\cite{Vallati2015} introduced the first systematic approach to domain model configuration by formulating it as an algorithm configuration problem and employing a sequential model-based method to optimise structural orderings.
+% Comment 7: HD02 and RHB11 are also related works to the configuration discussion.
+%             Now included chronologically at the start of the SOTA narrative.
+The sensitivity of planners to domain model structure has been recognised since the early days of standardised benchmarking.
+\citeauthor{HoweDahlman2002}~\cite{HoweDahlman2002} demonstrated that the choice of domain representation significantly affects planner rankings in competitive evaluations, while \citeauthor{RiddleHolteBarley2011}~\cite{RiddleHolteBarley2011} extended this analysis to show that representation choices influence which planner appears best on a given benchmark.
+\citeauthor{Vallati2015}~\cite{Vallati2015} subsequently introduced the first systematic approach to domain model configuration by formulating it as an algorithm configuration problem and employing a sequential model-based method to optimise structural orderings.
 In an extended study, \citeauthor{Vallati2021}~\cite{Vallati2021} deepened this investigation by expanding the set of configurable elements and introducing strategic placement of learned macro-operators.
 While these approaches yield high-quality configurations, they depend on extensive, offline planner evaluations---requiring numerous costly runs---and operate within a relatively narrow configuration space.
 
 Recent advances in \glspl{llm} have opened a fundamentally new paradigm for domain model configuration.
 \glspl{llm} are probabilistic next-token predictors trained on large text corpora that have demonstrated remarkable capabilities in generating, editing, and refactoring code-like artefacts from natural-language instructions~\cite{Zhao2023, Minaee2024}.
-Several studies have explored their use for generating \gls{pddl} domain models from scratch~\cite{Oswald2024, Guan2023, Smirnov2024, Casciani2025, Huang2025}, while broader analyses emphasise that \glspl{llm} can support knowledge engineering in automated planning but require external validators to ensure correctness~\cite{Vallati2025}.
+% Comment 8: added Georgievski2026 alongside Vallati2025.
+Several studies have explored their use for generating \gls{pddl} domain models from scratch~\cite{Oswald2024, Guan2023, Smirnov2024, Casciani2025, Huang2025}, while broader analyses emphasise that \glspl{llm} can support knowledge engineering in automated planning but require external validators to ensure correctness~\cite{Vallati2025, Georgievski2026}.
 
 The most directly relevant prior work is the bachelor thesis of \citeauthor{Elis2025}~\cite{Elis2025} and the associated study by \citeauthor{Georgievski2025}~\cite{Georgievski2025}, which investigated whether \glspl{llm} can serve as domain model configurators through single-forward-pass generation.
 Their approach applied a set of domain-engineering reordering principles via various prompting strategies (zero-shot, few-shot, and chain-of-thought) and evaluated the resulting configurations across seven \glspl{llm}, five planners, and five benchmark domains.
 Their findings established three key results: (i)~\glspl{llm} can produce syntactically valid and semantically equivalent domain configurations in a substantial proportion of cases; (ii)~the choice of \gls{llm} dominates prompting strategy and temperature as the primary determinant of configuration quality; and (iii)~performance improvements are highly planner-dependent, with some planners consistently benefiting while others consistently degrading.
 
-Despite these advances, two critical research gaps remain:
+% Comment 9: broadened gaps to also cover pre-LLM approach limitations, not only LLM-based.
+Despite these advances, three critical research gaps remain:
 
 \begin{enumerate}
-  \item \textbf{Lack of architecture awareness.}
+  \item \textbf{Dependence on costly evaluations in classical approaches.}
+        The configuration methods of \citeauthor{Vallati2015}~\cite{Vallati2015, Vallati2021} require extensive offline planner evaluations to identify beneficial orderings, limiting their scalability and practical applicability.
+        Moreover, their configuration space is constrained to a predefined set of ordering dimensions, leaving a large portion of the combinatorial space unexplored.
+
+  \item \textbf{Lack of architecture awareness in \gls{llm}-based approaches.}
         Existing \gls{llm}-based configurators employ \emph{planner-agnostic} prompts: they apply generic reordering principles without any knowledge of the target planner's internal architecture.
         Because distinct planner architectures---such as heuristic forward search, width-based search, decoupled search, and compilation to \gls{sat}---process and evaluate domains through fundamentally different algorithmic pipelines, generic structural optimisation yields inconsistent results.
         An \gls{llm}-generated reordering that improves one planner may degrade another~\cite{Georgievski2025}.
 
+  % Comment 10: added Vallati2025 alongside Kambhampati2024 for the feedback/verification idea.
   \item \textbf{Absence of execution-based feedback.}
         All prior \gls{llm}-based approaches generate domain configurations in a single forward pass, without access to quantitative feedback from actual planner executions.
         This precludes iterative refinement: the \gls{llm} cannot learn from the consequences of its structural choices or correct configuration errors that only manifest at runtime.
-        While the \emph{LLM-Modulo} framework proposed by \citeauthor{Kambhampati2024}~\cite{Kambhampati2024} advocates combining \glspl{llm} with external verifiers and feedback loops, no prior work has instantiated this paradigm for domain model configuration.
+        While the \emph{LLM-Modulo} framework proposed by \citeauthor{Kambhampati2024}~\cite{Kambhampati2024} and the knowledge engineering perspective of \citeauthor{Vallati2025}~\cite{Vallati2025} both advocate combining \glspl{llm} with external verifiers and feedback loops, no prior work has instantiated this paradigm for domain model configuration.
 \end{enumerate}
 
+% Comment 11: added nuance about planner resilience to domain model configurations.
 These gaps motivate the central hypothesis of the present thesis: because distinct planner architectures process and evaluate domain models through different algorithmic pipelines, \emph{architecture-aware} prompting combined with iterative execution feedback can enable \glspl{llm} to produce domain configurations that are specifically optimised for a given target planner.
+A complementary question is whether certain planner architectures are inherently \emph{resilient} to structural variations in domain models---meaning that their internal components neutralise the effects of different orderings---and therefore do not benefit from configuration at all.
+Investigating this question is equally important, as it identifies which planners are amenable to configuration and which are not.
 
 %% -----------------------------------------------------------------------
 %%  1.3  RESEARCH QUESTIONS
@@ -97,7 +117,12 @@ To decompose this overarching question into tractable components, we formulate t
 \section{Methodology and Contributions}
 \label{sec:intro:methodology}
 
-We employ a quantitative, experimental, and analytical methodology structured around a multi-stage experimental pipeline comprising four configuration stages:
+% Comment 12: added explicit SQ1 coverage via a preliminary analysis phase.
+We employ a quantitative, experimental, and analytical methodology.
+As a prerequisite to the experimental pipeline, a systematic architectural analysis of each selected planner is conducted, identifying the internal components (parser, translator, grounder, search engine, heuristic evaluator) and deriving architecture-specific configuration heuristics (\textbf{SQ1}).
+This analysis informs the design of the architecture-aware prompts used in subsequent stages (see \Cref{ch:design}).
+
+The experimental pipeline itself comprises four configuration stages:
 
 \begin{description}[style=nextline, leftmargin=2.5cm, labelwidth=2.2cm]
   \item[\textbf{Stage~0}] \textbf{(Baseline):}
@@ -107,7 +132,7 @@ We employ a quantitative, experimental, and analytical methodology structured ar
     Each \gls{llm} receives a planner-agnostic prompt requesting general structural optimisation of the domain, serving as the control condition against which architecture-aware interventions are measured.
 
   \item[\textbf{Stage~2}] \textbf{(Architecture-Aware Prompt):}
-    Each \gls{llm} receives a prompt that explicitly encodes the solver type and provides synthesised heuristic rules specific to the target planner's architecture, derived from a systematic component-level analysis of each planner's internal architecture (see \Cref{ch:design}).
+    Each \gls{llm} receives a prompt that explicitly encodes the solver type and provides synthesised heuristic rules specific to the target planner's architecture, derived from the component-level analysis conducted for \textbf{SQ1} (see \Cref{ch:design}).
     This stage addresses \textbf{SQ2}.
 
   \item[\textbf{Stage~3}] \textbf{(LLM-Modulo Feedback Loop):}
@@ -115,26 +140,29 @@ We employ a quantitative, experimental, and analytical methodology structured ar
     This stage addresses \textbf{SQ3}.
 \end{description}
 
-A four-level validation pipeline ensures semantic equivalence at every stage by performing \gls{pddl} extraction, syntactic checking via the official VAL tool, identity checking, and deep semantic equivalence verification (\textbf{SQ4}).
+% Comment 13a: removed "official" before VAL.
+% Comment 13b: added reference to VAL tool [HoweyLongFox2004].
+A four-level validation pipeline ensures semantic equivalence at every stage by performing \gls{pddl} extraction, syntactic checking via the VAL tool~\cite{HoweyLongFox2004}, identity checking, and deep semantic equivalence verification (\textbf{SQ4}).
 The final configurations are formally benchmarked against the full suite of problem instances from the \gls{ipc} Agile Tracks.
 A four-stage ablation study isolates the incremental value of each stage, and statistical significance is validated using non-parametric tests.
 
 The evaluation spans four architecturally diverse planners (\gls{bfws}, \gls{lama}, DecStar, and Madagascar), five \gls{ipc} benchmark domains, and four state-of-the-art \glspl{llm}.
 
+% Comment 14: reframed contributions to emphasise empirical findings, not just methods.
 The original contributions of this thesis are:
 
 \begin{enumerate}
   \item \textbf{Architecture-aware domain model configuration.}
-        We introduce the first approach that explicitly conditions \gls{llm}-based domain configuration on the internal architecture of the target planner, moving beyond planner-agnostic strategies.
+        We introduce the first approach that explicitly conditions \gls{llm}-based domain configuration on the internal architecture of the target planner, moving beyond planner-agnostic strategies, and provide empirical evidence of whether architecture-specific prompting yields measurable performance improvements.
 
   \item \textbf{Iterative LLM-Modulo feedback loop for domain configuration.}
-        We instantiate the LLM-Modulo paradigm proposed by \citeauthor{Kambhampati2024}~\cite{Kambhampati2024} for domain model configuration, demonstrating that execution-based feedback substantially outperforms single-pass generation.
+        We instantiate the LLM-Modulo paradigm proposed by \citeauthor{Kambhampati2024}~\cite{Kambhampati2024} for domain model configuration, and empirically demonstrate the extent to which execution-based feedback improves configuration quality compared to single-pass generation.
 
   \item \textbf{Four-level automated validation pipeline.}
-        We design and implement a validation pipeline that prevents semantic hallucinations during multi-turn iterative refinement, extending the three-stage pipeline of \citeauthor{Georgievski2025}~\cite{Georgievski2025} with an additional extraction stage.
+        We design and implement a validation pipeline that prevents semantic hallucinations during multi-turn iterative refinement, extending the three-stage pipeline of \citeauthor{Georgievski2025}~\cite{Georgievski2025} with an additional extraction stage, and report quantitative hallucination rates across all experimental conditions.
 
-  \item \textbf{Cross-architecture empirical analysis.}
-        We provide a comprehensive four-stage ablation study that isolates the contribution of architecture-aware prompting and the feedback loop, yielding actionable empirical patterns that map structural configurations to target architectures (\textbf{SQ5}).
+  \item \textbf{Cross-architecture empirical findings.}
+        We provide a comprehensive four-stage ablation study that isolates the contribution of architecture-aware prompting and the feedback loop, yielding empirical findings on how different planner architectures respond to structural configurations---including evidence of which architectures are amenable to configuration and which exhibit resilience (\textbf{SQ5}).
 
   \item \textbf{Open-source, reproducible experimental artefacts.}
         All code, prompts, domain configurations, raw execution logs, and analysis scripts are published under the MIT licence to enable full reproducibility.
