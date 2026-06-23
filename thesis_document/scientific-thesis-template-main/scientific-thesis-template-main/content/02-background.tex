@@ -18,7 +18,7 @@ Finally, \Cref{sec:bg:llm_modulo} introduces the LLM-Modulo framework, which sup
 
 Automated planning is a discipline within \gls{ai} concerned with the automated synthesis of action sequences---called \emph{plans}---that transition a system from a given initial state to a desired goal state~\cite{GhallabNauTraverso2004, RussellNorvig2021}.
 Classical planning, the most studied form, operates under the assumptions of a finite, deterministic, and fully observable environment with no temporal constraints~\cite{GhallabNauTraverso2004}.
-A defining characteristic of modern planning is its \emph{domain-independent} design: the planning engine (the search algorithm) is strictly separated from the domain model (the formal description of the environment's dynamics), enabling a single planner to operate across diverse application domains without modification~\cite{McDermott1998}.
+A defining characteristic of modern planning is its \emph{domain-independent} design: the planning engine is strictly separated from the domain model (the formal description of the environment's dynamics), enabling a single planner to operate across diverse application domains without modification~\cite{McDermott1998}.
 
 The following formal definitions, adapted from \citeauthor{Georgievski2025}~\cite{Georgievski2025}, provide the foundation for the remainder of this work.
 
@@ -38,8 +38,8 @@ The following formal definitions, adapted from \citeauthor{Georgievski2025}~\cit
   We denote $\mathit{Plans}(D_{\mathcal{T}},\; P_{\mathcal{T}})$ as the set of all solution plans for the problem instance $P_{\mathcal{T}}$ when evaluated under domain~$D_{\mathcal{T}}$.
 \end{definition}
 
-Research progress in automated planning has been substantially driven by the \gls{ipc}, a standardised benchmarking platform for evaluating state-of-the-art planning systems on diverse benchmark problems~\cite{HoweDahlman2002}.
-The IPC defines several tracks that assess different aspects of planner performance; the \emph{Agile Track}, which this thesis uses for benchmarking, measures how quickly planners can find satisficing plans under a heavily reduced time limit, prioritising runtime efficiency over solution quality~\cite{Elis2025}.
+Research progress in automated planning has been substantially driven by the \gls{ipc}, a standardised benchmarking platform for evaluating state-of-the-art planning systems on diverse benchmark problems~\cite{GhallabNauTraverso2004, Vallati2015}.
+The IPC defines several tracks that assess different aspects of planner performance; the \emph{Agile Track}, which this thesis uses for benchmarking, measures how quickly planners can find satisficing plans under a heavily reduced time limit, prioritising runtime efficiency over solution quality.
 
 %% -----------------------------------------------------------------------
 %%  2.1.1  PDDL
@@ -73,7 +73,7 @@ The problem file specifies a concrete scenario within the domain~\cite{McDermott
   \item \textbf{Domain reference:} a link to the corresponding domain file.
 \end{itemize}
 
-This separation enables domain-independent planning: a single planner can handle diverse problem types by using the same algorithmic approach with different domain and problem specifications~\cite{Helmert2009}.
+This separation enables domain-independent planning: a single planner can handle diverse problem types by using the same algorithmic approach with different domain and problem specifications~\cite{GhallabNauTraverso2004}.
 \Cref{lst:blocksworld_domain} and \Cref{lst:blocksworld_problem} illustrate this structure using the classic \emph{Blocksworld} domain, in which a robotic arm manipulates blocks on a table.
 The domain file in \Cref{lst:blocksworld_domain} declares five predicates that describe the world state and four action schemas that define legal state transitions.
 The corresponding problem file in \Cref{lst:blocksworld_problem} instantiates a specific scenario with three blocks and a goal configuration.
@@ -258,7 +258,7 @@ Two key parameters govern the generation behaviour of \glspl{llm}:
 A crucial distinction for the present work is that \glspl{llm} are fundamentally \emph{probabilistic pattern matchers}, not formal reasoning engines.
 They predict likely continuations based on statistical regularities learned during training, rather than performing sound logical inference~\cite{Kambhampati2024, Valmeekam2023}.
 While \glspl{llm} can generate syntactically correct PDDL structures, they lack intrinsic mechanisms to guarantee semantic correctness or to verify that a structural transformation preserves the solution space of a planning task.
-This limitation motivates the need for external validation mechanisms. The conceptual foundations for such mechanisms are introduced in \Cref{sec:bg:llm_modulo}, while our concrete validation pipeline is discussed in Section~4.6.
+This limitation motivates the need for external validation mechanisms. The conceptual foundations for such mechanisms are introduced in \Cref{sec:bg:llm_modulo}, while our concrete validation pipeline is discussed in \Cref{sec:design:validation}.
 
 %% -----------------------------------------------------------------------
 %%  2.3.2  PROMPTING STRATEGIES
