@@ -20,7 +20,7 @@ Finally, \Cref{sec:rw:gap} synthesises the limitations identified across all fou
 As introduced in \Cref{sec:bg:configuration}, the structural arrangement of elements in a \gls{pddl} domain model can substantially influence the performance of planning engines, even though the formal semantics remain unchanged.
 The present section reviews the research contributions that discovered, formalised, and operationalised this phenomenon, establishing the empirical and methodological foundations upon which this thesis builds.
 
-\paragraph{Early observations of structural sensitivity.}
+\paragraph{Early observations of structural sensitivity:}
 \citeauthor{HoweDahlman2002}~\cite{HoweDahlman2002} provide one of the earliest systematic investigations of the relationship between domain model representation and planner performance.
 By evaluating planners from the second and third \glspl{ipc} on domains presented in alternative notational forms, they demonstrate that the choice of representation significantly affects planner outcomes, and that benchmark results can be misleading if representation effects are not controlled.
 Their work raises a fundamental concern: comparative planner evaluations may reflect notational artefacts rather than genuine algorithmic differences.
@@ -29,7 +29,7 @@ Their work raises a fundamental concern: comparative planner evaluations may ref
 Their findings confirm and strengthen the observations of \citeauthor{HoweDahlman2002}: representation choices can not only change absolute planner performance, but also alter which planner is ranked best on a given benchmark.
 Together, these two studies establish structural sensitivity as a genuine and practically significant phenomenon that any domain model configuration approach must account for.
 
-\paragraph{Formalising configuration as algorithm configuration.}
+\paragraph{Formalising configuration as algorithm configuration:}
 Building on these empirical observations, \citeauthor{Vallati2015}~\cite{Vallati2015} introduce the first systematic approach to domain model configuration.
 They formulate the problem as an instance of algorithm configuration: given a set of configurable structural parameters (e.g., orderings of predicates and actions) and a performance objective (e.g., coverage or runtime), the goal is to find a parameter setting that maximises planner performance on a set of training instances.
 \citeauthor{Vallati2015} employ \emph{sequential model-based algorithm configuration} (SMAC), a Bayesian optimisation method that iteratively proposes candidate configurations, evaluates them by running the planner, and updates a surrogate model of the configuration-performance landscape.
@@ -41,7 +41,7 @@ They also introduce the strategic placement of learned macro-operators---composi
 Their results confirm that structural reorderings alone, without any change in semantics, can cause orders-of-magnitude differences in planner runtime and coverage.
 Critically, they demonstrate that the optimal configuration is planner-dependent: a structural arrangement that accelerates one planner may simultaneously degrade another.
 
-\paragraph{Domain model quality and reformulation.}
+\paragraph{Domain model quality and reformulation:}
 The broader context of domain model configuration is the field of knowledge engineering for automated planning.
 \citeauthor{McCluskey2017}~\cite{McCluskey2017} argue that domain model quality has been largely neglected in the planning community, and propose criteria for assessing the quality of domain models based on structural properties such as consistency, completeness, and adherence to modelling conventions.
 Their work highlights the need for systematic engineering practices, rather than ad hoc modelling, and motivates the development of automated configuration tools that can improve domain model quality without requiring deep expert knowledge.
@@ -51,7 +51,7 @@ Closely related is the broader family of \emph{reformulation techniques}, which 
 Their survey reveals that reformulation techniques can substantially influence planning performance, but each technique typically addresses a specific type of structural modification and is evaluated on a limited set of planners.
 Domain model configuration, as defined by \citeauthor{Vallati2015}~\cite{Vallati2015} and \citeauthor{Vallati2021}~\cite{Vallati2021}, can be viewed as a specialised form of reformulation that focuses exclusively on element reordering while preserving all semantic content.
 
-\paragraph{Limitations of classical approaches.}
+\paragraph{Limitations of classical approaches:}
 Despite their demonstrated effectiveness, the classical configuration methods reviewed in this section share several important limitations.
 First, they require extensive offline planner evaluations: the SMAC-based approach of \citeauthor{Vallati2015}~\cite{Vallati2015} necessitates hundreds to thousands of planner runs to converge on a beneficial configuration, making the process computationally expensive and time-consuming.
 Second, the configuration space is constrained to a predefined set of ordering dimensions; the approaches do not discover novel structural patterns beyond the dimensions explicitly encoded in the parameter space.
@@ -67,7 +67,7 @@ These limitations motivate the exploration of alternative configuration paradigm
 The most directly relevant predecessor to the present thesis is the work of \citeauthor{Elis2025}~\cite{Elis2025} and the associated study by \citeauthor{Georgievski2025}~\cite{Georgievski2025}, which are the first to investigate whether \glspl{llm} can serve as domain model configurators.
 Their work proposes a fundamentally different paradigm from the classical approaches reviewed in \Cref{sec:rw:classical_config}: instead of iteratively evaluating candidate configurations through costly planner runs, an \gls{llm} generates a configured domain variant in a single forward pass, guided by a natural-language prompt that encodes domain engineering principles.
 
-\paragraph{Approach and prompt design.}
+\paragraph{Approach and prompt design:}
 \citeauthor{Georgievski2025}~\cite{Georgievski2025} define the \gls{llm}-based configuration task formally as a mapping $f_{\text{LLM}} : D \rightarrow \mathcal{C}(D)$, where the \gls{llm} takes an original domain~$D$ and produces a configured variant $D_{\preceq}$ that satisfies three properties: structural transformation (the ordering differs from the original), syntactic validity, and semantic equivalence (as introduced in \Cref{sec:bg:configuration}).
 They design a common prompt template $\Pi = \langle r, C, D, G \rangle$ consisting of a role assignment~$r$ (establishing the model as a PDDL expert), a constraint set~$C$ (prohibiting semantic modifications), the input domain~$D$, and a guidance component~$G$ that varies across five prompting strategies.
 
@@ -80,13 +80,13 @@ The five strategies progressively enrich the guidance provided to the \gls{llm}:
   \item \textbf{Chain-of-thought ($\Pi_{\text{CoT}}$):} implements a multi-turn protocol in which the \gls{llm} first produces an explicit reasoning strategy and then executes it, following the \gls{cot} paradigm~\cite{Wei2022}.
 \end{enumerate}
 
-\paragraph{Validation pipeline.}
+\paragraph{Validation pipeline:}
 To ensure that \gls{llm}-generated configurations are valid, \citeauthor{Georgievski2025}~\cite{Georgievski2025} design a three-stage automated validation pipeline.
 Stage~1 checks syntactic validity by parsing the generated \gls{pddl} using the VAL tool~\cite{HoweyLongFox2004}.
 Stage~2 normalises both the original and generated domains and verifies that the configuration differs from the original (identical configurations are rejected as uninformative).
 Stage~3 performs element-level semantic comparison: for each structural component (requirements, types, predicates, actions, parameters, preconditions, add-effects, delete-effects), the pipeline extracts the corresponding elements from both domains and compares them as sets; any set-level difference indicates a semantic modification, and the configuration is marked invalid.
 
-\paragraph{Experimental setup and key results.}
+\paragraph{Experimental setup and key results:}
 The evaluation spans seven \glspl{llm} (GPT-4o, o4-mini, Gemini~1.5~Pro, Claude~3.5~Sonnet, DeepSeek-Chat, Llama-3.1-8B-Instruct, and Mixtral-8x7B-Instruct), four temperature settings ($T \in \{0.0, 0.2, 0.5, 0.7\}$), five prompting strategies, and five \gls{ipc} benchmark domains (Barman, Genome Edit Distances, Thoughtful, Transport, and Visit All), with 20 problem instances per domain.
 The planner selection comprises five systems spanning diverse search paradigms: SIW and BFS$_f$ (width-based), Mercury (heuristic forward search), Madagascar (SAT-based), and Fast Downward (heuristic forward search with landmark heuristics).
 
@@ -115,7 +115,7 @@ The key findings are as follows:
         This suggests that \glspl{llm} apply implicit restructuring patterns from training data rather than strictly following prompt instructions.
 \end{itemize}
 
-\paragraph{Limitations addressed by the present thesis.}
+\paragraph{Limitations addressed by the present thesis:}
 The work of \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025} establishes the feasibility of \gls{llm}-based domain model configuration but leaves three critical gaps that the present thesis directly addresses.
 First, all prompts are \emph{planner-agnostic}: the six domain-engineering principles encode general structural preferences without any knowledge of the target planner's internal architecture.
 The heterogeneous planner responses observed in their results---SIW consistently benefits while BFS$_f$ consistently degrades---strongly suggest that architecture-specific guidance could improve configuration outcomes, yet this hypothesis remains untested.
@@ -132,7 +132,7 @@ Third, the finding that prompting strategy has no significant effect suggests th
 A related but distinct line of research investigates whether \glspl{llm} can generate \gls{pddl} domain models from natural-language descriptions, repair flawed models, or formalise planning knowledge into structured representations.
 While the present thesis focuses on \emph{configuring} existing domain models (i.e., restructuring their element orderings to improve planner performance), the domain modelling literature provides important insights into the capabilities and limitations of \glspl{llm} when working with \gls{pddl} as a formal language.
 
-\paragraph{Domain generation from natural language.}
+\paragraph{Domain generation from natural language:}
 \citeauthor{Guan2023}~\cite{Guan2023} propose an approach that leverages pre-trained \glspl{llm} to construct world models for model-based task planning.
 Their method uses an \gls{llm} to translate natural-language descriptions of an environment into a structured \gls{pddl} domain model, which is then used by a classical planner to generate plans.
 A key insight from their work is that \glspl{llm} can capture the overall structure of planning domains, but frequently produce models that contain logical errors or inconsistencies, necessitating external validation and correction.
@@ -149,7 +149,7 @@ Their work highlights that syntactic validity alone is insufficient for producin
 \citeauthor{Casciani2025}~\cite{Casciani2025} propose a requirements engineering-driven methodology for domain generation in which an \gls{llm} first generates candidate domain models from requirements documents, and then an automated invariant-based refinement process checks and corrects the generated models against formally derived domain invariants.
 Their approach demonstrates that combining \gls{llm} generation with formal verification can produce higher-quality domain models than either technique alone.
 
-\paragraph{Surveys and limits of domain formalisation.}
+\paragraph{Surveys and limits of domain formalisation:}
 \citeauthor{Tantakoun2025}~\cite{Tantakoun2025} provide a comprehensive survey of \glspl{llm} as planning formalisers, systematically reviewing the literature on leveraging \glspl{llm} to construct automated planning models.
 Their analysis identifies recurring themes across the literature: \glspl{llm} demonstrate strong performance on syntactic aspects of \gls{pddl} generation but struggle with the semantic precision required for correct planning, and validation-guided feedback loops consistently improve the quality of generated models.
 
@@ -157,18 +157,18 @@ Complementing this survey, \citeauthor{Huang2025}~\cite{Huang2025} investigate t
 Through controlled experiments, they demonstrate that \gls{llm} performance on domain formalisation degrades significantly as domain complexity increases, and that certain types of logical relationships---such as conditional effects and multi-step precondition chains---are particularly challenging.
 Their work provides empirical evidence that \glspl{llm} alone cannot reliably produce correct domain models for complex planning problems, reinforcing the need for external verification.
 
-\paragraph{Domain model repair.}
+\paragraph{Domain model repair:}
 A related research direction focuses on repairing flawed or incomplete domain models rather than generating them from scratch.
 \citeauthor{Bercher2025}~\cite{Bercher2025} provide a survey on model repair in \gls{ai} planning, covering approaches that identify and correct errors in domain specifications.
 Model repair differs from domain model configuration in a fundamental way: repair aims to restore correctness by fixing logical errors (e.g., missing preconditions, incorrect effects), whereas configuration aims to improve efficiency by restructuring correct but suboptimally arranged elements.
 The repair literature nevertheless informs the present work by highlighting the types of modifications that \glspl{llm} tend to introduce when editing domain models---a concern that directly motivates the validation pipeline described in \Cref{sec:design:validation}.
 
-\paragraph{Knowledge engineering perspectives.}
+\paragraph{Knowledge engineering perspectives:}
 From a broader knowledge engineering perspective, \citeauthor{Vallati2025}~\cite{Vallati2025} examine the role of \glspl{llm} in the knowledge engineering pipeline for planning and scheduling in the LLM era.
 They argue that while \glspl{llm} can accelerate many aspects of domain modelling, they cannot replace formal verification and expert oversight; the most effective approaches combine \gls{llm} generation with external validators that ensure correctness.
 Similarly, \citeauthor{Georgievski2026}~\cite{Georgievski2026} advocate for an agentic approach to domain model generation, in which \glspl{llm} serve as components within a larger system that includes formal reasoners and validators, rather than as standalone domain engineers.
 
-\paragraph{Relevance to the present thesis.}
+\paragraph{Relevance to the present thesis:}
 The domain modelling literature reviewed in this section is relevant to the present thesis in two ways.
 First, the consistent finding that \glspl{llm} produce syntactically valid but semantically flawed \gls{pddl} structures~\cite{Oswald2024, Guan2023, Huang2025} underscores the necessity of the validation pipeline that we employ to ensure semantic equivalence during configuration.
 Second, the demonstrated effectiveness of iterative feedback loops for improving domain quality~\cite{Guan2023, Oswald2024, Smirnov2024, Casciani2025} provides methodological precedent for our LLM-Modulo feedback loop, which similarly uses external verification results to guide iterative \gls{llm} refinement---albeit for the purpose of configuration rather than generation.
@@ -183,21 +183,21 @@ However, a crucial distinction separates our work from the domain generation lit
 A broader strand of research examines whether \glspl{llm} can solve planning problems directly by generating action sequences, rather than contributing to the domain modelling or configuration pipeline.
 This line of work is relevant to the present thesis because its findings fundamentally shape how we conceptualise the role of \glspl{llm} in automated planning: as assistants that enhance classical planners, not as replacements for them.
 
-\paragraph{LLMs cannot plan reliably.}
+\paragraph{LLMs cannot plan reliably:}
 \citeauthor{Valmeekam2023}~\cite{Valmeekam2023} provide the first rigorous benchmark evaluation of \gls{llm} planning capabilities.
 They construct a suite of planning problems across multiple domains and evaluate several state-of-the-art \glspl{llm} on their ability to generate correct plans.
 Their results are unequivocal: \glspl{llm} fail to produce valid plans in the majority of cases, frequently generating actions with unsatisfied preconditions, omitting necessary steps, or producing action sequences that violate domain constraints.
 Performance deteriorates sharply as problem complexity increases.
 These findings demonstrate that \glspl{llm}, despite their impressive language generation capabilities, lack the formal reasoning mechanisms required for reliable plan generation.
 
-\paragraph{The LLM-Modulo paradigm.}
+\paragraph{The LLM-Modulo paradigm:}
 \citeauthor{Kambhampati2024}~\cite{Kambhampati2024} address this limitation by proposing the LLM-Modulo framework, a position that \glspl{llm} should not be used as autonomous planners but rather as \emph{idea generators} within hybrid systems that pair \gls{llm} generation with external verification (as introduced in \Cref{sec:bg:llm_modulo}).
 Their key argument is that the creative capacity of \glspl{llm}---their ability to rapidly produce diverse candidate solutions---can be harnessed effectively if combined with sound, deterministic verifiers that filter incorrect outputs.
 The framework decouples generation from verification, allowing \glspl{llm} to contribute to planning without requiring them to be formally correct.
 While \citeauthor{Kambhampati2024} propose the framework primarily in the context of plan generation, the conceptual architecture is directly applicable to other planning-related tasks, including domain model configuration, where the \gls{llm} generates structural variants and an external validation pipeline ensures semantic equivalence.
 The present thesis instantiates this framework for domain model configuration for the first time.
 
-\paragraph{Prospects and alternative roles for LLMs in planning.}
+\paragraph{Prospects and alternative roles for LLMs in planning:}
 \citeauthor{Pallagani2024}~\cite{Pallagani2024} provide a comprehensive analysis of the prospects and limitations of incorporating \glspl{llm} in automated planning and scheduling.
 They identify multiple roles that \glspl{llm} can play beyond direct plan generation, including natural-language interfaces to planning systems, domain model construction, plan explanation, and preference elicitation.
 Their analysis reinforces the emerging consensus that \glspl{llm} are most effective when they complement classical planning algorithms rather than replace them.
@@ -217,23 +217,23 @@ The preceding sections reveal a rich body of research at the intersection of dom
 \Cref{tab:rw_comparison} summarises the key related works and their characteristics across five dimensions.
 Examining this landscape, we identify three interrelated research gaps that the present thesis addresses.
 
-\paragraph{Gap 1: Absence of architecture-aware configuration.}
+\paragraph{Gap 1: Absence of architecture-aware configuration:}
 All existing domain model configuration approaches---both classical~\cite{Vallati2015, Vallati2021} and \gls{llm}-based~\cite{Elis2025, Georgievski2025}---treat the target planner as a black box.
 The classical methods of \citeauthor{Vallati2015} discover beneficial configurations through extensive planner evaluations but do not encode knowledge about \emph{why} a particular ordering benefits a particular planner.
 The \gls{llm}-based approach of \citeauthor{Georgievski2025}~\cite{Georgievski2025} applies six generic domain-engineering principles that are entirely planner-agnostic, and finds that the resulting performance improvements are highly planner-dependent---SIW consistently benefits while BFS$_f$ consistently degrades.
 No prior work has investigated whether providing the \gls{llm} with explicit knowledge of the target planner's internal architecture (e.g., its parsing strategy, grounding procedure, heuristic computation, and search algorithm) enables it to produce configurations that are specifically tailored to that planner.
 
-\paragraph{Gap 2: Absence of execution-based feedback for configuration.}
+\paragraph{Gap 2: Absence of execution-based feedback for configuration:}
 The single-forward-pass paradigm of \citeauthor{Georgievski2025}~\cite{Georgievski2025} generates one configuration without any feedback from actual planner executions.
 While iterative feedback loops have been successfully applied in related domains---\citeauthor{Guan2023}~\cite{Guan2023} and \citeauthor{Oswald2024}~\cite{Oswald2024} use validation feedback for domain generation, and \citeauthor{Kambhampati2024}~\cite{Kambhampati2024} advocate the LLM-Modulo paradigm for plan generation---no prior work has instantiated this paradigm for domain model configuration.
 An iterative feedback loop would allow the \gls{llm} to observe the quantitative consequences of its structural choices (e.g., states expanded, search time) and refine subsequent configurations accordingly, potentially recovering from configurations that degrade performance.
 
-\paragraph{Gap 3: Limited understanding of cross-architecture response patterns.}
+\paragraph{Gap 3: Limited understanding of cross-architecture response patterns:}
 The planner-dependent performance patterns observed by \citeauthor{Georgievski2025}~\cite{Georgievski2025} indicate that different planner architectures respond differently to structural domain variations.
 However, their study does not systematically investigate \emph{which} architectural features govern this differential sensitivity, nor does it attempt to map specific structural configurations to specific planner architectures.
 Understanding these cross-architecture response patterns is essential for developing principled, architecture-aware configuration strategies and for determining which planner architectures are amenable to configuration and which are inherently resilient to structural variations.
 
-\paragraph{Positioning of the present thesis.}
+\paragraph{Positioning of the present thesis:}
 The present thesis addresses all three gaps through a multi-stage experimental pipeline.
 We introduce \emph{architecture-aware prompting} (Stage~2), which encodes the internal architectural components of each target planner---parser, translator, grounder, heuristic evaluator, and search engine---into the \gls{llm} prompt, providing qualitatively different guidance compared to the generic principles used by \citeauthor{Georgievski2025}~\cite{Georgievski2025} (Gap~1).
 We instantiate the \emph{LLM-Modulo feedback loop} (Stage~3) for domain model configuration for the first time, iteratively feeding quantitative execution telemetry back to the \gls{llm} as diagnostic natural-language feedback to enable multi-turn refinement (Gap~2).

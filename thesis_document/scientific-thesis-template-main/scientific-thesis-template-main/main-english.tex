@@ -231,6 +231,9 @@
 \setkomafont{pageheadfoot}{\normalfont\sffamily}
 \setkomafont{pagenumber}{\normalfont\sffamily}
 
+% Force paragraph headings to have a normal space instead of a huge space
+\RedeclareSectionCommand[afterskip=-0.5em]{paragraph}
+
 \ihead[]{}
 \chead[]{}
 \ohead[]{\headmark}

@@ -54,7 +54,7 @@ Subsequent versions, such as PDDL~2.1~\cite{FoxLong2003}, introduced temporal an
 
 PDDL separates the specification of a planning task into two complementary files:
 
-\paragraph{Domain file.}
+\paragraph{Domain file:}
 The domain file defines the general dynamics of the environment---what actions are possible and how they affect the world.
 It comprises the following components~\cite{McDermott1998, GhallabNauTraverso2004}:
 \begin{itemize}
@@ -64,7 +64,7 @@ It comprises the following components~\cite{McDermott1998, GhallabNauTraverso200
   \item \textbf{Actions:} define the operators available to the planner. Each action schema consists of a \emph{name}, a list of typed \emph{parameters}, a set of \emph{preconditions} (logical expressions that must hold for the action to be applicable), and a set of \emph{effects} (specifications of how the state changes, divided into add effects and delete effects).
 \end{itemize}
 
-\paragraph{Problem file.}
+\paragraph{Problem file:}
 The problem file specifies a concrete scenario within the domain~\cite{McDermott1998}:
 \begin{itemize}
   \item \textbf{Objects:} instances of the types defined in the domain file.
@@ -146,7 +146,7 @@ Classical planning engines can be categorised by their underlying search strateg
 Understanding these paradigms is essential for the present thesis because different search architectures process domain models in fundamentally different ways, making them differentially sensitive to the structural arrangement of domain elements.
 We survey the four paradigms most relevant to the planner selection in this work; specific planner implementations are described in \Cref{ch:implementation}.
 
-\paragraph{Heuristic forward-state-space search.}
+\paragraph{Heuristic forward-state-space search:}
 The dominant paradigm in modern classical planning is heuristic forward search, which traverses the state space from the initial state~$s_I$ toward the goal~$s_G$ by repeatedly applying applicable actions and evaluating successor states using a heuristic function $h(s)$~\cite{BonetGeffner2001}.
 The heuristic estimates the remaining cost to reach the goal and guides the search toward promising regions of the state space.
 Among the most influential heuristic families are \emph{delete-relaxation heuristics}, which compute estimates by solving a relaxed version of the planning task in which all delete effects are ignored~\cite{HoffmannNebel2001, BonetGeffner2001}.
@@ -154,7 +154,7 @@ By removing delete effects, the relaxed task becomes solvable in polynomial time
 Another prominent family is \emph{landmark-based heuristics}, which identify \emph{landmarks}---facts or actions that must appear in every valid plan---and use the number of unachieved landmarks as a lower bound on the remaining cost~\cite{RichterWestphal2010}.
 Domain model structure can affect heuristic forward search because the order in which predicates and actions are processed during grounding and heuristic evaluation influences tie-breaking, successor ordering, and the overall search trajectory~\cite{Vallati2021}.
 
-\paragraph{Width-based search.}
+\paragraph{Width-based search:}
 Width-based search, introduced by \citeauthor{LipovetzkyGeffner2012}~\cite{LipovetzkyGeffner2012}, employs an entirely different exploration mechanism.
 Instead of relying on domain-specific heuristic estimates, it uses a measure of \emph{novelty} as the primary criterion for state expansion.
 The novelty $w(s)$ of a newly generated state~$s$ is defined as the size of the smallest subset of atomic features in~$s$ that has not appeared in any previously expanded state.
@@ -162,14 +162,14 @@ The algorithm IW($k$) performs a breadth-first search that prunes all states wit
 \citeauthor{LipovetzkyGeffner2017}~\cite{LipovetzkyGeffner2017} later combined width-based exploration with heuristic evaluation, creating planners that balance structural exploration with goal-directed search.
 The order in which predicates are defined in the domain file can influence the novelty computation, as the evaluation of atomic feature tuples follows the predicate ordering during the grounding phase.
 
-\paragraph{Factored and decoupled search.}
+\paragraph{Factored and decoupled search:}
 Factored search strategies decompose the planning task along its causal structure into semi-independent components, called \emph{factors}~\cite{GnadHoffmann2018}.
 A \emph{star-topology decomposition} identifies a central factor (the \enquote{centre}) that coordinates interactions, and multiple independent \emph{leaf factors} that are solved conditionally on the centre's state.
 Each leaf factor can be explored independently, reducing the effective state space exponentially in favourable cases.
 The decomposition is derived from the \emph{causal graph} of the planning task, which encodes the dependency relationships between state variables as induced by action preconditions and effects.
 Because the causal graph is directly constructed from the structural arrangement of actions and their precondition-effect relationships in the domain model, the order and grouping of these elements can influence the factoring and, consequently, the search behaviour~\cite{GnadHoffmann2018}.
 
-\paragraph{Compilation to Boolean satisfiability.}
+\paragraph{Compilation to Boolean satisfiability:}
 An alternative paradigm encodes the bounded planning problem as a propositional \gls{sat} formula~\cite{KautzSelman1992}.
 For a given planning horizon~$h$, the encoding creates Boolean variables representing action occurrences and fluent values at each time step, then generates clauses that encode action preconditions, effects, frame axioms (persistence of unchanged fluents), and mutual exclusion constraints~\cite{Rintanen2012}.
 A SAT solver then searches for a satisfying assignment, which, if found, is decoded into a valid plan.
@@ -270,18 +270,18 @@ The primary mechanism for controlling \gls{llm} behaviour is the \emph{prompt}--
 Different prompting strategies vary in the amount and type of guidance provided to the model.
 Three principal strategies, widely employed in planning research~\cite{Georgievski2025, Elis2025}, are most relevant to this thesis:
 
-\paragraph{Zero-shot prompting.}
+\paragraph{Zero-shot prompting:}
 Zero-shot prompting provides the \gls{llm} with only a task instruction, without any demonstrations or examples~\cite{Kojima2022}.
 The model relies entirely on its pre-trained knowledge and instruction-tuning to interpret the task and generate a response.
 Zero-shot prompting serves as a baseline for evaluating whether a model possesses sufficient inherent understanding of a domain to perform the requested task without additional guidance.
 
-\paragraph{Few-shot prompting.}
+\paragraph{Few-shot prompting:}
 Few-shot prompting supplements the task instruction with a small number of concrete input-output examples, a technique sometimes called \emph{in-context learning}~\cite{Brown2020}.
 By observing annotated examples of the desired transformation, the \gls{llm} can better infer the task requirements and adapt its response accordingly.
 \citeauthor{Brown2020}~\cite{Brown2020} demonstrated that few-shot prompting can dramatically improve task performance across a wide range of benchmarks, particularly when the examples are representative of the target distribution.
 The number of examples (one-shot, three-shot, etc.) and their diversity influence the effectiveness of this strategy.
 
-\paragraph{\gls{cot} prompting.}
+\paragraph{\gls{cot} prompting:}
 \gls{cot} prompting, introduced by \citeauthor{Wei2022}~\cite{Wei2022}, explicitly instructs the model to produce intermediate reasoning steps before generating the final output.
 Rather than directly mapping an input to an output, the model first articulates an explicit reasoning trace---an analysis of the input, identification of relevant patterns, and a step-by-step transformation plan---before executing the transformation.
 This strategy has been shown to significantly improve performance on tasks that require multi-step reasoning~\cite{Wei2022}.
