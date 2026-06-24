@@ -1,57 +1,908 @@
+% !TeX root = ../main-english.tex
+% LTeX: language=en-US
+
 \chapter{Design of the Experimental Pipeline}\label{ch:design}
-% Represents the abstract design of the solution
 
-\section{System Overview and Pipeline Architecture}
+This chapter presents the design of the experimental pipeline used to investigate architecture-aware domain model configuration.
+The pipeline implements a four-stage ablation study that progressively introduces architecture-specific knowledge and execution-based feedback into the \gls{llm}-driven configuration process.
+\Cref{sec:design:overview} introduces the overall pipeline architecture and the rationale behind its staged design.
+\Cref{sec:design:stage0,sec:design:stage1,sec:design:stage2,sec:design:stage3} describe the four experimental stages in detail, including the improvement detection and cross-planner testing procedures that are integral to Stage~2.
+\Cref{sec:design:validation} presents the four-level validation pipeline that ensures semantic equivalence at every stage.
+Finally, \Cref{sec:design:safeguards} describes the computational safeguards that ensure scientific rigour and fair comparison.
+
+%% -----------------------------------------------------------------------
+%%  4.1  PIPELINE OVERVIEW AND ARCHITECTURE
+%% -----------------------------------------------------------------------
+\section{Pipeline Overview and Architecture}
 \label{sec:design:overview}
-% High-level flowchart of the entire 4-stage pipeline
-% How a PDDL file travels from Stage 0 through Stage 3
 
+The central methodological contribution of this thesis is a multi-stage experimental pipeline that systematically isolates the effects of three interventions: (i)~generic \gls{llm}-based domain configuration, (ii)~architecture-aware configuration guided by planner-specific knowledge, and (iii)~iterative refinement through quantitative execution feedback.
+By introducing these interventions incrementally across four stages, the pipeline functions as a controlled ablation study in which each stage adds exactly one new component, enabling rigorous attribution of performance changes to specific design decisions.
+
+\Cref{fig:pipeline_overview} illustrates the high-level architecture.
+A \gls{pddl} domain model enters the pipeline at Stage~0 (Baseline) and flows through progressively more sophisticated configuration stages.
+Stages~1--3 each begin with an \gls{llm} generation phase that produces a candidate domain configuration, followed by the validation pipeline (\Cref{sec:design:validation}), which serves as a gatekeeper ensuring that only semantically equivalent configurations proceed to planner execution.
+Stage~2 additionally includes improvement detection and cross-planner testing phases that determine whether observed gains are statistically significant and architecture-specific.
+Stage~3 closes the loop by feeding execution telemetry back into the \gls{llm} for iterative refinement.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      node distance=0.9cm and 0.7cm,
+      stage/.style={draw, rounded corners=4pt, minimum width=3.2cm, minimum height=0.9cm,
+          align=center, font=\small, thick, fill=black!5},
+      llmbox/.style={draw, rounded corners=3pt, minimum width=2.2cm, minimum height=0.7cm,
+          align=center, font=\footnotesize, thick, fill=orange!12},
+      process/.style={draw, rounded corners=3pt, minimum width=2.2cm, minimum height=0.7cm,
+          align=center, font=\footnotesize, thick, fill=blue!8},
+      data/.style={draw, rounded corners=2pt, minimum width=1.8cm, minimum height=0.6cm,
+          align=center, font=\scriptsize, thick, fill=green!10},
+      extra/.style={draw, rounded corners=3pt, minimum width=2.2cm, minimum height=0.7cm,
+          align=center, font=\footnotesize, thick, fill=red!8},
+      arrow/.style={-{Stealth[length=2mm, width=1.5mm]}, thick},
+      darrow/.style={-{Stealth[length=2mm, width=1.5mm]}, thick, dashed},
+      phlabel/.style={font=\scriptsize\itshape, text=gray!70!black},
+    ]
+
+    %% --- STAGE 0 ---
+    \node[stage] (s0) {\textbf{Stage 0}\\[-2pt]Baseline};
+    \node[process, right=1.0cm of s0] (e0) {Planner\\[-2pt]Execution};
+    \node[data, right=0.8cm of e0] (d0) {Baseline\\[-2pt]Metrics};
+
+    %% --- STAGE 1 ---
+    \node[stage, below=1.2cm of s0] (s1) {\textbf{Stage 1}\\[-2pt]General Prompt};
+    \node[llmbox, right=1.0cm of s1] (l1) {LLM\\[-2pt]Generation};
+    \node[process, right=0.6cm of l1] (v1) {V1--V4\\[-2pt]Validation};
+    \node[process, right=1.0cm of v1] (x1) {Planner\\[-2pt]Execution};
+    \node[data, right=0.8cm of x1] (d1) {Stage~1\\[-2pt]Metrics};
+
+    %% --- STAGE 2 ---
+    \node[stage, below=1.2cm of s1] (s2) {\textbf{Stage 2}\\[-2pt]Arch-Aware};
+    \node[llmbox, right=1.0cm of s2] (l2) {LLM\\[-2pt]Generation};
+    \node[process, right=0.6cm of l2] (v2) {V1--V4\\[-2pt]Validation};
+    \node[process, right=1.0cm of v2] (x2) {Target-Planner\\[-2pt]Execution};
+    \node[extra, below=0.7cm of x2] (imp) {Improvement\\[-2pt]Detection};
+    \node[extra, left=1.5cm of imp] (ct) {Cross-Planner\\[-2pt]Testing};
+    \node[data, right=0.8cm of x2] (d2) {Stage~2\\[-2pt]Metrics};
+
+    %% --- STAGE 3 ---
+    \node[stage, below=2.8cm of s2] (s3) {\textbf{Stage 3}\\[-2pt]Feedback Loop};
+    \node[llmbox, right=1.0cm of s3] (l3) {LLM\\[-2pt]Generation};
+    \node[process, right=0.6cm of l3] (v3) {V1--V4\\[-2pt]Validation};
+    \node[process, right=1.0cm of v3] (x3) {Target-Planner\\[-2pt]Execution};
+    \node[data, right=0.8cm of x3] (d3) {Stage~3\\[-2pt]Metrics};
+
+    %% --- Phase labels ---
+    \node[phlabel, above=0.05cm of l1] {Phase~A};
+    \node[phlabel, above=0.05cm of v1] {Phase~B};
+    \node[phlabel, above=0.05cm of x1] {Phase~C};
+    \node[phlabel, below=0.05cm of imp] {Phase~D};
+    \node[phlabel, below=0.05cm of ct] {Phase~E};
+
+    %% --- Stage 0 arrows ---
+    \draw[arrow] (s0) -- (e0);
+    \draw[arrow] (e0) -- (d0);
+
+    %% --- Stage 1 arrows ---
+    \draw[arrow] (s1) -- (l1);
+    \draw[arrow] (l1) -- (v1);
+    \draw[arrow] (v1) -- node[above, font=\scriptsize] {valid} (x1);
+    \draw[arrow] (x1) -- (d1);
+
+    %% --- Stage 2 arrows ---
+    \draw[arrow] (s2) -- (l2);
+    \draw[arrow] (l2) -- (v2);
+    \draw[arrow] (v2) -- node[above, font=\scriptsize] {valid} (x2);
+    \draw[arrow] (x2) -- (d2);
+    \draw[arrow] (x2) -- (imp);
+    \draw[arrow] (imp) -- node[above, font=\scriptsize] {improved} (ct);
+
+    %% --- Stage 3 arrows ---
+    \draw[arrow] (s3) -- (l3);
+    \draw[arrow] (l3) -- (v3);
+    \draw[arrow] (v3) -- node[above, font=\scriptsize] {valid} (x3);
+    \draw[arrow] (x3) -- (d3);
+
+    %% --- Feedback arrow for Stage 3 ---
+    \draw[darrow] (x3.south) -- ++(0,-0.4) -| (l3.south);
+
+    %% --- Stage flow arrows ---
+    \draw[arrow] (s0) -- (s1);
+    \draw[arrow] (s1) -- (s2);
+    \draw[arrow] (s2) -- (s3);
+
+  \end{tikzpicture}
+  \caption[High-level architecture of the experimental pipeline.]{High-level architecture of the experimental pipeline. Original \gls{pddl} domains flow through four progressive stages. Stages~1--3 involve \gls{llm}-based generation (Phase~A), four-level validation (Phase~B), and planner execution (Phase~C). Stage~2 additionally includes improvement detection (Phase~D) and cross-planner testing (Phase~E). Stage~3 includes a feedback loop (dashed arrow) that returns execution telemetry to the \gls{llm} for iterative refinement.}
+  \label{fig:pipeline_overview}
+\end{figure}
+
+The pipeline is designed around four key principles:
+
+\begin{itemize}
+  \item \textbf{Controlled ablation.}
+        Each stage introduces exactly one new variable: Stage~1 adds \gls{llm}-based configuration with generic prompting, Stage~2 replaces the generic prompt with architecture-aware prompts tailored to each target planner, and Stage~3 adds iterative execution feedback via the LLM-Modulo framework~\cite{Kambhampati2024}.
+        This design enables rigorous attribution of performance changes to specific interventions.
+
+  \item \textbf{Semantic preservation.}
+        The validation pipeline (\Cref{sec:design:validation}) ensures that every configured domain preserves the solution space of the original: $\mathit{Plans}(D, P_i) = \mathit{Plans}(D_{\preceq}, P_i)$ for all problem instances~$P_i$ (cf.~\Cref{def:configuration}).
+
+  \item \textbf{Full reproducibility.}
+        All experimental parameters---domains, \glspl{llm}, planners, hyperparameters, instance selections, resource constraints, and random seeds---are centralised in a single configuration file (see \Cref{ch:experimental_setup}).
+        Every pipeline stage implements checkpoint-resume logic: on restart, completed runs are detected from existing CSV records and skipped, ensuring \emph{idempotent execution} without duplicate entries or lost progress.
+
+  \item \textbf{Comprehensive data capture.}
+        Each stage produces structured telemetry data persisted in both stage-local and global CSV files to enable both stage-specific and cross-stage analysis.
+        Three categories of data are captured throughout: (i)~\emph{pipeline logs}---heartbeat files recording progress every 60 seconds, timestamped terminal output captures, and error registers with full diagnostic dumps; (ii)~\emph{\gls{llm} generation metadata}---API response times, token usage, raw responses, and validation verdicts; and (iii)~\emph{planner execution metrics}---the 17-column measurement schema described in the stage-specific sections below.
+\end{itemize}
+
+\subsection{Global Data Architecture}
+\label{sec:design:overview:data}
+
+All stages share a unified data architecture centred on two global CSV files that accumulate records across the entire experiment:
+
+\begin{enumerate}
+  \item \textbf{Global planner execution CSV} (\texttt{planner\_execution\_data.csv}): contains one row per planner run across all stages.
+        Each row records a unique \texttt{Run\_ID}, the domain name, domain file path, problem instance, planner used, stage label (e.g., \texttt{Baseline}, \texttt{General}, \texttt{Arch\_Aware}, \texttt{Feedback\_Loop1}), \gls{llm} used (if applicable), prompt ID, and the full set of planner execution metrics (see \Cref{tab:planner_csv_schema}).
+        To ensure statistical robustness, the data capture writes \texttt{N/A} rather than \texttt{0} for missing metrics, reflecting the fact that non-heuristic planners (like SAT-based or width-based approaches) architecturally do not produce state expansion measurements.
+
+  \item \textbf{Global \gls{llm} generation CSV} (\texttt{llm\_generation\_data.csv}): contains one row per \gls{llm} API call across Stages~1--3.
+        This file acts as a central ledger for all generation attempts, tracking performance and token usage (\texttt{LLM\_Status}, \texttt{LLM\_API\_Time\_s}, \texttt{Input\_Tokens}, \texttt{Output\_Tokens}) as well as maintaining links to the raw text outputs (\texttt{Raw\_Response\_Path}) and the pass/fail verdicts from all four stages of the validation pipeline (\texttt{Passed\_V1} through \texttt{Passed\_V4}). 
+        The full 17-column schema for this CSV is detailed later in \Cref{tab:llm_gen_csv}.
+\end{enumerate}
+
+In addition, each stage maintains \emph{local copies} of its data for stage-specific analysis.
+The dual-write strategy---local and global simultaneously---ensures that stage-level analysis can proceed without cross-stage interference while the global files enable unified cross-stage comparison.
+
+\paragraph{Logging infrastructure.}
+Every stage maintains three categories of operational logs: (i)~a \texttt{pipeline\_heartbeat.log} that records progress every 60~seconds via a background daemon thread; (ii)~timestamped terminal output captures mirrored via a \texttt{TeeLogger} that writes simultaneously to the console and a log file; and (iii)~an \texttt{error\_register.csv} that records each error with a timestamp, component, run~ID, domain, problem instance, planner, error type, and path to a detailed error dump file containing the full \texttt{stdout} and \texttt{stderr} output.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Schema of the global planner execution CSV. One row is recorded per planner run across all stages.}
+  \label{tab:planner_csv_schema}
+  \small
+  \begin{tabular}{r l p{7cm}}
+    \toprule
+    \textbf{\#} & \textbf{Column} & \textbf{Description} \\
+    \midrule
+    1 & \texttt{Run\_ID} & Auto-incrementing primary key \\
+    2 & \texttt{Domain\_Name} & Benchmark domain (e.g., \texttt{barman}) \\
+    3 & \texttt{Domain\_File} & Path to the domain file used \\
+    4 & \texttt{Problem\_Instance} & Problem instance file \\
+    5 & \texttt{Planner\_Used} & Planner identifier \\
+    6 & \texttt{Stage} & Stage label \\
+    7 & \texttt{LLM\_Used} & \gls{llm} model (Stages~1--3) \\
+    8 & \texttt{PromptID} & Prompt identifier \\
+    9 & \texttt{PlanCost} & Number of actions in the solution plan \\
+    10 & \texttt{Runtime\_internal\_s} & Planner-internal search time (seconds) \\
+    11 & \texttt{Runtime\_wall\_s} & Wall-clock runtime (seconds) \\
+    12 & \texttt{Output\_Status} & \texttt{SUCCESS} $|$ \texttt{TIMEOUT} $|$ \texttt{MEMOUT} $|$ \texttt{FAILURE} \\
+    13 & \texttt{StatesExpanded} & States expanded during search \\
+    14 & \texttt{StatesGenerated} & States generated during search \\
+    15 & \texttt{StatesEvaluated} & States evaluated during search \\
+    16 & \texttt{PeakMemoryKB} & Peak memory consumption (KB) \\
+    17 & \texttt{Timestamp} & UTC timestamp of run completion \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+
+%% -----------------------------------------------------------------------
+%%  4.2  STAGE 0: BASELINE ESTABLISHMENT
+%% -----------------------------------------------------------------------
 \section{Stage 0: Baseline Establishment}
 \label{sec:design:stage0}
-% Running original, unmodified PDDL domains through all planners
-% Establishes the "before" measurement for comparison
 
+Stage~0 establishes the ground-truth performance measurements against which all subsequent stages are compared.
+It executes the original, unmodified \gls{pddl} domain models---as published in the \gls{ipc} benchmark suites---through all selected planners on all selected problem instances, without any \gls{llm} involvement.
+
+\subsection{Execution Model}
+\label{sec:design:stage0:execution}
+
+The combinatorial scope of Stage~0 is defined by three dimensions:
+
+\begin{equation}\label{eq:stage0_runs}
+  \text{Stage~0 runs} = |\mathcal{D}| \times |\mathcal{P}| \times |\mathcal{I}| = 5 \times 4 \times 15 = 300,
+\end{equation}
+
+\noindent where $\mathcal{D}$ is the set of benchmark domains, $\mathcal{P}$ is the set of planners, and $\mathcal{I}$ is the set of selected problem instances per domain (see \Cref{ch:experimental_setup} for the specific selections and their justifications).
+
+The orchestrator builds a fixed work queue of all 75 (domain, instance) pairs and spawns four parallel planner threads---one per planner---each processing the same work queue independently via a \texttt{ThreadPoolExecutor}.
+This design ensures that faster planners do not block slower ones: a planner that completes each run in under one second finishes its full queue while a slower planner may still be processing its first domain.
+All threads write to the global planner execution CSV through a thread-safe CSV manager protected by a mutual exclusion lock.
+
+\subsection{Per-Run Measurements}
+\label{sec:design:stage0:metrics}
+
+For each of the 300~runs, the pipeline captures the complete set of planner execution metrics listed in \Cref{tab:planner_csv_schema} (columns 9--16).
+The output status is determined through a priority-based classification: memory exhaustion signals (\texttt{MEMOUT}) are checked first, followed by the planner's own status report, with a fallback to \texttt{FAILURE} for unclassifiable exits.
+These measurements constitute the \emph{baseline metrics} that serve as the denominator in all subsequent comparative analyses---coverage deltas, PAR10 ratios, and IPC score gains are all computed relative to this stage.
+
+\subsection{Data Artefacts}
+\label{sec:design:stage0:data}
+
+Stage~0 produces the following artefacts:
+
+\begin{itemize}
+  \item \textbf{Planner execution data:} a single CSV file containing 300~rows (one per run) with the schema defined in \Cref{tab:planner_csv_schema}.
+        The \texttt{Stage} column is set to \texttt{Baseline}, and the \texttt{LLM\_Used} and \texttt{PromptID} columns are empty.
+        This file also serves as the seed for the global planner execution CSV that accumulates results across all stages.
+  \item \textbf{Error register:} a CSV logging planner errors (predominantly timeouts), with each entry linking to a detailed dump file containing the full standard output and standard error of the failed run.
+  \item \textbf{Pipeline logs:} heartbeat log, terminal output capture, and run summary.
+\end{itemize}
+
+
+%% -----------------------------------------------------------------------
+%%  4.3  STAGE 1: GENERAL PROMPT CONFIGURATION
+%% -----------------------------------------------------------------------
 \section{Stage 1: General Prompt Configuration}
 \label{sec:design:stage1}
-% Design of a generic prompt that asks the LLM to "improve this domain file"
-% No architectural hints — serves as the control group
 
+Stage~1 evaluates whether generic, planner-agnostic \gls{llm} prompting can improve planner performance through structural domain configuration.
+It serves as the \emph{control condition} against which the architecture-aware interventions of Stages~2 and~3 are measured.
+
+\subsection{Three-Phase Orchestration}
+\label{sec:design:stage1:orchestration}
+
+The Stage~1 pipeline is coordinated by a single master script that executes three phases sequentially:
+
+\begin{description}[style=nextline, leftmargin=1.5cm]
+  \item[\textbf{Phase~A} (LLM Generation):]
+    Each of the four \glspl{llm} receives each of the five benchmark domains paired with a general reordering prompt.
+    Since the prompt is planner-agnostic, one configured domain is produced per (domain, \gls{llm}) pair, yielding $|\mathcal{L}| \times |\mathcal{D}| = 4 \times 5 = 20$ API calls.
+    The four \glspl{llm} operate in parallel threads, each processing its five domains sequentially.
+
+  \item[\textbf{Phase~B} (Validation):]
+    All 20 raw \gls{llm} responses pass through the four-level validation pipeline (V1$\to$V2$\to$V3$\to$V4; see \Cref{sec:design:validation}).
+    Domains that pass all four stages are classified as \texttt{VALID}; those that fail are classified as \texttt{INVALID} or \texttt{REJECTED} and excluded from planner execution.
+
+  \item[\textbf{Phase~C} (Planner Execution):]
+    Each valid configured domain is executed on \emph{all four} planners across all 15 problem instances.
+    Since the prompt provided no architecture-specific guidance, all planners receive the same domain, yielding:
+    \begin{equation}\label{eq:stage1_runs}
+      \text{Planner runs (max)} = |\mathcal{L}| \times |\mathcal{D}| \times |\mathcal{P}| \times |\mathcal{I}| = 4 \times 5 \times 4 \times 15 = 1{,}200.
+    \end{equation}
+    The actual count may be lower if some domains failed validation.
+    As in Stage~0, four planner threads execute concurrently, each processing its assigned domain--instance pairs.
+\end{description}
+
+Each phase implements idempotent checkpoint logic: Phase~A checks whether the output file for a given (domain, \gls{llm}) pair already exists on disk before making an API call; Phase~B checks the \texttt{Validation~Status} column before processing each file; Phase~C uses a checkpoint set of completed (domain, problem, planner, \gls{llm}) tuples for $O(1)$ duplicate detection.
+
+\subsection{Prompt Design}
+\label{sec:design:stage1:prompt}
+
+Each \gls{llm} receives the following general prompt, reproduced verbatim:
+
+\begin{lstlisting}[language={}, caption={General prompt used in Stage~1. The placeholder \texttt{\{domain\_str\}} is replaced with the full \gls{pddl} domain content for each API call.}, label={lst:general_prompt}, basicstyle=\small\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
+You are a PDDL domain expert.
+Your task is to reorder the following PDDL domain file to
+improve AI planner efficiency (coverage, time, quality) via
+reordering actions, preconditions, and effects. You may not
+change the semantics of the domain in any way.
+Follow best practices from planning literature.
+IMPORTANT:
+- Do NOT rename, remove, or semantically change any
+  predicates, parameters, or actions.
+- Do NOT add comments, explanations, or formatting.
+- Return ONLY a valid reordered PDDL domain file.
+DOMAIN TO REORDER:
+{domain_str}
+\end{lstlisting}
+
+This design intentionally provides no architecture-specific guidance, replicating the planner-agnostic approach of \citeauthor{Georgievski2025}~\cite{Georgievski2025} with a simplified prompt structure.
+The prompt encodes three key constraints: (i)~strict semantic preservation---the \gls{llm} may reorder elements but may not alter any logical content; (ii)~raw output---the response must contain only the reordered \gls{pddl} without explanatory text; and (iii)~general guidance---the prompt references generic ``best practices from planning literature'' without specifying any particular planner or search strategy.
+The \gls{llm} must rely entirely on its pre-trained knowledge of planning literature to determine which reorderings might be beneficial.
+The rationale behind this specific prompt formulation is discussed in \Cref{ch:experimental_setup}.
+
+\subsection{Data Artefacts}
+\label{sec:design:stage1:data}
+
+Stage~1 produces three categories of artefacts:
+
+\paragraph{LLM generation data.}
+For each of the 20 \gls{llm} calls, a dedicated CSV records the columns listed in \Cref{tab:llm_gen_csv}. The raw \gls{llm} response text is saved as a \texttt{.txt} file, and \gls{pddl} files that pass V1 extraction are saved separately.
+Domains that pass all four validation stages are additionally copied to a \texttt{Validated Domains/} directory.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Schema of the \gls{llm} generation CSV (Stages~1--3). One row is recorded per \gls{llm} API call.}
+  \label{tab:llm_gen_csv}
+  \small
+  \begin{tabular}{r l p{7cm}}
+    \toprule
+    \textbf{\#} & \textbf{Column} & \textbf{Description} \\
+    \midrule
+    1 & \texttt{ID} & Auto-incrementing primary key \\
+    2 & \texttt{Domain\_Name} & Benchmark domain \\
+    3 & \texttt{LLM\_Model} & Model identifier \\
+    4 & \texttt{Prompt\_ID} & Prompt strategy identifier (\texttt{0} in Stage~1) \\
+    5 & \texttt{LLM\_Status} & API outcome (e.g., \texttt{passed}, \texttt{token\_limit}) \\
+    6 & \texttt{LLM\_API\_Time\_s} & Wall-clock time for the API call \\
+    7 & \texttt{Input\_Tokens} & Input tokens consumed \\
+    8 & \texttt{Output\_Tokens} & Output tokens generated \\
+    9 & \texttt{Raw\_Response\_Path} & Path to the saved raw response \\
+    10 & \texttt{Passed\_V1} & Boolean: passed PDDL extraction? \\
+    11 & \texttt{Extracted\_PDDL\_Path} & Path to the extracted \gls{pddl} file \\
+    12 & \texttt{Passed\_V2} & Boolean: passed VAL syntactic check? \\
+    13 & \texttt{VAL\_Error\_String} & VAL error output (if V2 failed) \\
+    14 & \texttt{Passed\_V3} & Boolean: passed identity check? \\
+    15 & \texttt{Passed\_V4} & Boolean: passed semantic equivalence? \\
+    16 & \texttt{Validation\_Status} & Final verdict: \texttt{VALID}, \texttt{INVALID}, or \texttt{REJECTED} \\
+    17 & \texttt{Timestamp} & UTC timestamp \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Validation pipeline metrics.}
+A dedicated CSV (\texttt{pddl\_diff\_metrics.csv}) records the complete validation trajectory for \emph{every} generated domain, tracking its final \texttt{validation\_status}, the specific \texttt{failed\_stage} (if any), and a descriptive \texttt{rejection\_reason}.
+For domains that reach the V4 semantic check, the file additionally records per-component semantic and reordering flags: for each of the nine \gls{pddl} components (requirements, types, predicates, functions, actions, parameters, preconditions, add effects, delete effects), two boolean flags indicate whether the component was \emph{semantically changed} or merely \emph{reordered}.
+Additionally, a JSON report for each domain provides a detailed structural diff explaining exactly which elements were reordered and how.
+
+\paragraph{Planner execution data.}
+For each planner run, the same 17-column schema as Stage~0 (\Cref{tab:planner_csv_schema}) is used, with the \texttt{Stage} column set to \texttt{General}, the \texttt{LLM\_Used} column populated with the generating model, and the \texttt{PromptID} set to \texttt{0}.
+Results are written to both the stage-local and global planner execution CSVs.
+
+
+%% -----------------------------------------------------------------------
+%%  4.4  STAGE 2: ARCHITECTURE-AWARE PROMPT CONFIGURATION
+%% -----------------------------------------------------------------------
 \section{Stage 2: Architecture-Aware Prompt Configuration}
 \label{sec:design:stage2}
-% Core intellectual contribution
-% Prompt template design
-% Planner-specific architectural rules (e.g., "LAMA likes goal-count heuristics")
-% Cross-Testing Protocol — running LAMA-optimised prompts on BFWS to prove rules matter
 
+Stage~2 is the core experimental stage that tests the central hypothesis of the thesis: whether providing \glspl{llm} with explicit knowledge of a target planner's internal architecture enables them to produce domain configurations that are specifically optimised for that planner.
+Unlike Stage~1, where a single generic prompt is used for all planners, Stage~2 employs a distinct prompt for each target planner, encoding detailed knowledge of its parsing, grounding, heuristic evaluation, and search components.
+
+\subsection{Five-Phase Orchestration}
+\label{sec:design:stage2:orchestration}
+
+Stage~2 extends the three-phase architecture of Stage~1 with two additional phases for improvement detection and cross-planner testing.
+The master orchestrator chains all five phases sequentially, with each phase implementing checkpoint logic for interrupt-and-resume capability:
+
+\begin{description}[style=nextline, leftmargin=1.5cm]
+  \item[\textbf{Phase~A} (LLM Generation):]
+    Because the prompt is planner-specific, each \gls{llm} produces a separate configured domain for every (domain, planner) pair:
+    \begin{equation}\label{eq:stage2_llm_calls}
+      \text{LLM calls} = |\mathcal{L}| \times |\mathcal{D}| \times |\mathcal{P}| = 4 \times 5 \times 4 = 80.
+    \end{equation}
+    Four \gls{llm} threads operate in parallel, each processing 20 (domain, planner) combinations sequentially.
+
+  \item[\textbf{Phase~B} (Validation):]
+    All 80 raw \gls{llm} responses pass through the same V1$\to$V4 validation pipeline as Stage~1 (\Cref{sec:design:validation}).
+
+  \item[\textbf{Phase~C} (Target-Planner Execution):]
+    A key design decision distinguishes Stage~2 from Stage~1: each valid configured domain is executed \emph{only on its target planner}---the planner whose architecture informed the prompt.
+    The target planner is derived from the prompt~ID.
+    This reflects the hypothesis that architecture-aware configurations are planner-specific and should be evaluated against the planner they were designed for.
+    Four planner threads execute concurrently, each processing all domains targeted to its planner.
+
+  \item[\textbf{Phase~D} (Improvement Detection):]
+    For each (domain, \gls{llm}, target planner) triple, the pipeline evaluates whether the architecture-aware configuration represents a genuine improvement over the Stage~0 baseline, using the three-condition test described in \Cref{sec:design:stage2:improvement}.
+
+  \item[\textbf{Phase~E} (Cross-Planner Testing):]
+    For every triple where improvement is detected, the improved domain is executed on the three \emph{non-target} planners to determine architecture-specificity (\Cref{sec:design:stage2:cross_test}).
+\end{description}
+
+\subsection{Prompt Template Architecture}
+\label{sec:design:stage2:prompt}
+
+Each architecture-aware prompt follows a five-section template structure:
+
+\begin{lstlisting}[language={}, caption={Common template structure for architecture-aware prompts. Placeholders in braces are populated per-planner (Sections~1--4) and per-domain (Section~5).}, label={lst:arch_aware_template}, basicstyle=\small\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
+[ROLE ASSIGNMENT]
+You are a PDDL domain engineering expert specializing in
+optimizing domain files for the {PLANNER_NAME} planning
+engine...
+
+[CONSTRAINTS]
+You may ONLY reorder existing elements. You must NOT:
+- Add, remove, or rename any predicates, types, or actions
+- Change the logical meaning of any precondition or effect
+...
+Return ONLY the complete, reordered PDDL domain file.
+
+[ARCHITECTURE CONTEXT]
+{PLANNER_NAME} processes PDDL through the following pipeline:
+{PIPELINE_DESCRIPTION}
+
+[ARCHITECTURE-AWARE REORDERING RULES]
+Apply the following rules, which are specifically derived
+from {PLANNER_NAME}'s internal mechanics:
+{ARCHITECTURE_RULES}
+
+[INPUT DOMAIN]
+DOMAIN TO REORDER:
+{domain_str}
+\end{lstlisting}
+
+Sections~1--4 are specific to the target planner and remain constant across domains; Section~5 is substituted with the input domain for each configuration request.
+Four distinct prompt files are maintained---one per planner---each instantiating this template with planner-specific content derived from the component-level architectural analysis conducted prior to the experimental stages (addressing \textbf{SQ1}).
+
+The \emph{Architecture Context} (Section~3) describes the internal processing pipeline of the target planner: how it parses the \gls{pddl} input, constructs its intermediate representation (e.g., multi-valued state variables, causal graph, SAT encoding), and how the ordering of domain elements propagates through these stages to influence the search behaviour.
+The \emph{Architecture-Aware Reordering Rules} (Section~4) translate this architectural understanding into concrete, actionable instructions.
+For example, a prompt targeting a heuristic forward-search planner instructs the \gls{llm} to place goal-relevant predicates and actions earlier in the domain file, as these predicates are evaluated first during heuristic computation and influence tie-breaking in the search queue.
+A prompt targeting a SAT-based planner instead instructs the \gls{llm} to group mutually exclusive predicates adjacently, as the SAT encoding assigns consecutive variable indices to adjacent predicates, which can improve unit-propagation efficiency in the solver.
+The exact contents of all four architecture-aware prompts, and the detailed methodology used to derive them from component-level analysis, are fully detailed in Chapter~6 (Selection Methodology of Architecture-Aware Prompts).
+
+\subsection{Improvement Detection}
+\label{sec:design:stage2:improvement}
+
+After all target-planner runs are completed in Phase~C, Phase~D evaluates each (domain, \gls{llm}, target planner) triple to determine whether the architecture-aware configuration produces a statistically and practically significant performance improvement over the Stage~0 baseline.
+
+\paragraph{IPC score computation.}
+For each problem instance~$i$, the IPC score of a configuration~$C$ is computed relative to the reference time~$T^*_i$---the fastest wall-clock runtime achieved by the same planner on instance~$i$ across \emph{all} configurations from all completed stages:
+
+\begin{equation}\label{eq:ipc_score}
+  \text{Score}(C, i) =
+  \begin{cases}
+    0 & \text{if planner did not solve instance } i, \\[4pt]
+    \dfrac{1}{1 + \log_{10}\!\left(\dfrac{T_i(C)}{T^*_i}\right)} & \text{if planner solved instance } i,
+  \end{cases}
+\end{equation}
+
+\noindent where $T_i(C)$ is the wall-clock runtime of the planner on instance~$i$ under configuration~$C$.
+The IPC score ranges from 0 (unsolved) to 1 (matched the best-known time), with logarithmic compression ensuring that moderate slowdowns are penalised proportionally.
+The \emph{IPC score gain} for instance~$i$ is:
+
+\begin{equation}\label{eq:ipc_gain}
+  \text{gain}(i) = \text{Score}(C_{\text{stage2}}, i) - \text{Score}(C_{\text{baseline}}, i).
+\end{equation}
+
+\paragraph{Three-condition improvement test.}
+A configuration is declared as \emph{improved} if and only if all three of the following conditions are satisfied simultaneously:
+
+\begin{description}[style=nextline, leftmargin=2.5cm, labelwidth=2.2cm]
+  \item[\textbf{Condition~A}] \textbf{(Statistical Significance):}
+        The Wilcoxon signed-rank test on the per-instance IPC score gains yields $p \leq \alpha$, with the significance level set to $\alpha = 0.25$ (relaxed to account for \gls{llm} volatility).
+        The test is one-sided (alternative hypothesis: the median gain is positive), reflecting the directional hypothesis that architecture-aware configuration should improve performance.
+        The Wilcoxon test is chosen over the paired $t$-test because planner runtime distributions are inherently non-normal---some instances solve in milliseconds while others time out at the resource limit, creating extreme skew.
+        Both \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025} confirmed non-normality via Shapiro--Wilk tests and adopted the Wilcoxon test for the same reason.
+
+  \item[\textbf{Condition~B}] \textbf{(Practical Significance):}
+        The mean IPC score gain across all instances is strictly positive: $\overline{\text{gain}} > 0$.
+        This ensures that the improvement is not merely a statistical artefact.
+
+  \item[\textbf{Condition~C}] \textbf{(Coverage Preservation):}
+        The coverage of the configured domain is at least as high as the baseline coverage: $\Delta\text{Coverage} \geq 0$.
+        This guard prevents configurations that achieve faster runtimes at the cost of solving fewer instances.
+\end{description}
+
+\noindent All three conditions must hold simultaneously:
+
+\begin{equation}\label{eq:improvement}
+  \texttt{IMPROVEMENT} = \bigl(p \leq \alpha\bigr) \;\wedge\; \bigl(\overline{\text{gain}} > 0\bigr) \;\wedge\; \bigl(\Delta\text{Coverage} \geq 0\bigr).
+\end{equation}
+
+For every triple where improvement is detected, the validated domain file is copied to an \texttt{Improved Domains/} directory for use in Phase~E.
+
+\subsection{Cross-Planner Testing}
+\label{sec:design:stage2:cross_test}
+
+For every triple where improvement is detected in Phase~D, Phase~E automatically executes the improved domain on the three \emph{non-target} planners (the planners whose architectures were \emph{not} used to design the prompt).
+Each cross-test run follows the same execution protocol as the target-planner runs (same resource constraints, same 15 problem instances).
+The results are recorded with a distinct stage label (\texttt{Cross\_Test}) in a separate local CSV, while also being appended to the global planner execution CSV.
+
+This cross-testing protocol serves two purposes:
+
+\begin{enumerate}
+  \item \textbf{Architecture-specificity analysis:} it determines whether the improvement is truly architecture-specific (benefits only the target planner) or a general structural improvement (benefits all planners regardless of architecture).
+  \item \textbf{Degradation detection:} it reveals whether optimising for one planner inadvertently degrades performance on other planners, providing evidence for the hypothesis that structural sensitivity is architecture-dependent~\cite{Vallati2021}.
+\end{enumerate}
+
+The cross-test data feeds into the cross-architecture analysis presented in \Cref{ch:results}, which classifies each improved configuration as either a \emph{general improvement} (non-target planners also benefit), an \emph{architecture-specific improvement} (only the target planner benefits, while non-target planners show no change or degradation), or a \emph{neutral configuration} (no significant effect on non-target planners).
+
+\subsection{Data Artefacts}
+\label{sec:design:stage2:data}
+
+Stage~2 produces the same three categories of artefacts as Stage~1 (\gls{llm} generation data, validation metrics, and planner execution data) with the following additions:
+
+\begin{itemize}
+  \item \textbf{Improvement results CSV} (\texttt{improvement\_results.csv}): one row per (domain, \gls{llm}, target planner) triple, recording the Stage~0 and Stage~2 coverage, coverage delta, mean and median IPC gains, Wilcoxon test statistic and $p$-value, the three condition verdicts (A, B, C), the overall \texttt{IMPROVEMENT\_DETECTED} flag, any failed conditions, and four raw trace arrays (\(T^*\) values, per-instance gains, baseline scores, Stage~2 scores) for full traceability.
+
+  \item \textbf{Cross-test execution data:} planner runs for the non-target planners on improved domains, labelled \texttt{Cross\_Test} in a dedicated local CSV and also appended to the global planner execution CSV.
+
+  \item \textbf{Improved domain files:} the validated \gls{pddl} files for all triples where improvement was detected, organised by domain and target planner.
+\end{itemize}
+
+
+%% -----------------------------------------------------------------------
+%%  4.5  STAGE 3: LLM-MODULO FEEDBACK LOOP
+%% -----------------------------------------------------------------------
 \section{Stage 3: LLM-Modulo Feedback Loop}
 \label{sec:design:stage3}
-% Algorithm of the iterative loop
-% Meta-Controller catches validation errors, feeds them back to the LLM
-% Diagnostic natural language feedback from quantitative execution telemetry
-% Termination criteria: success or maximum turn limit
 
+Stage~3 instantiates the LLM-Modulo framework~\cite{Kambhampati2024} (introduced in \Cref{sec:bg:llm_modulo}) for domain model configuration.
+Unlike Stages~1 and~2, where each \gls{llm} generates a single configuration in one forward pass, Stage~3 implements an iterative refinement loop in which the \gls{llm} receives quantitative execution feedback from actual planner runs and uses this feedback to progressively improve its reorderings.
+
+\subsection{Overview and Scale}
+\label{sec:design:stage3:overview}
+
+Stage~3 processes all 80 (domain, \gls{llm}, target planner) triples from Stage~2.
+Each triple runs through up to $K{=}3$ feedback iterations.
+Each valid iteration involves executing the domain on the target planner across all 15 problem instances:
+
+\begin{equation}\label{eq:stage3_max_runs}
+  \text{Planner runs (max)} = 80 \times 3 \times 15 = 3{,}600.
+\end{equation}
+
+\noindent The actual number is lower because some iterations fail validation (skipping planner execution) and some triples terminate early.
+The four \glspl{llm} run as four parallel pipeline threads, each processing its 20 triples (5~domains $\times$ 4~planners) sequentially.
+
+\subsection{Seed Domain Routing}
+\label{sec:design:stage3:seed}
+
+Before entering the feedback loop, the system must determine what \emph{seed domain} to start from and what \emph{initial context} (history and telemetry) to provide the \gls{llm}.
+The routing logic looks up the Stage~2 results for each triple and classifies it into one of three cases:
+
+\begin{description}[style=nextline, leftmargin=1.0cm]
+  \item[\textbf{Case~A} --- Stage~2 LLM Error:]
+    The triple is absent from the Stage~2 CSV or the API call failed (e.g., token limit exceeded, rate limit, content filter).
+    The \emph{seed domain} is the original baseline domain.
+    The history buffer explains the specific error, and the telemetry feedback notes any adjustments (e.g., ``the token output limit has been increased to 8,192 tokens'').
+
+  \item[\textbf{Case~B} --- Stage~2 Produced a Valid Domain:]
+    The validated Stage~2 domain serves as the seed.
+    The history buffer reports whether improvement was detected (from \texttt{improvement\_results.csv}): if yes, it summarises the conditions passed; if no, it lists the specific conditions that failed.
+    The telemetry feedback provides the full per-instance execution comparison between the Stage~2 domain and the baseline.
+
+  \item[\textbf{Case~C} --- Stage~2 Produced an Invalid Domain:]
+    The Stage~2 domain failed validation (V1--V4).
+    The seed falls back to the original baseline domain.
+    The history buffer provides a detailed description of the specific validation failure (e.g., ``Your reordering CHANGED the logical semantics: Action `move-robot' precondition `(clear~?to)' was REMOVED'') to prevent the \gls{llm} from repeating the same mistake.
+\end{description}
+
+\subsection{Prompt Construction}
+\label{sec:design:stage3:prompt}
+
+The prompt for each feedback iteration follows a structured, multi-part template that dynamically integrates the planner's architecture, the history of previous iterations, and the most recent execution telemetry. 
+\Cref{lst:stage3_template} illustrates this common template structure.
+
+\begin{lstlisting}[language={}, caption={Common template structure for the Stage~3 LLM-Modulo feedback loop. Placeholders in braces are dynamically populated for each iteration.}, label={lst:stage3_template}, basicstyle=\scriptsize\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
+[ROLE ASSIGNMENT]
+You are a PDDL domain engineering expert specializing in optimizing domain files
+for the {PLANNER_NAME} planning engine. You possess deep knowledge of how
+{PLANNER_NAME}'s internal architecture processes PDDL input...
+
+[CONSTRAINTS]
+You may ONLY reorder existing elements. You must NOT:
+- Add, remove, or rename any predicates, types, constants, or actions
+- Change the logical meaning of any precondition or effect
+...
+Before outputting the reordered PDDL, write exactly 2 sentences explaining your
+reordering strategy and why you expect it to improve performance.
+Then output the complete reordered PDDL domain file.
+
+[ARCHITECTURE CONTEXT]
+{PLANNER_NAME} processes PDDL through the following pipeline:
+{PIPELINE_DESCRIPTION}
+
+[ARCHITECTURE-AWARE REORDERING RULES]
+Apply the following rules, which are specifically derived from {PLANNER_NAME}'s
+internal mechanics:
+{ARCHITECTURE_RULES}
+
+[INPUT DOMAIN]
+[HISTORY BUFFER]
+{history_buffer_str}
+
+[TELEMETRY FEEDBACK]
+{telemetry_feedback_str}
+
+DOMAIN TO REORDER:
+{domain_str}
+\end{lstlisting}
+
+As shown in the template, each iteration's prompt is assembled from four logical parts:
+
+\begin{enumerate}
+  \item \textbf{Static architecture-aware template:}
+        The same planner-specific prompt from Stage~2 (Sections~1--4 of \Cref{lst:arch_aware_template}), with one modification to the constraints: the instruction ``Return ONLY the complete, reordered PDDL domain file'' is replaced with ``Before outputting the reordered PDDL, write exactly 2~sentences explaining your reordering strategy and why you expect it to improve performance.
+        Then output the complete reordered PDDL domain file.''
+
+  \item \textbf{History buffer:}
+        A cumulative record of all previous attempts and their outcomes, growing with each iteration.
+        For iteration~1, this contains the Stage~2 result summary from the seed routing.
+        For iterations~2+, it additionally includes each prior iteration's rationale, performance summary (instances solved, average search time, IPC gain), and verdict (\texttt{IMPROVEMENT} or \texttt{REGRESSION}), followed by a ``Current Task'' block that provides directional guidance based on the previous iteration's outcome.
+
+  \item \textbf{Telemetry feedback:}
+        Quantitative execution data formatted as a structured natural-language report.
+        The telemetry includes: (i)~an overall performance summary (instances solved, average wall-clock runtime, average states expanded, mean IPC gain, verdict); (ii)~a per-instance breakdown table with 15~rows showing the outcome, search time, states expanded, IPC score, and IPC gain for each instance; (iii)~a diagnostic analysis highlighting the most significant changes (e.g., ``Coverage decreased from 80\% to 73\%''); and (iv)~an improvement direction suggesting a focus area for the next iteration.
+
+  \item \textbf{Input domain:}
+        The \gls{pddl} domain to be reordered.
+        For iteration~1, this is the seed domain determined by the routing logic.
+        For iterations~2+, this is always the output of the \emph{previous} iteration---even if that iteration produced a regression.
+        The best domain is tracked separately (see below); the design gives the \gls{llm} freedom to explore the configuration space without being forced to improve monotonically.
+\end{enumerate}
+
+Every assembled prompt is saved to disk at a deterministic path for full reproducibility and post-hoc analysis.
+The prompt ID follows a dot-notation convention: \texttt{1.1} denotes LAMA iteration~1, \texttt{2.3} denotes DecStar iteration~3, etc.
+
+\subsection{Iteration Loop}
+\label{sec:design:stage3:loop}
+
+For each of the up to three iterations, the following steps are executed:
+
+\begin{enumerate}
+  \item \textbf{Build prompt:}
+        Assemble the four-part prompt from the template, history buffer, telemetry feedback, and current domain.
+        Save the prompt to disk.
+
+  \item \textbf{Call \gls{llm} API:}
+        Generate a response.
+        Recoverable errors (token limit, rate limit) are logged and added to the history buffer for the next iteration; fatal errors (authentication failure) terminate the loop immediately.
+
+  \item \textbf{Extract rationale:}
+        Parse the two-sentence strategy explanation that precedes the \gls{pddl} output.
+        The rationale is logged for qualitative analysis and included in the history buffer.
+
+  \item \textbf{Run hard critics (V1--V4):}
+        The \gls{llm}'s response is passed through the same validation pipeline as Stages~1--2.
+        If validation fails, the iteration is logged with the failure details, the failure is added to the history and telemetry for the next iteration, and the loop continues to the next iteration---\emph{no planner execution occurs}.
+
+  \item \textbf{Run soft critics (planner execution):}
+        The validated domain is executed on the target planner across all 15 problem instances, using the same containerised execution as Stages~0--2.
+        Each run is logged to both local and global planner execution CSVs.
+
+  \item \textbf{Compute IPC score:}
+        The IPC score is calculated using \Cref{eq:ipc_score}, comparing the current iteration's results against the baseline.
+        The reference time $T^*_i$ considers only the baseline and current iteration's runtimes.
+
+  \item \textbf{Determine verdict:}
+        \texttt{IMPROVEMENT} if the mean IPC gain versus baseline is positive; \texttt{REGRESSION} otherwise.
+
+  \item \textbf{Build telemetry:}
+        Format the execution results into the structured telemetry report for the next iteration, including the per-instance breakdown table, diagnostic analysis, and improvement direction.
+
+  \item \textbf{Update tracking state:}
+        Append the iteration's summary to the history buffer.
+        If the current iteration's absolute IPC score exceeds the best score seen so far, update the best domain and best score.
+        Set the current domain for the next iteration to the output of this iteration (regardless of whether it improved).
+
+  \item \textbf{Check early termination:}
+        If both the baseline and current configuration time out on all 15 instances (\texttt{ALL\_TIMEOUT}), the loop terminates early as no reordering can make the domain solvable for this planner.
+\end{enumerate}
+
+\subsection{Post-Loop Finalisation}
+\label{sec:design:stage3:finalisation}
+
+After the loop completes (either by exhausting all $K$ iterations, early termination, or fatal error), the system:
+
+\begin{enumerate}
+  \item \textbf{Saves the best domain:} copies the \gls{pddl} file corresponding to the best iteration to a \texttt{Best Stage~3 Domains/} directory.
+        If no valid iteration improved upon the seed, the seed domain is preserved as a fallback.
+  \item \textbf{Logs the final result:} writes one row to \texttt{stage3\_final\_domains.csv} recording which iteration produced the best result, total iterations run, termination reason, best and seed IPC scores, improvement versus seed, and validation failure counts (see \Cref{tab:stage3_final_csv}).
+\end{enumerate}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Schema of the Stage~3 final domains CSV. One row per (domain, \gls{llm}, planner) triple.}
+  \label{tab:stage3_final_csv}
+  \small
+  \begin{tabular}{r l p{7.5cm}}
+    \toprule
+    \textbf{\#} & \textbf{Column} & \textbf{Description} \\
+    \midrule
+    1 & \texttt{ID} & Primary key \\
+    2 & \texttt{Domain} & Benchmark domain \\
+    3 & \texttt{LLM} & \gls{llm} model \\
+    4 & \texttt{Target\_Planner} & Target planner \\
+    5 & \texttt{Best\_Iteration} & Iteration that produced the best result (0 = seed) \\
+    6 & \texttt{Total\_Iterations\_Run} & Number of iterations completed \\
+    7 & \texttt{Termination\_Reason} & \texttt{MAX\_ITER} $|$ \texttt{ALL\_TIMEOUT} $|$ \texttt{LLM\_ERROR} \\
+    8 & \texttt{Best\_IPC\_Score} & Highest IPC score achieved \\
+    9 & \texttt{Seed\_IPC\_Score} & IPC score of the seed domain \\
+    10 & \texttt{Improvement\_vs\_Seed} & $\text{Best} - \text{Seed}$ \\
+    11 & \texttt{Validation\_Failures} & Total validation failures across all iterations \\
+    12 & \texttt{V4\_Semantic\_Failures} & Count of V4 (semantic) failures \\
+    13 & \texttt{Was\_Stage2\_Failure} & Boolean: did Stage~2 fail for this triple? \\
+    14 & \texttt{Stage3\_Domain\_Path} & Path to the best domain file \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Data Artefacts}
+\label{sec:design:stage3:data}
+
+Stage~3 produces the richest set of artefacts in the pipeline:
+
+\begin{itemize}
+  \item \textbf{Iteration tracking CSV} (\texttt{iteration\_tracking.csv}):
+        One row per iteration per triple, recording the validation status, V4 failure detail (if any), coverage, average wall-clock runtime, average states expanded, IPC score, delta versus baseline, delta versus previous iteration, whether this iteration is the best so far, the \gls{llm}'s two-sentence rationale, termination reason, input and output token counts, domain file path, and timestamp (21~columns total).
+
+  \item \textbf{Final domains CSV} (\texttt{stage3\_final\_domains.csv}):
+        One row per triple with the schema described in \Cref{tab:stage3_final_csv}.
+
+  \item \textbf{Best domain files:}
+        The \gls{pddl} file corresponding to the best iteration for each triple, stored in a \texttt{Best Stage~3 Domains/} directory.
+
+  \item \textbf{Per-iteration domain files:}
+        Every iteration's extracted domain (including invalid ones) is preserved in an \texttt{Iteration Domains/} directory, enabling analysis of the \gls{llm}'s exploration trajectory.
+
+  \item \textbf{Prompt archive:}
+        Every prompt sent to every \gls{llm} is saved to disk, enabling post-hoc analysis of prompt evolution across iterations.
+
+  \item \textbf{\gls{llm} generation data:}
+        Appended to the same \gls{llm} generation CSV (\Cref{tab:llm_gen_csv}) used in Stages~1--2, with prompt IDs following the dot-notation convention (e.g., \texttt{1.1}, \texttt{2.3}).
+
+  \item \textbf{Validation metrics:}
+        Appended to the global and local validation CSVs, with the \texttt{Stage} column dynamically labelled (e.g., \texttt{Feedback\_Loop1}, \texttt{Feedback\_Loop2}).
+
+  \item \textbf{Planner execution data:}
+        Appended to the global and local planner execution CSVs, with the same dynamic stage labelling.
+\end{itemize}
+
+
+%% -----------------------------------------------------------------------
+%%  4.6  VALIDATION PIPELINE
+%% -----------------------------------------------------------------------
 \section{Validation Pipeline}
 \label{sec:design:validation}
 
+The validation pipeline is the central safeguard against \gls{llm} hallucinations.
+It ensures that every \gls{llm}-generated domain configuration satisfies two fundamental properties: syntactic validity and semantic equivalence (cf.~\Cref{def:configuration}).
+The pipeline consists of four sequential stages, illustrated in \Cref{fig:validation_pipeline}.
+If a domain fails any stage, subsequent stages are skipped, and the domain is rejected with a diagnostic message that is logged and, in Stage~3, fed back to the \gls{llm}.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[
+      node distance=0.6cm,
+      stage/.style={draw, rounded corners=3pt, minimum width=2.4cm, minimum height=0.8cm,
+          align=center, font=\small, thick, fill=blue!8},
+      reject/.style={font=\footnotesize, text=red!70!black, align=center},
+      accept/.style={font=\small\bfseries, text=green!50!black},
+      arrow/.style={-{Stealth[length=2mm, width=1.5mm]}, thick},
+      rarrow/.style={-{Stealth[length=1.5mm, width=1.2mm]}, thick, red!60!black},
+    ]
+
+    % Stages
+    \node[stage] (v1) {V1\\[-2pt]Extraction};
+    \node[stage, right=1.0cm of v1] (v2) {V2\\[-2pt]Syntactic};
+    \node[stage, right=1.0cm of v2] (v3) {V3\\[-2pt]Identity};
+    \node[stage, right=1.0cm of v3] (v4) {V4\\[-2pt]Semantic};
+
+    % Input
+    \node[left=0.6cm of v1, font=\small, align=center] (input) {Raw LLM\\output};
+
+    % Output
+    \node[accept, right=0.6cm of v4] (valid) {\dingcheck\ VALID};
+
+    % Reject labels
+    \node[reject, below=0.5cm of v1] (r1) {REJECTED\\[-2pt]{\scriptsize No PDDL found}};
+    \node[reject, below=0.5cm of v2] (r2) {REJECTED\\[-2pt]{\scriptsize Syntax error}};
+    \node[reject, below=0.5cm of v3] (r3) {REJECTED\\[-2pt]{\scriptsize Identical}};
+    \node[reject, below=0.5cm of v4] (r4) {INVALID\\[-2pt]{\scriptsize Semantic change}};
+
+    % Arrows
+    \draw[arrow] (input) -- (v1);
+    \draw[arrow] (v1) -- node[above, font=\scriptsize] {pass} (v2);
+    \draw[arrow] (v2) -- node[above, font=\scriptsize] {pass} (v3);
+    \draw[arrow] (v3) -- node[above, font=\scriptsize] {pass} (v4);
+    \draw[arrow] (v4) -- (valid);
+
+    % Reject arrows
+    \draw[rarrow] (v1) -- (r1);
+    \draw[rarrow] (v2) -- (r2);
+    \draw[rarrow] (v3) -- (r3);
+    \draw[rarrow] (v4) -- (r4);
+
+  \end{tikzpicture}
+  \caption{The four-level validation pipeline. Each \gls{llm}-generated response passes through four sequential stages; failure at any stage rejects the domain with a diagnostic message.}
+  \label{fig:validation_pipeline}
+\end{figure}
+
+This four-level pipeline extends the three-stage validation approach of \citeauthor{Georgievski2025}~\cite{Georgievski2025} by adding the V1 extraction stage, which handles the practical challenge that \glspl{llm} frequently embed \gls{pddl} code within markdown formatting, explanatory text, or other extraneous content.
+
 \subsection{V1: PDDL Extraction}
 \label{sec:design:v1_extraction}
-% Safely extracting raw PDDL code from the LLM's markdown output
 
-\subsection{V2: VAL Syntactic Check}
+The first validation stage extracts a valid \gls{pddl} domain definition from the raw \gls{llm} response.
+\glspl{llm} frequently wrap their \gls{pddl} output in markdown code fences (e.g., \texttt{```pddl ... ```}), preface it with explanatory text, or embed it within JSON-encoded strings.
+The extraction algorithm scans the response for a balanced S-expression starting with \texttt{(define} and uses parenthesis balancing to identify the complete domain block.
+If no valid \texttt{(define ...)} block is found, the domain is marked as \texttt{REJECTED} at V1.
+In Stage~3, the extraction additionally handles the two-sentence rationale that precedes the \gls{pddl} output.
+
+\subsection{V2: Syntactic Validation}
 \label{sec:design:v2_val}
-% Using the official IPC VAL tool to ensure PDDL syntax compiles
+
+The extracted \gls{pddl} domain is validated for syntactic correctness using the VAL tool~\cite{HoweyLongFox2004}, the official validator of the \gls{ipc}.
+VAL checks that the domain is well-formed according to the \gls{pddl} grammar: all predicates referenced in action preconditions and effects are declared, type hierarchies are consistent, and action schemas are syntactically correct.
+The domain is validated against the first problem instance of the corresponding benchmark to ensure type and object compatibility.
+If VAL reports any errors, the domain is marked as \texttt{REJECTED} at V2, and the full VAL error string is logged.
 
 \subsection{V3: Identity Check}
 \label{sec:design:v3_identity}
-% Ensuring the LLM actually changed something (not a copy-paste of the original)
+
+The identity check ensures that the \gls{llm} actually performed a structural transformation.
+Both the original and extracted domains are normalised by stripping comments and collapsing whitespace, and the normalised strings are compared.
+If the strings are identical, the \gls{llm} returned the input domain verbatim---no configuration was attempted---and the domain is marked as \texttt{REJECTED} at V3.
+This check is necessary because some \glspl{llm}, particularly reasoning-oriented models, may conclude that no reordering would be beneficial and return the original domain unchanged.
+Such cases are excluded from the experimental evaluation, as they provide no information about the effect of structural configuration.
 
 \subsection{V4: Semantic Equivalence}
 \label{sec:design:v4_semantic}
-% The most crucial check: ensuring the LLM did not change start states, goal states,
-% or make the problem fundamentally easier
 
+The semantic equivalence check is the most critical validation stage.
+It verifies that the \gls{llm}'s reordering preserved the domain's semantics---that the configured domain $D_{\preceq}$ satisfies $\mathit{Plans}(D, P_i) = \mathit{Plans}(D_{\preceq}, P_i)$ for all problem instances~$P_i$ (cf.~\Cref{def:configuration}).
+
+The verification proceeds by parsing both the original and configured domains into structured representations and comparing each component as an \emph{unordered set}:
+
+\begin{table}[htbp]
+  \centering
+  \caption{\gls{pddl} components compared during semantic equivalence verification (V4). For each component, two boolean flags are recorded: \texttt{semantic\_change} (logic altered) and \texttt{reordered} (order changed, semantics preserved).}
+  \label{tab:v4_components}
+  \small
+  \begin{tabular}{l p{8.5cm}}
+    \toprule
+    \textbf{Component} & \textbf{What is Compared} \\
+    \midrule
+    Requirements & Set of declared \texttt{:requirements} flags \\
+    Types & Set of type declarations and their hierarchy \\
+    Predicates & Set of predicate names with their parameter signatures \\
+    Functions & Set of function declarations (if present) \\
+    Actions (names) & Set of action schema names \\
+    Parameters & For each action: set of typed parameter tuples \\
+    Preconditions & For each action: set of precondition literals \\
+    Add effects & For each action: set of add-effect literals \\
+    Delete effects & For each action: set of delete-effect literals \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The key insight behind this approach is that semantic equivalence for reordering-only transformations reduces to \emph{set equality}: since the formal definitions of predicates, actions, preconditions, and effects are order-independent (cf.~\Cref{def:planning}), two domains are semantically equivalent if and only if their component sets are identical.
+Any set-level difference---a predicate added, removed, or renamed; a precondition altered; an effect modified---constitutes a semantic change, and the domain is marked as \texttt{INVALID} at V4.
+
+In addition to the binary semantic equivalence verdict, the V4 check records which components were \emph{reordered} (set-identical but differently ordered) versus \emph{unchanged} (identically ordered).
+For each of the nine components in \Cref{tab:v4_components}, two boolean flags (\texttt{semantic\_change} and \texttt{reordered}) are written to the validation metrics CSV, yielding 18~flags per domain.
+This per-component reordering data enables fine-grained analysis of which structural dimensions each \gls{llm} chose to modify and forms the basis for the reordering pattern analysis in \Cref{ch:results}.
+Additionally, a JSON report for each domain provides the exact structural diff.
+
+
+%% -----------------------------------------------------------------------
+%%  4.7  COMPUTATIONAL SAFEGUARDS
+%% -----------------------------------------------------------------------
 \section{Computational Safeguards}
 \label{sec:design:safeguards}
-% TIMEOUTs — stopping a planner if it takes too long
-% MEMOUTs — stopping it if it uses too much RAM
-% Ensures scientific rigour and fair comparison
+
+Scientific rigour requires that all planner executions occur under strictly controlled and reproducible conditions.
+We enforce the following computational safeguards, aligned with the \gls{ipc} Agile Track standards and the experimental protocols of \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025}:
+
+\paragraph{Containerised isolation:}
+Each planner execution runs inside an isolated Docker container with fixed resource allocations.
+Containers ensure that planners cannot access shared system resources, preventing cross-contamination between concurrent runs and guaranteeing that timing measurements reflect only the planner's computation.
+
+\paragraph{CPU isolation:}
+Each container is restricted to a single CPU core.
+This constraint ensures reproducible timing measurements: if multiple cores were available, operating system scheduling could introduce non-deterministic timing variations.
+Single-core allocation also reflects the \gls{ipc} evaluation protocol and ensures that reported runtimes are comparable across runs~\cite{Elis2025}.
+
+\paragraph{Memory limits:}
+A hard memory cap of 8~GB is enforced with no swap space permitted (\texttt{memory-swap} set equal to \texttt{memory}).
+This prevents planners from spilling data structures to disk, which would corrupt timing measurements.
+When a planner exceeds the memory limit, the operating system's out-of-memory killer terminates the container immediately, and the run is recorded as \texttt{MEMOUT}.
+
+\paragraph{Time limits:}
+A planner-level time limit of 360~seconds is enforced, consistent with the \gls{ipc} Agile Track.
+An additional safety-net timeout of 375~seconds at the host level (360 + 15~second buffer) allows planners to finish their own timeout handling and print their \texttt{[RESULT]} and \texttt{[METRIC]} output lines before being forcefully terminated.
+Runs that exceed the time limit are recorded as \texttt{TIMEOUT}, with wall-clock time set to the timeout value for PAR10 and IPC score computation.
+
+\paragraph{Checkpoint and resume:}
+Every completed run is immediately persisted to the results CSV.
+On restart, the pipeline reads the existing CSV and loads all completed run tuples into a hash set for $O(1)$ duplicate detection.
+This mechanism ensures \emph{idempotent execution}: re-running the pipeline after an interruption produces the same result as an uninterrupted run, without duplicate entries or lost progress.
+This is essential for experiments that span multiple days of continuous execution.
+
+\paragraph{Thread-safe data persistence:}
+Since four planner threads (or four \gls{llm} threads) write concurrently to the same CSV files, all CSV read and write operations are protected by mutual exclusion locks (\texttt{threading.Lock}).
+Auto-incrementing run IDs start from $\max(\text{existing IDs}) + 1$ on restart to avoid collisions.
+All \texttt{None} values are written as the string \texttt{N/A} to ensure statistical tools can distinguish ``not applicable'' from ``zero.''
+
+\paragraph{\gls{llm} hyperparameter control:}
+All \gls{llm} calls use a temperature of $T{=}0.0$ (fully deterministic decoding) and no conversation history between calls.
+Each call is stateless: the \gls{llm} receives only the prompt and produces a single response without access to any prior context beyond what is explicitly included in the prompt.
+This ensures that variations in output are attributable to the prompt content rather than to stochastic sampling or implicit context carry-over.
+
+\paragraph{Dedicated execution environment:}
+To eliminate the timing variance introduced by shared cloud infrastructure (``noisy-neighbour'' effects and hypervisor steal time), all planner executions are performed on dedicated local hardware.
+This decision is motivated by the sensitivity of the Wilcoxon signed-rank test to measurement noise: because the test detects potentially marginal architectural speedups, even small timing perturbations could produce spurious results.
+The specific hardware configuration is described in \Cref{ch:experimental_setup}.
