@@ -2,6 +2,7 @@
 % LTeX: language=en-US
 
 \chapter{Design of the Experimental Pipeline}\label{ch:design}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 
 This chapter presents the design of the experimental pipeline used to investigate architecture-aware domain model configuration.
 The pipeline implements a four-stage ablation study that progressively introduces architecture-specific knowledge and execution-based feedback into the \gls{llm}-driven configuration process.
@@ -735,6 +736,7 @@ Stage~3 produces the richest set of artefacts in the pipeline:
 %% -----------------------------------------------------------------------
 %%  4.6  VALIDATION PIPELINE
 %% -----------------------------------------------------------------------
+\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
 \section{Validation Pipeline}
 \label{sec:design:validation}
 
@@ -861,6 +863,7 @@ Additionally, a JSON report for each domain provides the exact structural diff.
 %% -----------------------------------------------------------------------
 %%  4.7  COMPUTATIONAL SAFEGUARDS
 %% -----------------------------------------------------------------------
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 \section{Computational Safeguards}
 \label{sec:design:safeguards}
 
@@ -906,3 +909,5 @@ This ensures that variations in output are attributable to the prompt content ra
 To eliminate the timing variance introduced by shared cloud infrastructure (``noisy-neighbour'' effects and hypervisor steal time), all planner executions are performed on dedicated local hardware.
 This decision is motivated by the sensitivity of the Wilcoxon signed-rank test to measurement noise: because the test detects potentially marginal architectural speedups, even small timing perturbations could produce spurious results.
 The specific hardware configuration is described in \Cref{ch:experimental_setup}.
+
+\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
