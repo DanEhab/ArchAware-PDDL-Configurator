@@ -1,4 +1,4 @@
-% !TeX spellcheck = en-US
+﻿% !TeX spellcheck = en-US
 % LTeX: language=en-US
 % !TeX encoding = utf8
 % !TeX TXS-program:compile = txs:///lualatex/[--shell-escape]
@@ -961,10 +961,10 @@ This appendix provides the complete, verbatim text of the four architecture-awar
 \begin{lstlisting}[language={}, caption={Architecture-aware prompt for LAMA-first.}, label={lst:prompt:lama}, basicstyle=\small\ttfamily, numbers=none, frame=single, breaklines=true]
 You are a PDDL domain engineering expert specializing in optimizing domain files
 for the LAMA-first planning engine (Fast Downward framework). You possess deep
-knowledge of how LAMA's internal architecture—specifically its Translation module
+knowledge of how LAMA's internal architecture - specifically its Translation module
 (grounding + invariant synthesis), Knowledge Compilation module (DTG construction),
 and Search module (multi-heuristic FF/add + Landmark heuristic with 4-queue
-preferred operator system)—processes PDDL input.
+preferred operator system) - processes PDDL input.
 
 Your task is to reorder the following PDDL domain file to improve LAMA's planning
 efficiency (coverage, runtime, IPC score).
@@ -989,7 +989,7 @@ LAMA processes PDDL through a three-stage pipeline:
    A* with restarts. Uses TWO heuristics simultaneously in separate queues:
    - FF/add heuristic (delete-relaxation based, additive cost propagation)
    - Landmark heuristic (counts unachieved mandatory waypoints)
-   Each heuristic generates PREFERRED OPERATORS—actions deemed especially promising—
+   Each heuristic generates PREFERRED OPERATORS - actions deemed especially promising - 
    which receive priority via a +1000 boost mechanism in a 4-queue system.
 
 Because of this architecture, the textual ordering of predicates affects mutex
@@ -1011,7 +1011,7 @@ ARCHITECTURE-AWARE REORDERING RULES (apply these in order of priority):
 
 2. ACTION ORDERING: Place actions with fewer preconditions earlier in the domain
    file. Among actions with similar precondition counts, prioritize "enabling"
-   actions—those whose effects create preconditions for other actions.
+   actions - those whose effects create preconditions for other actions.
    REASON: LAMA's greedy best-first search evaluates operators in listing order
    during deferred evaluation. Simpler, enabling actions listed first produce
    better initial plans during the speed-first greedy sprint.
@@ -1048,10 +1048,10 @@ DOMAIN TO REORDER:
 \begin{lstlisting}[language={}, caption={Architecture-aware prompt for DecStar.}, label={lst:prompt:decstar}, basicstyle=\small\ttfamily, numbers=none, frame=single, breaklines=true]
 You are a PDDL domain engineering expert specializing in optimizing domain files
 for the DecStar planning engine. You possess deep knowledge of how DecStar's 
-internal architecture—specifically its h² preprocessing, Star Topology factoring
+internal architecture - specifically its h^2 preprocessing, Star Topology factoring
 engine (Center/Leaf assignment via Causal Graph and InteractionGraph analysis),
 and Decoupled Search (Center Actions vs. silent Leaf Actions with Pricing
-Functions)—processes PDDL input.
+Functions) - processes PDDL input.
 
 Your task is to reorder the following PDDL domain file to improve DecStar's 
 planning efficiency (coverage, runtime, IPC score).
@@ -1065,7 +1065,7 @@ STRICT CONSTRAINTS:
 
 ARCHITECTURE CONTEXT:
 DecStar extends Fast Downward with DECOUPLED STATE-SPACE SEARCH. After standard
-FD translation (grounding + FDR) and aggressive h² mutex pruning, DecStar builds
+FD translation (grounding + FDR) and aggressive h^2 mutex pruning, DecStar builds
 a STAR TOPOLOGY that separates state variables into:
 - A CENTRAL HUB ("Center"): highly-connected, entangled variables
 - Independent LEAF modules: isolated subsystems that can only interact through
@@ -1078,9 +1078,9 @@ mass remains becomes the Center.
 
 CRITICAL PERFORMANCE MECHANISM:
 - CENTER ACTIONS (affecting any Center variable): Branch the main search tree,
-  generating new states in the open list — EXPENSIVE.
+  generating new states in the open list  -  EXPENSIVE.
 - LEAF ACTIONS (affecting only one Leaf): Handled silently by localized Dijkstra
-  within the current state — CHEAP.
+  within the current state  -  CHEAP.
 
 The MORE actions that qualify as Leaf-only operators, the greater the combinatorial
 compression. Actions with preconditions/effects spanning multiple subsystems force
@@ -1142,10 +1142,10 @@ DOMAIN TO REORDER:
 \begin{lstlisting}[language={}, caption={Architecture-aware prompt for \gls{bfws}-Preference.}, label={lst:prompt:bfws}, basicstyle=\small\ttfamily, numbers=none, frame=single, breaklines=true]
 You are a PDDL domain engineering expert specializing in optimizing domain files
 for the LAPKT-BFWS-Preference planning engine (IPC 2018 Agile Track winner). You
-possess deep knowledge of how BFWS-Preference's internal architecture—specifically
+possess deep knowledge of how BFWS-Preference's internal architecture - specifically
 its DIRECT MEMORY INJECTION parsing (no intermediate file), BUCKET SORTING via
-partition = (1000 × #g) + #r, NOVELTY evaluation w(s), and its TWO-ENGINE RELAY
-(LAPKT then Fast Downward)—processes PDDL input.
+partition = (1000 x #g) + #r, NOVELTY evaluation w(s), and its TWO-ENGINE RELAY
+(LAPKT then Fast Downward) - processes PDDL input.
 
 Your task is to reorder the following PDDL domain file to improve BFWS-Preference's
 planning efficiency (coverage, runtime, IPC score).
@@ -1166,7 +1166,7 @@ The Python manager DIRECTLY INJECTS parsed PDDL into C++ memory via bindings
 C++ internal ID numbers are assigned in the EXACT ORDER elements appear in the
 PDDL text. These IDs control tie-breaking EVERYWHERE in the engine.
 
-The search uses BUCKET SORTING: partition = (1000 × #g) + #r, where:
+The search uses BUCKET SORTING: partition = (1000 x #g) + #r, where:
 - #g = number of MISSING GOALS (simple count)
 - #r = number of RELEVANT FLUENTS from a delete-free relaxed plan (H_Add_Rp_Fwd)
 
@@ -1178,12 +1178,12 @@ which changes the NOVELTY score w(s), which completely reroutes the search tree.
 
 ENGINE 2 (Fast Downward/LAMA - The Marathon Runner):
 After Engine 1 finds an initial plan, Engine 2 re-parses the SAME PDDL file using
-standard Fast Downward translation (with h² preprocessing), then runs weighted A*
+standard Fast Downward translation (with h^2 preprocessing), then runs weighted A*
 with LAMA heuristics to find cheaper plans within the time limit.
 
 ARCHITECTURE-AWARE REORDERING RULES (apply in order of priority):
 
-1. ACTION ORDERING [CRITICAL — HIGHEST IMPACT]:
+1. ACTION ORDERING [CRITICAL  -  HIGHEST IMPACT]:
    Place actions whose effects directly ACHIEVE GOAL predicates FIRST in the
    domain file. Then place actions that CREATE PRECONDITIONS for goal-achieving
    actions. Place general utility actions last.
@@ -1226,10 +1226,10 @@ DOMAIN TO REORDER:
 \begin{lstlisting}[language={}, caption={Architecture-aware prompt for Madagascar (MpC).}, label={lst:prompt:madagascar}, basicstyle=\small\ttfamily, numbers=none, frame=single, breaklines=true]
 You are a PDDL domain engineering expert specializing in optimizing domain files
 for the Madagascar (MpC configuration) planning engine. You possess deep knowledge
-of how Madagascar's internal architecture—specifically its CNF encoding of PDDL
-into Boolean SAT formulas using ∃-step parallel plans, its fixpoint binary mutex
+of how Madagascar's internal architecture - specifically its CNF encoding of PDDL
+into Boolean SAT formulas using E-step parallel plans, its fixpoint binary mutex
 (invariant) discovery, its backward-chaining variable selection heuristic, and its
-CDCL (Conflict-Driven Clause Learning) solver with Unit Propagation—processes
+CDCL (Conflict-Driven Clause Learning) solver with Unit Propagation - processes
 PDDL input.
 
 Your task is to reorder the following PDDL domain file to improve Madagascar's
@@ -1245,15 +1245,15 @@ STRICT CONSTRAINTS:
 ARCHITECTURE CONTEXT:
 Madagascar is a SAT-BASED planner. It does NOT search through states like
 traditional planners. Instead, it:
-1. ENCODES the entire PDDL problem into a massive Boolean formula (Φₜ) in
+1. ENCODES the entire PDDL problem into a massive Boolean formula (Phi_t) in
    Conjunctive Normal Form (CNF). Each PDDL predicate at each time step becomes
    a True/False variable. Each PDDL action at each time step becomes a True/False
    variable. The formula represents ALL constraints simultaneously.
-2. Discovers BINARY MUTEXES (invariants) via fixpoint computation — rules like
+2. Discovers BINARY MUTEXES (invariants) via fixpoint computation  -  rules like
    "package cannot be at LocationA AND LocationB simultaneously." These are stored
    ONCE in memory and dynamically linked across time steps, providing massive
    memory savings.
-3. Uses ∃-step (existential-step) PARALLEL PLANS that allow multiple non-
+3. Uses E-step (existential-step) PARALLEL PLANS that allow multiple non-
    interfering actions in the same time step, dramatically shrinking formula size.
 4. Runs CONCURRENT SAT SOLVERS at multiple time horizons (Algorithm C for MpC:
    exponential steps with equal CPU allocation).

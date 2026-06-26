@@ -125,7 +125,7 @@ The pipeline is designed around four key principles:
         This design enables rigorous attribution of performance changes to specific interventions.
 
   \item \textbf{Semantic preservation.}
-        The validation pipeline (\Cref{sec:design:validation}) ensures that every configured domain preserves the solution space of the original: $\mathit{Plans}(D, P_i) = \mathit{Plans}(D_{\preceq}, P_i)$ for all problem instances~$P_i$ (cf.~\Cref{def:configuration}).
+        The validation pipeline (\Cref{sec:design:validation}) ensures that every configured domain preserves the solution space of the original: $\mathit{Plans}(D, P_i) = \mathit{Plans}(D_{\preceq}, P_i)$ for all problem instances~$P_i$ (cf.~\Cref{sec:bg:configuration}).
 
   \item \textbf{Full reproducibility.}
         All experimental parameters---domains, \glspl{llm}, planners, hyperparameters, instance selections, resource constraints, and random seeds---are centralised in a single configuration file (see \Cref{ch:experimental_setup}).
@@ -741,7 +741,7 @@ Stage~3 produces the richest set of artefacts in the pipeline:
 \label{sec:design:validation}
 
 The validation pipeline is the central safeguard against \gls{llm} hallucinations.
-It ensures that every \gls{llm}-generated domain configuration satisfies two fundamental properties: syntactic validity and semantic equivalence (cf.~\Cref{def:configuration}).
+It ensures that every \gls{llm}-generated domain configuration satisfies three properties: structural transformation, syntactic validity, and semantic equivalence (cf.~\Cref{sec:bg:configuration}).
 The pipeline consists of four sequential stages, illustrated in \Cref{fig:validation_pipeline}.
 If a domain fails any stage, subsequent stages are skipped, and the domain is rejected with a diagnostic message that is logged and, in Stage~3, fed back to the \gls{llm}.
 
@@ -825,7 +825,7 @@ Such cases are excluded from the experimental evaluation, as they provide no inf
 \label{sec:design:v4_semantic}
 
 The semantic equivalence check is the most critical validation stage.
-It verifies that the \gls{llm}'s reordering preserved the domain's semantics---that the configured domain $D_{\preceq}$ satisfies $\mathit{Plans}(D, P_i) = \mathit{Plans}(D_{\preceq}, P_i)$ for all problem instances~$P_i$ (cf.~\Cref{def:configuration}).
+It verifies that the \gls{llm}'s reordering preserved the domain's semantics---that the configured domain $D_{\preceq}$ satisfies $\mathit{Plans}(D, P_i) = \mathit{Plans}(D_{\preceq}, P_i)$ for all problem instances~$P_i$ (cf.~\Cref{sec:bg:configuration}).
 
 The verification proceeds by parsing both the original and configured domains into structured representations and comparing each component as an \emph{unordered set}:
 
@@ -851,7 +851,7 @@ The verification proceeds by parsing both the original and configured domains in
   \end{tabular}
 \end{table}
 
-The key insight behind this approach is that semantic equivalence for reordering-only transformations reduces to \emph{set equality}: since the formal definitions of predicates, actions, preconditions, and effects are order-independent (cf.~\Cref{def:planning}), two domains are semantically equivalent if and only if their component sets are identical.
+The key insight behind this approach is that semantic equivalence for reordering-only transformations reduces to \emph{set equality}: since the formalism of a planning problem treats predicates, actions, preconditions, and effects as order-independent sets, two domains are semantically equivalent if and only if their component sets are identical.
 Any set-level difference---a predicate added, removed, or renamed; a precondition altered; an effect modified---constitutes a semantic change, and the domain is marked as \texttt{INVALID} at V4.
 
 In addition to the binary semantic equivalence verdict, the V4 check records which components were \emph{reordered} (set-identical but differently ordered) versus \emph{unchanged} (identically ordered).

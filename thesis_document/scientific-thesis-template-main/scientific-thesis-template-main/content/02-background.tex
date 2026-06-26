@@ -22,21 +22,17 @@ A defining characteristic of modern planning is its \emph{domain-independent} de
 
 The following formal definitions, adapted from \citeauthor{Georgievski2025}~\cite{Georgievski2025}, provide the foundation for the remainder of this work.
 
-\begin{definition}[Planning Formalism]\label{def:planning}
-  Let $F$ be a finite set of \emph{predicates} that describe properties and relations in the world, and let $F_g$ denote the corresponding set of \emph{ground predicates} obtained by substituting all variables with concrete objects.
-  A \emph{state} $s \subseteq F_g$ is a set of ground predicates representing all facts that hold at a given point in time.
-  An \emph{action schema} $a$ is a tuple $\langle \mathit{pre}(a),\; \mathit{del}(a),\; \mathit{add}(a) \rangle$, where $\mathit{pre}(a) \subseteq F$ is a set of predicates that must hold to apply the action (\emph{preconditions}), $\mathit{del}(a) \subseteq F$ is a set of predicates that become false (\emph{delete effects}), and $\mathit{add}(a) \subseteq F$ is a set of predicates that become true (\emph{add effects}) after the action is applied.
-  \emph{Actions} are ground instances of action schemas.
-  A ground action $a_g = \langle \mathit{pre}_g(a_g),\; \mathit{del}_g(a_g),\; \mathit{add}_g(a_g) \rangle$ is \emph{applicable} in state~$s$ if and only if $\mathit{pre}_g(a_g) \subseteq s$.
-  Applying $a_g$ in $s$ yields the successor state $s' = (s \setminus \mathit{del}_g(a_g)) \cup \mathit{add}_g(a_g)$.
-\end{definition}
+Let $F$ be a finite set of \emph{predicates} that describe properties and relations in the world, and let $F_g$ denote the corresponding set of \emph{ground predicates} obtained by substituting all variables with concrete objects.
+A \emph{state} $s \subseteq F_g$ is a set of ground predicates representing all facts that hold at a given point in time.
+An \emph{action schema} $a$ is a tuple $\langle \mathit{par}(a),\; \mathit{pre}(a),\; \mathit{del}(a),\; \mathit{add}(a) \rangle$, where $\mathit{par}(a)$ is a set of variables occurring in~$a$, $\mathit{pre}(a) \subseteq F$ is a set of predicates that must hold to apply the action (\emph{preconditions}), $\mathit{del}(a) \subseteq F$ is a set of predicates that become false (\emph{delete effects}), and $\mathit{add}(a) \subseteq F$ is a set of predicates that become true (\emph{add effects}) after the action is applied.
+\emph{Actions} are ground instances of action schemas.
+A ground action $a_g = \langle \mathit{pre}_g(a_g),\; \mathit{del}_g(a_g),\; \mathit{add}_g(a_g) \rangle$ is \emph{applicable} in state~$s$ if and only if $\mathit{pre}_g(a_g) \subseteq s$.
+Applying $a_g$ in $s$ yields the successor state $s' = (s \setminus \mathit{del}_g(a_g)) \cup \mathit{add}_g(a_g)$.
 
-\begin{definition}[Domain Model and Planning Task]\label{def:domain_task}
-  A \emph{domain model} $D$ is a pair $\langle F,\; A \rangle$, where $A$ is a set of action schemas.
-  A \emph{planning task} is a pair $\mathcal{T} = \langle D_{\mathcal{T}},\; P_{\mathcal{T}} \rangle$, where $D_{\mathcal{T}}$ is a domain model and $P_{\mathcal{T}}$ is a triple $\langle F_g,\; s_I,\; s_G \rangle$ consisting of the ground predicates, an initial state~$s_I$, and a set of goal ground predicates~$s_G$.
-  A \emph{solution plan} $\pi = \langle a_1, a_2, \ldots, a_n \rangle$ of $\mathcal{T}$ is a sequence of ground actions such that their consecutive application starting in $s_I$ results in a state satisfying~$s_G$.
-  We denote $\mathit{Plans}(D_{\mathcal{T}},\; P_{\mathcal{T}})$ as the set of all solution plans for the problem instance $P_{\mathcal{T}}$ when evaluated under domain~$D_{\mathcal{T}}$.
-\end{definition}
+A \emph{domain model} $D$ is a pair $\langle F,\; A \rangle$, where $A$ is a set of action schemas.
+A \emph{planning task} is a pair $\mathcal{T} = \langle D_{\mathcal{T}},\; P_{\mathcal{T}} \rangle$, where $D_{\mathcal{T}}$ is a domain model and $P_{\mathcal{T}}$ is a triple $\langle F_g,\; s_I,\; s_G \rangle$ consisting of the ground predicates, an initial state~$s_I$, and a set of goal ground predicates~$s_G$.
+A \emph{solution plan} $\pi = \langle a_1, a_2, \ldots, a_n \rangle$ of $\mathcal{T}$ is a sequence of ground actions such that their consecutive application starting in $s_I$ results in a state satisfying~$s_G$.
+We denote $\mathit{Plans}(D_{\mathcal{T}},\; P_{\mathcal{T}})$ as the set of all solution plans for the problem instance $P_{\mathcal{T}}$ when evaluated under domain~$D_{\mathcal{T}}$.
 
 Research progress in automated planning has been substantially driven by the \gls{ipc}, a standardised benchmarking platform for evaluating state-of-the-art planning systems on diverse benchmark problems~\cite{GhallabNauTraverso2004, Vallati2015}.
 The IPC defines several tracks that assess different aspects of planner performance; the \emph{Agile Track}, which this thesis uses for benchmarking, measures how quickly planners can find satisficing plans under a heavily reduced time limit, prioritising runtime efficiency over solution quality.
@@ -56,7 +52,7 @@ PDDL separates the specification of a planning task into two complementary files
 
 \paragraph{Domain file:}
 The domain file defines the general dynamics of the environment---what actions are possible and how they affect the world.
-It comprises the following components~\cite{McDermott1998, GhallabNauTraverso2004}:
+It comprises the following components~\cite{McDermott1998}:
 \begin{itemize}
   \item \textbf{Requirements:} specify which PDDL features or extensions the domain uses (e.g., \texttt{:strips}, \texttt{:typing}).
   \item \textbf{Types:} define the classes of objects that can exist in the domain, enabling typed parameters in action schemas.
@@ -186,13 +182,13 @@ Generic, planner-agnostic configuration strategies cannot account for these diff
 \label{sec:bg:configuration}
 
 A domain model is a central artefact of knowledge engineering for automated planning.
-Its construction is often ad hoc, and the modelling choices made by knowledge engineers can substantially influence planner performance~\cite{McCluskey2017, Georgievski2023}.
+Its construction is often ad hoc, and the modelling choices made by knowledge engineers can substantially influence planner performance~\cite{McCluskey2017};~\cite{Georgievski2023}.
 Domain model configuration aims to exploit this sensitivity by systematically modifying the structural arrangement of domain elements to improve planner efficiency, without altering the semantics of the model~\cite{Vallati2021}.
 
 \subsection{Structural Sensitivity of Planners}
 \label{sec:bg:sensitivity}
 
-Although the formal definitions in \Cref{def:planning,def:domain_task} treat predicates, action schemas, and their internal components as unordered sets, their ordering in concrete PDDL specifications can significantly affect the behaviour of planning engines~\cite{HoweDahlman2002, RiddleHolteBarley2011}.
+Although the formalism of a planning problem treats predicates, action schemas, and their internal components as unordered sets, their ordering in concrete PDDL specifications can significantly affect the behaviour of planning engines~\cite{HoweDahlman2002, RiddleHolteBarley2011}.
 \citeauthor{HoweDahlman2002}~\cite{HoweDahlman2002} were among the first to observe that the representation of planning tasks influences benchmark results, showing that seemingly minor notational choices can alter planner outcomes.
 \citeauthor{RiddleHolteBarley2011}~\cite{RiddleHolteBarley2011} later demonstrated that representation choices can even change planner rankings in competitions, calling into question the robustness of comparative evaluations.
 \citeauthor{Vallati2015}~\cite{Vallati2015} subsequently formalised domain model configuration as an algorithm configuration problem, applying sequential model-based optimisation to identify structural orderings that improve planner performance.
@@ -200,28 +196,27 @@ In an extended study, \citeauthor{Vallati2021}~\cite{Vallati2021} deepened this 
 
 To make this structural sensitivity precise, we adopt the following formalism from \citeauthor{Georgievski2025}~\cite{Georgievski2025}, building on the work of \citeauthor{Vallati2021}~\cite{Vallati2021}.
 
-\begin{definition}[Domain Model Configuration]\label{def:configuration}
-  Let $D = \langle F,\; A \rangle$ be a domain model.
-  We equip $F$ and $A$ with total order relations $\preceq_F$ and $\preceq_A$, respectively.
-  For each action schema $a \in A$, we define total order relations $\preceq_{\mathit{pre}(a)}$ over the preconditions $\mathit{pre}(a)$ and $\preceq_{\mathit{eff}(a)}$ over the effects $\mathit{eff}(a) = \mathit{del}(a) \cup \mathit{add}(a)$.
-  Let $\preceq$ denote the set of all these relations.
-  A \emph{domain model configuration} $D_{\preceq}$ of $D$ is obtained by writing the domain elements according to the orderings in~$\preceq$.
-\end{definition}
+Let $D = \langle F,\; A \rangle$ be a domain model.
+We equip $F$ and $A$ with total order relations $\preceq_F$ and $\preceq_A$, respectively.
+For each action schema $a \in A$, we define total order relations $\preceq_{\mathit{par}(a)}$ over the parameters $\mathit{par}(a)$, $\preceq_{\mathit{pre}(a)}$ over the preconditions $\mathit{pre}(a)$, and $\preceq_{\mathit{eff}(a)}$ over the effects $\mathit{eff}(a) = \mathit{del}(a) \cup \mathit{add}(a)$.
+Let $\preceq$ denote the set of all these relations.
+A \emph{domain model configuration} $D_{\preceq}$ of $D$ is obtained by writing the domain elements according to the orderings in~$\preceq$.
 
 The \emph{configuration space} $\mathcal{C}(D)$ consists of all possible domain model configurations, that is, all possible choices of~$\preceq$.
 Its cardinality is determined by the number of permutations of each ordered component:
 
 \begin{equation}\label{eq:config_space}
-  |\mathcal{C}(D)| \;=\; |F|! \;\cdot\; |A|! \;\cdot\; \prod_{a \in A} \bigl( |\mathit{pre}(a)|! \;\cdot\; |\mathit{eff}(a)|! \bigr),
+  |\mathcal{C}(D)| \;=\; |F|! \;\cdot\; |A|! \;\cdot\; \prod_{a \in A} \bigl( |\mathit{par}(a)|! \;\cdot\; |\mathit{pre}(a)|! \;\cdot\; |\mathit{eff}(a)|! \bigr),
 \end{equation}
 
 \noindent which grows factorially in the size of the domain.
 Even for relatively small models, $|\mathcal{C}(D)|$ becomes very large, making exhaustive exploration computationally infeasible and motivating the need for automated techniques that can efficiently identify promising configurations~\cite{Vallati2021}.
 
-A valid domain model configuration must satisfy two properties~\cite{Georgievski2025}:
+A valid domain model configuration must satisfy three properties~\cite{Georgievski2025}:
 \begin{enumerate}
+  \item \textbf{Structural transformation:} The ordering relations differ from the original, i.e., $\exists\, X \in \{F, A, \mathit{par}(a), \mathit{pre}(a), \mathit{eff}(a)\} : {\preceq_{X, D_{\preceq}}} \neq {\preceq_{X, D}}$.
   \item \textbf{Syntactic validity:} $D_{\preceq}$ is a well-formed PDDL domain that can be parsed without errors.
-  \item \textbf{Semantic equivalence:} For all problem instances $P_i$ over $D$, the set of solution plans is preserved: $\mathit{Plans}(D,\; P_i) = \mathit{Plans}(D_{\preceq},\; P_i)$.
+  \item \textbf{Semantic equivalence:} $D_{\preceq} \in \mathcal{C}(D)$, which implies $\mathit{Plans}(D,\; P) = \mathit{Plans}(D_{\preceq},\; P)$ for every problem instance~$P$ over~$D$.
 \end{enumerate}
 
 \noindent These properties ensure that configuration preserves the correctness of all solution plans while potentially altering the efficiency with which planners find them.
