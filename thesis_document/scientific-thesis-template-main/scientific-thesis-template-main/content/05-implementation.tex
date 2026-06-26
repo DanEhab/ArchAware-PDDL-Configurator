@@ -1,45 +1,564 @@
-\chapter{Implementation}\label{ch:implementation}
-% Provides implementation details — How is the design practically realised?
+% !TeX root = ../main-english.tex
+% LTeX: language=en-US
 
+\chapter{Implementation}\label{ch:implementation}
+
+The experimental pipeline designed in \Cref{ch:design} was practically realised as a modular software system.
+\Cref{ch:design} specified \emph{what} the pipeline does at each stage; the present chapter explains \emph{how} each component was built.
+Five aspects are covered: the codebase structure, the containerisation strategy that isolates legacy planners, the precise provenance and integration of each planner, the validation tool, and the \gls{llm} provider abstraction layer.
+All implementation decisions are motivated by the requirements of reproducibility, correctness, and cross-platform portability.
+
+%% -----------------------------------------------------------------------
+%%  5.1  SYSTEM ARCHITECTURE AND CODEBASE
+%% -----------------------------------------------------------------------
 \section{System Architecture and Codebase}
 \label{sec:impl:codebase}
-% Python codebase structure, module organisation
-% How the pipeline stages are orchestrated programmatically
 
+The pipeline is implemented in Python~3.10 and orchestrated through a set of stage-specific master scripts.
+All configurations are dynamically managed via a centralised YAML file, ensuring modularity and reproducibility.
+\Cref{fig:system_sequence} illustrates the high-level execution flow.
+The \textbf{Python Orchestrator} acts as the central coordinator, managing the entire lifecycle of a domain.
+It first loads the experimental parameters from the \texttt{experiment\_config.yaml} file, then sends prompts to the \textbf{LLM Provider API} (which wraps the underlying OpenAI, Anthropic, or Google SDKs).
+Upon receiving the API response, the orchestrator logs raw outputs and telemetry to an intermediate \textbf{LLM CSV} (\texttt{llm\_generation\_data.csv}).
+
+The orchestrator then initiates a sequential, multi-stage validation pipeline.
+It begins with a fast local Python check to extract and verify the presence of \gls{pddl} code (V1).
+If this succeeds, the \textbf{VAL Validator} Docker container performs strict syntactic verification (V2).
+Should the container return a successful exit code, the orchestrator conducts final local validations in Python (the V3 and V4 structural checks detailed in \Cref{sec:design:validation}).
+Once the domain passes all validation stages, the evaluation phase begins: the orchestrator invokes the legacy \textbf{Docker Planners}, enforces a strict 360-second execution timeout, parses the metric streams from standard output, and persists the extracted results to the \textbf{Results CSV} (\texttt{planner\_execution\_data.csv}).
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{
+  \begin{tikzpicture}[
+      >=Stealth,
+      every node/.style={font=\normalsize},
+      lifeline/.style={thick, dashed},
+      actor/.style={draw, thick, fill=blue!10, minimum width=2.4cm, minimum height=1.0cm, align=center, rounded corners=3pt},
+      database/.style={draw, thick, fill=green!10, shape=cylinder, aspect=0.25, shape border rotate=90, minimum width=2.4cm, minimum height=1.2cm, align=center},
+      document/.style={draw, thick, fill=gray!10, minimum width=2.2cm, minimum height=1.0cm, align=center, rounded corners=1pt},
+      active/.style={draw, thick, fill=gray!20, minimum width=0.2cm},
+      message/.style={->, thick},
+      return/.style={->, thick, dashed},
+      self/.style={->, thick, rounded corners=3pt}
+    ]
+    
+    % Asymmetrical X-coordinates: 
+    % Wide gap on left for self-loops (8, 10) and config load (1).
+    % Tighter gaps on the right to prevent aggressive downscaling.
+    \def\xconf{-3.6}
+    \def\xorch{0}
+    \def\xllm{3.0}
+    \def\xgencsv{5.6}
+    \def\xval{8.2}
+    \def\xplan{10.8}
+    \def\xrescsv{13.4}
+    
+    % Lifeline headers
+    \node[document] (config) at (\xconf,0) {Config\\[-2pt]YAML};
+    \node[actor] (orch) at (\xorch,0) {Python\\Orchestrator};
+    \node[actor, fill=red!10] (llm) at (\xllm,0) {LLM Provider\\API};
+    \node[database] (gencsv) at (\xgencsv,0) {LLM\\[-2pt]CSV};
+    \node[actor, fill=orange!10] (val) at (\xval,0) {VAL\\Validator};
+    \node[actor, fill=orange!10] (planner) at (\xplan,0) {Docker\\Planners};
+    \node[database] (rescsv) at (\xrescsv,0) {Results\\[-2pt]CSV};
+    
+    % Lifelines 
+    \draw[lifeline] (config) -- (\xconf,-15.0);
+    \draw[lifeline] (orch) -- (\xorch,-15.0);
+    \draw[lifeline] (llm) -- (\xllm,-15.0);
+    \draw[lifeline] (gencsv) -- (\xgencsv,-15.0);
+    \draw[lifeline] (val) -- (\xval,-15.0);
+    \draw[lifeline] (planner) -- (\xplan,-15.0);
+    \draw[lifeline] (rescsv) -- (\xrescsv,-15.0);
+    
+    % Orchestrator Activation
+    \node[active, minimum height=13.0cm] (orch_act) at (\xorch,-7.7) {};
+    
+    % 1. Config Load (fits perfectly in the wide left gap)
+    \draw[return] (\xconf,-1.5) -- (orch_act.west|-0,-1.5) node[midway, above] {1. Load parameters};
+    
+    % 2. LLM Generation
+    \draw[message] (orch_act.east|-0,-3.0) -- (\xllm,-3.0) node[midway, above, align=center] {2. \texttt{generate}\\\texttt{(prompt)}};
+    \node[active, minimum height=0.8cm] (llm_act) at (\xllm,-3.4) {};
+    \draw[return] (llm_act.west|-0,-3.8) -- (orch_act.east|-0,-3.8) node[midway, above] {3. API Response};
+    
+    % 4. Save Gen Data
+    \draw[message] (orch_act.east|-0,-5.2) -- (\xgencsv,-5.2) node[midway, above, align=center] {4. Store \texttt{llm\_}\\\texttt{generation\_data.csv}};
+    \node[active, minimum height=0.4cm] (gencsv_act) at (\xgencsv,-5.4) {};
+    
+    % 5. VAL Validation
+    \draw[message] (orch_act.east|-0,-6.8) -- (\xval,-6.8) node[midway, above, align=center] {5. \texttt{docker run}\\\texttt{val}};
+    \node[active, minimum height=0.8cm] (val_act) at (\xval,-7.2) {};
+    \draw[return] (val_act.west|-0,-7.6) -- (orch_act.east|-0,-7.6) node[midway, above] {6. Exit Code};
+    
+    % 7. Planner Execution (Happy Path)
+    \draw[message] (orch_act.east|-0,-9.0) -- (\xplan,-9.0) node[midway, above, align=center] {7. [If Valid] \texttt{docker}\\\texttt{run <planner>}};
+    \node[active, minimum height=1.6cm] (plan_act) at (\xplan,-9.8) {};
+    
+    % Self message Timeout (fits in the wide left gap)
+    \draw[self] (orch_act.west|-0,-9.4) -- ++(-1.6,0) |- (orch_act.west|-0,-10.0) node[pos=0.25, left, align=right] {8. Enforce\\360s Timeout};
+    
+    \draw[return] (plan_act.west|-0,-10.6) -- (orch_act.east|-0,-10.6) node[midway, above, align=center] {9. \texttt{stdout}\\\texttt{([METRIC])}};
+    
+    % 10. Parse (fits in the wide left gap)
+    \draw[self] (orch_act.west|-0,-11.6) -- ++(-1.6,0) |- (orch_act.west|-0,-12.2) node[pos=0.25, left, align=right] {10. Parse\\Data};
+    
+    % 11. CSV Write
+    \draw[message] (orch_act.east|-0,-13.6) -- (\xrescsv,-13.6) node[midway, above, align=center] {11. Store \texttt{planner\_}\\\texttt{execution\_data.csv}};
+    \node[active, minimum height=0.4cm] (rescsv_act) at (\xrescsv,-13.8) {};
+    
+  \end{tikzpicture}
+  }
+  \caption[Detailed execution sequence diagram.]{Detailed execution sequence diagram. The Python Orchestrator manages the execution logic. It generates domains via the LLM API, stores generation telemetry, validates syntax via the VAL container, and conditionally executes planners within an isolated Docker environment if validation passes.}
+  \label{fig:system_sequence}
+\end{figure}
+
+\clearpage
+
+\subsection{Project Structure}
+\label{sec:impl:codebase:structure}
+
+The codebase is organised into a modular directory structure that separates concerns by function:
+
+\begin{lstlisting}[language={}, caption={Top-level directory structure of the project.}, label={lst:dir_structure}, basicstyle=\footnotesize\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
+ArchAware-PDDL-Configurator/
+  benchmarks/             # IPC domain + instance files
+    barman/               #   domain.pddl, instances/, all_instances/
+    depots/               #   (same structure for each domain)
+    ricochet-robots/
+    snake/
+    visitall/
+  config/                 # Centralised experiment configuration
+    experiment_config.yaml
+  experiments/            # Stage-specific pipeline code
+    base/                 #   Stage 0 (baseline)
+    general-prompt/       #   Stage 1 (general prompt)
+    arch-aware/           #   Stage 2 (architecture-aware)
+    feedback-loop/        #   Stage 3 (LLM-Modulo)
+  planners/               # Dockerfiles + exec scripts
+    lama/                 #   Dockerfile, planner_exec
+    bfws/                 #   Dockerfile, planner_exec, source archives
+    decstar/              #   Dockerfile, planner_exec, CPLEX installer
+    madagascar/           #   Dockerfile, planner_exec, MpC binary
+    validity/             #   Dockerfile (VAL tool)
+  validation_and_evaluation/  # Validation pipeline modules
+    scripts/validation/   #   v1_extraction.py, v2_syntactic_validation.py,
+                          #   v3_identity_check.py, v4_semantic_equivalence.py
+  results/                # Output data (CSV, generated PDDL)
+  logs/                   # Execution logs and checkpointing data
+  analysis/               # Post-hoc analysis scripts and figures
+\end{lstlisting}
+
+Each experimental stage is implemented as a self-contained package within \texttt{experiments/}.
+The four stages share a common infrastructure layer located in \texttt{experiments/base/}, which provides reusable components for planner execution, CSV management, error handling, and logging.
+
+\subsection{Shared Infrastructure Modules}
+\label{sec:impl:codebase:infra}
+
+\Cref{tab:shared_modules} lists the shared infrastructure modules and their responsibilities.
+These modules implement the cross-cutting concerns described in \Cref{sec:design:safeguards}: thread-safe data persistence, checkpoint-resume logic, and structured error handling.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Shared infrastructure modules located in \texttt{experiments/base/}.}
+  \label{tab:shared_modules}
+  \small
+  \begin{tabular}{l p{8.5cm}}
+    \toprule
+    \textbf{Module} & \textbf{Responsibility} \\
+    \midrule
+    \texttt{csv\_manager.py} & Thread-safe CSV writer with built-in checkpointing. On initialisation, loads any existing CSV and builds an $O(1)$ hash-set of completed run tuples. All write operations are protected by a \texttt{threading.Lock}. Auto-incrementing run IDs start from $\max(\text{existing IDs}) + 1$ on restart. \\[4pt]
+    \texttt{planner\_runner.py} & Executes a single Docker-containerised planner run. Constructs the \texttt{docker run} command with resource constraints, captures \texttt{stdout}/\texttt{stderr}, parses \texttt{[RESULT]} and \texttt{[METRIC]} lines, and classifies the outcome (SUCCESS, TIMEOUT, MEMOUT, FAILURE). Uses named containers for explicit cleanup on timeout. \\[4pt]
+    \texttt{error\_handler.py} & Maintains the error register CSV with full diagnostic dumps. Each error entry records a timestamp, component, run ID, domain, problem instance, planner, error type, and a path to a detailed dump file. \\[4pt]
+    \texttt{heartbeat.py} & Background daemon thread that writes a progress entry to the heartbeat log every 60~seconds, recording the current run count, active stage, and elapsed time. \\[4pt]
+    \texttt{summary\_generator.py} & Generates human-readable run summaries at pipeline completion, including total runs, success rate, average runtimes, and error counts per planner. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Stage-Specific Modules}
+\label{sec:impl:codebase:stages}
+
+Each stage extends the shared infrastructure with stage-specific logic.
+\Cref{tab:stage_modules} summarises the key modules per stage.
+Stages~1--3 each introduce an \gls{llm} interaction layer and a validation pipeline integration, with Stage~3 additionally implementing the feedback loop engine.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Key modules per experimental stage. Stages~1--3 extend the shared infrastructure with \gls{llm} and validation modules.}
+  \label{tab:stage_modules}
+  \small
+  \begin{tabular}{l l p{6.8cm}}
+    \toprule
+    \textbf{Stage} & \textbf{Module} & \textbf{Responsibility} \\
+    \midrule
+    0 & \texttt{run\_stage0.py} & Master orchestrator: builds work queue, spawns four planner threads, coordinates CSV writes \\
+    \midrule
+    \multirow{3}{*}{1} & \texttt{run\_stage1.py} & Three-phase orchestrator (A: LLM, B: validation, C: planner execution) \\
+    & \texttt{llm\_providers.py} & Provider abstraction layer (\Cref{sec:impl:llm_integration}) \\
+    & \texttt{run\_stage1\_validation.py} & Orchestrates the V1--V4 pipeline for all 20 generated domains \\
+    \midrule
+    \multirow{2}{*}{2} & \texttt{run\_stage2.py} & Five-phase orchestrator adding improvement detection and cross-testing \\
+    & \texttt{improvement/} & Wilcoxon test, IPC score computation, three-condition gate \\
+    \midrule
+    \multirow{3}{*}{3} & \texttt{run\_stage3.py} & Master orchestrator for 80 feedback-loop triples \\
+    & \texttt{loop\_engine.py} & Core iteration loop: prompt assembly, LLM call, validation, execution, telemetry formatting \\
+    & \texttt{prompt\_builder.py} & Dynamically constructs multi-part prompts with history buffer and telemetry \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Configuration Management}
+\label{sec:impl:codebase:config}
+
+All experimental parameters are centralised in a single YAML configuration file (\texttt{config/\allowbreak experiment\_config.yaml}).
+This file specifies the domains, \glspl{llm} (with provider, model ID, and API key environment variable), planners (with Docker image names), Docker resource constraints, \gls{llm} hyperparameters, improvement detection thresholds, retry policies, and heartbeat intervals.
+The configuration is loaded once at pipeline start and passed as a dictionary to all components, ensuring that no experimental parameter is hard-coded in the pipeline logic.
+The specific values documented in this file and the rationale behind each selection are detailed in \Cref{ch:experimental_setup}.
+
+\subsection{Dependency Management}
+\label{sec:impl:codebase:deps}
+
+The Python dependency stack is managed through a \texttt{requirements.txt} file specifying minimum versions.
+The key dependencies fall into six categories:
+(i)~\emph{\gls{llm} provider SDKs}---\texttt{openai}~($\geq$\,1.75), \texttt{anthropic}~($\geq$\,0.52), and \texttt{google-generativeai}~($\geq$\,0.8.5);
+(ii)~\emph{configuration}---\texttt{PyYAML}~($\geq$\,6.0) for parsing the experiment configuration file and \texttt{python-dotenv}~($\geq$\,1.1) for secure API key management;
+(iii)~\emph{data processing}---\texttt{pandas}~($\geq$\,2.2) and \texttt{numpy}~($\geq$\,2.0);
+(iv)~\emph{statistical testing}---\texttt{scipy}~($\geq$\,1.13) and \texttt{statsmodels}~($\geq$\,0.14);
+(v)~\emph{visualisation}---\texttt{matplotlib}~($\geq$\,3.9) and \texttt{seaborn}~($\geq$\,0.13);
+and (vi)~\emph{resilience}---\texttt{tenacity}~($\geq$\,9.0) for retry logic with exponential backoff.
+
+
+%% -----------------------------------------------------------------------
+%%  5.2  DOCKER CONTAINERISATION
+%% -----------------------------------------------------------------------
 \section{Docker Containerisation}
 \label{sec:impl:docker}
-% How the C++ planners are wrapped in Docker containers
-% Ensures consistent, reproducible execution across platforms
-% Isolates fragile planner dependencies from the host system
 
+A central engineering challenge of this project is that the four selected planners span different compiler toolchains, library versions, and runtime environments---some of which are mutually incompatible.
+\gls{bfws}, for example, requires Python~2.7, GCC with 32-bit multilib support, and Boost libraries pinned to Ubuntu~18.04, while DecStar requires PyPy3, CPLEX~22.12, and a 64-bit build on Ubuntu~22.04.
+Installing all four planners natively on a single host would be infeasible without introducing version conflicts.
+
+We address this challenge by containerising each planner in an isolated Docker~\cite{Merkel2014} image.
+Docker provides operating-system-level virtualisation: each container packages the planner's source code, compiler, libraries, and runtime into a self-contained image that runs identically on any host with a Docker engine, regardless of the host's operating system or installed libraries.
+This approach offers three key advantages:
+
+\begin{enumerate}
+  \item \textbf{Dependency isolation:} Each planner's toolchain is entirely encapsulated within its container. The Ubuntu~18.04 environment required by \gls{bfws} coexists with the Ubuntu~22.04 environments required by \gls{lama}, DecStar, and Madagascar without any host-level conflicts.
+
+  \item \textbf{Reproducibility:} The Dockerfiles serve as executable build specifications. Any researcher can reconstruct the exact planner binaries by running \texttt{docker build} with the provided Dockerfiles, eliminating ``works on my machine'' failures.
+
+  \item \textbf{Resource isolation:} Docker's \texttt{--cpus}, \texttt{--memory}, and \texttt{--memory-swap} flags enforce the computational safeguards described in \Cref{sec:design:safeguards} at the container level, guaranteeing that resource limits are enforced by the Linux kernel rather than relying on the planner's own enforcement.
+\end{enumerate}
+
+\subsection{Uniform Execution Interface}
+\label{sec:impl:docker:interface}
+
+Each Docker image exposes a uniform execution interface through a shell script named \texttt{planner\_exec}, which is set as the container's \texttt{ENTRYPOINT}.
+The script accepts two positional arguments---the domain file path and the problem file path---and produces standardised output on \texttt{stdout}.
+\Cref{lst:output_protocol} illustrates the output protocol.
+
+\begin{lstlisting}[language={}, caption={Standardised output protocol for all planner containers. Each run produces exactly one \texttt{[RESULT]} line followed by metric lines.}, label={lst:output_protocol}, basicstyle=\small\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
+[RESULT] STATUS: SUCCESS | TIMEOUT | MEMOUT | FAILURE
+[METRIC] PlanCost: <integer | N/A>
+[METRIC] Runtime_wall_s: <float>
+[METRIC] Runtime_internal_s: <float>
+[METRIC] StatesExpanded: <integer | N/A>
+[METRIC] StatesGenerated: <integer | N/A>
+[METRIC] StatesEvaluated: <integer | N/A>
+[METRIC] PeakMemory_KB: <integer | N/A>
+\end{lstlisting}
+
+The Python-side \texttt{planner\_runner} module (\Cref{tab:shared_modules}) parses these lines using string matching and regular expressions, maps the metric keys to the CSV column schema (\Cref{tab:planner_csv_schema}), and converts values to the appropriate numeric types.
+The sentinel value \texttt{N/A} is used for metrics that a planner architecturally cannot report (e.g., state expansion counts for SAT-based Madagascar) and is written as the string \texttt{N/A} in the CSV rather than \texttt{0} to preserve the semantic distinction between ``not applicable'' and ``zero.''
+
+\subsection{Docker Invocation}
+\label{sec:impl:docker:invocation}
+
+The Python orchestrator invokes each planner through a \texttt{docker run} command constructed programmatically.
+\Cref{lst:docker_run} shows the command template.
+
+\begin{lstlisting}[language={}, caption={Docker invocation command template. Resource constraints are injected from the configuration file.}, label={lst:docker_run}, basicstyle=\small\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
+docker run
+  --name run_<planner>_<uuid>
+  --cpus=1.0
+  --memory=8g
+  --memory-swap=8g
+  --oom-kill-disable=false
+  -v <benchmark_dir>:/pddl
+  <docker_image>
+  /pddl/<domain_path> /pddl/<problem_path>
+\end{lstlisting}
+
+Each container is assigned a unique name (planner name concatenated with a UUID fragment) to enable explicit cleanup: if the Python-side safety-net timeout expires (360 + 15~seconds; see \Cref{sec:design:safeguards}), the orchestrator issues a \texttt{docker kill} followed by a \texttt{docker rm} to release the container's resources.
+The benchmark directory is mounted as a read-only volume at \texttt{/pddl}, and domain and problem file paths are expressed relative to this mount point.
+
+\Cref{tab:docker_images} summarises the five Docker images used in the pipeline, their base operating systems, and their key build dependencies.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Docker images used in the pipeline. Each image encapsulates a complete build environment for its respective tool.}
+  \label{tab:docker_images}
+  \small
+  \begin{tabular}{l l l p{5.5cm}}
+    \toprule
+    \textbf{Image} & \textbf{Tool} & \textbf{Base OS} & \textbf{Key Dependencies} \\
+    \midrule
+    \texttt{lama\_planner} & Fast Downward (\gls{lama}) & Ubuntu 22.04 & Git, CMake, G++, Python~3 \\[2pt]
+    \texttt{bfws\_planner} & LAPKT-\gls{bfws}-Preference & Ubuntu 18.04 & Python~2.7, SCons, Boost, GCC multilib, Flex, Bison \\[2pt]
+    \texttt{decstar\_planner} & DecStar & Ubuntu 22.04 & PyPy3, CMake, G++, IBM CPLEX~22.12, Bliss~0.73, Osi-0.108.6, Java~JRE \\[2pt]
+    \texttt{madagascar\_planner} & Madagascar (\texttt{MpC}) & Ubuntu 22.04 & Build-essential, Python~3 \\[2pt]
+    \texttt{val\_validator} & VAL & Ubuntu 20.04 & G++, CMake, Flex, Bison, Git \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+
+%% -----------------------------------------------------------------------
+%%  5.3  PLANNER INTEGRATION
+%% -----------------------------------------------------------------------
 \section{Planner Integration}
 \label{sec:impl:planners}
-% How each planner is integrated into the pipeline
-% Described in the context of integration (command-line interfaces, output parsing, Docker images)
-% NOT abstract background — the reader encounters planners here after understanding the pipeline design
+
+While the rigorous scientific methodology for selecting these specific four planners is detailed in \Cref{sec:setup:planners}, this section describes how they were technically integrated into the pipeline.
+Each planner represents a different search paradigm (introduced in \Cref{sec:bg:search_paradigms}) and poses unique integration challenges.
+For each planner, we document the exact provenance, the build process, the command-line invocation, and the output parsing strategy.
+
 
 \subsection{LAMA (Fast Downward)}
 \label{sec:impl:lama}
-% Heuristic forward search planner
-% Integration specifics: Fast Downward build, command-line flags, output format
 
-\subsection{BFWS}
+\gls{lama}~\cite{RichterWestphal2010} is a heuristic forward-search planner built on the Fast Downward planning system~\cite{Helmert2006}.
+The Docker image clones the official Fast Downward repository\footnote{\url{https://github.com/aibasel/downward.git} (accessed June 2026)} and compiles it from source inside an Ubuntu~22.04 container:
+
+\begin{lstlisting}[language={}, caption={Build and invocation of LAMA inside its Docker container.}, label={lst:lama_build}, basicstyle=\small\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
+# Build (Dockerfile)
+git clone https://github.com/aibasel/downward.git
+cd downward && python3 build.py -j2
+
+# Invocation (planner_exec)
+/opt/downward/fast-downward.py \
+    --overall-time-limit 6m \
+    --alias lama-first \
+    "$DOMAIN_FILE" "$PROBLEM_FILE"
+\end{lstlisting}
+
+The \texttt{--alias lama-first} flag invokes the official \gls{lama}-first configuration registered in the \gls{ipc}.
+This is a deliberate correction from the predecessor thesis~\cite{Elis2025}, which used a manual proxy configuration (\texttt{--search "lazy\_greedy([ff(),~cea()], preferred=[ff(),~cea()])"}) that approximates but does not exactly replicate the \gls{ipc}-registered \gls{lama} configuration.
+The official alias ensures that the planner internally activates the complete landmarks-based heuristic pipeline, including the landmark-cut heuristic and the preferred-operator mechanism.
+
+The \texttt{planner\_exec} wrapper measures wall-clock time using shell-level epoch timestamps, then extracts metrics from Fast Downward's structured output using pattern matching: \texttt{Plan cost:} for the plan cost, \texttt{Total time:} for the internal search time, and \texttt{Expanded/Generated/Evaluated ... state(s)} for state-space exploration statistics.
+Peak memory is extracted from Fast Downward's \texttt{Peak memory:} output line.
+\gls{lama} reports all seven metrics in the schema.
+
+
+\subsection{BFWS (LAPKT-BFWS-Preference)}
 \label{sec:impl:bfws}
-% Width-based search planner
-% Integration specifics: build process, novelty parameters, output parsing
+
+\gls{bfws}~\cite{LipovetzkyGeffner2017} is the width-based search planner that won the Agile Track of the \gls{ipc}~2018.
+Integrating \gls{bfws} presented the most complex engineering challenge due to its deeply legacy dependency chain.
+
+\paragraph{Provenance and build process.}
+The planner was sourced from Team~47's archived \gls{ipc}~2018 submission repository\footnote{\url{https://bitbucket.org/ipc2018-classical/team47.git} (accessed June 2026)}.
+The original submission used a Singularity container defined by a file named \texttt{Singularity\_AGL} (for the Agile track).
+We translated the Singularity \texttt{\%setup} and \texttt{\%post} directives line-by-line into a Docker-equivalent \texttt{Dockerfile}, preserving the exact same package versions and build sequence.
+
+The build process is pinned to Ubuntu~18.04 and involves four sequential compilation steps:
+
+\begin{enumerate}
+  \item \textbf{LAPKT library:} The LAPKT toolkit (from a \texttt{.tar.bz2} archive) is extracted, and its embedded \texttt{libff} component is compiled.
+  \item \textbf{BFWS planner:} Both the FF-version and FD-version of \gls{bfws} are compiled. The FD-version (used at runtime) is built via \texttt{python2.7 ./build.py}.
+  \item \textbf{Fast Downward 2018-2:} A specific vintage of Fast Downward (2018-2, also from a \texttt{.tar.bz2} archive) is compiled in 32-bit release mode (\texttt{release32}).
+  \item \textbf{h2-preprocessor:} The $h^2$ mutex preprocessor is compiled via CMake.
+\end{enumerate}
+
+A critical compatibility step is the Python version pinning: \texttt{ln -sf /usr/bin/python2.7 /usr/bin/python} ensures that all build scripts and the runtime invocation use Python~2.7, as required by the 2018-era codebase.
+
+\paragraph{Invocation and metrics.}
+The planner is invoked via the authors' original entry-point script:
+\begin{lstlisting}[language={}, basicstyle=\small\ttfamily, numbers=none, frame=none, xleftmargin=0.5cm, breaklines=true]
+timeout 360s python /planner/BFWS/fd-version/bfws.py \
+    "$DOMAIN_FILE" "$PROBLEM_FILE" "$PLAN_OUT"
+\end{lstlisting}
+
+Unlike the Fast Downward-based planners, \gls{bfws} uses an external \texttt{timeout} command for time limiting (exit code~124 indicates timeout).
+The output parser extracts plan cost from either \texttt{Plan cost:} or \texttt{Plan found with cost:} patterns, and search time from the \texttt{Total time:} or \texttt{search completed in} patterns.
+Node counts are extracted from separate \texttt{Nodes expanded during search:} and \texttt{Nodes generated during search:} patterns.
+\gls{bfws} does not report states evaluated or peak memory; these two metrics are recorded as \texttt{N/A}.
+
 
 \subsection{DecStar}
 \label{sec:impl:decstar}
-% Decoupled/factored search planner
-% Integration specifics: factoring configuration, Docker setup
+
+DecStar~\cite{GnadHoffmann2018} is a decoupled-search planner that competed in the Agile Track of the \gls{ipc}~2023.
+Its integration required the most complex Docker image due to the proprietary CPLEX dependency.
+
+\paragraph{Provenance and build process.}
+The planner was cloned from the \gls{ipc}~2023 Classical Track organisation's repository\footnote{\url{https://github.com/ipc2023-classical/planner15.git}, branch \texttt{latest} (accessed June 2026)}, tracking the \texttt{latest} branch for post-competition corrections as prescribed by the \gls{ipc} rules.
+The Docker build process replicates the official \texttt{Apptainer.decstar\_agl} definition and involves four stages:
+
+\begin{enumerate}
+  \item \textbf{CPLEX installation:} The IBM ILOG CPLEX Studio~22.12 academic installer (\texttt{cplex\_studio2212.linux\_x86\_64.bin}) is injected into the container and installed silently. CPLEX provides the linear programming solver required by DecStar's factoring component.
+  \item \textbf{Bliss~0.73:} The graph automorphism library is compiled from DecStar's bundled \texttt{third-party/bliss-0.73/} sources.
+  \item \textbf{Osi-0.108.6:} The Open Solver Interface is compiled and linked against the CPLEX headers, enabling DecStar's LP-based factoring algorithm.
+  \item \textbf{DecStar core:} The main planner (a modified Fast Downward fork) is compiled in 64-bit release mode via \texttt{pypy3 build.py release64}.
+\end{enumerate}
+
+\paragraph{Invocation and metrics.}
+DecStar is invoked through its Fast Downward wrapper using PyPy3:
+\begin{lstlisting}[language={}, basicstyle=\small\ttfamily, numbers=none, frame=none, xleftmargin=0.5cm, breaklines=true]
+pypy3 /planner/fast-downward.py \
+    --plan-file sas_plan --build release64 \
+    --alias "seq-agl-decstar" \
+    --overall-memory-limit 8000M --overall-time-limit 6m \
+    "$DOMAIN_FILE" "$PROBLEM_FILE"
+\end{lstlisting}
+
+The \texttt{--alias "seq-agl-decstar"} activates the planner's cascading portfolio strategy: it first attempts the interleaving fork decomposition (\texttt{ifork}), then the standard fork decomposition, then the LP-based general factoring, and finally falls back to classical greedy best-first search if no useful factoring is found~\cite{GnadHoffmann2018}.
+Because DecStar is built on Fast Downward, its output follows the same format as \gls{lama}, and the same parsing logic extracts all seven metrics.
+
 
 \subsection{Madagascar}
 \label{sec:impl:madagascar}
-% SAT-based planner
-% Integration specifics: SAT encoding parameters, bounded horizon, output format
 
+Madagascar~\cite{Rintanen2012} is a \gls{sat}-based planner that reduces planning to a sequence of Boolean satisfiability problems.
+
+\paragraph{Provenance.}
+Unlike the other three planners, Madagascar is integrated via a pre-compiled Linux binary (\texttt{MpC}) rather than built from source.
+The binary was sourced directly from the predecessor thesis~\cite{Elis2025}, which in turn obtained it from Jussi Rintanen's distribution.
+The Docker image copies this binary into an Ubuntu~22.04 container at \texttt{/usr/local/bin/madagascar} and requires no compilation step, resulting in the simplest Dockerfile in the pipeline.
+
+\paragraph{Invocation and metrics.}
+Madagascar is invoked directly as a command-line binary with an external timeout:
+\begin{lstlisting}[language={}, basicstyle=\small\ttfamily, numbers=none, frame=none, xleftmargin=0.5cm, breaklines=true]
+timeout 360s /usr/local/bin/madagascar \
+    "$DOMAIN_FILE" "$PROBLEM_FILE"
+\end{lstlisting}
+
+The output parser checks for the \texttt{PLAN FOUND} marker, extracts the plan cost from the \texttt{N actions in the plan.} line, and reads the internal runtime from the \texttt{total time} output.
+Because Madagascar operates on SAT formulas rather than explicit state-space search, it does not produce state expansion, generation, or evaluation counts, nor does it report peak memory; these four metrics are recorded as \texttt{N/A}.
+
+
+%% -----------------------------------------------------------------------
+%%  5.4  VALIDATION TOOL INTEGRATION
+%% -----------------------------------------------------------------------
+\section{Validation Tool Integration}
+\label{sec:impl:val}
+
+The V2 stage of the validation pipeline (\Cref{sec:design:v2_val}) requires a syntactic validator for \gls{pddl} files.
+We use the VAL tool~\cite{HoweyLongFox2004}, the official validator of the \gls{ipc}, containerised in its own Docker image.
+
+The VAL Docker image is built on Ubuntu~20.04 and clones the official VAL repository\footnote{\url{https://github.com/KCL-Planning/VAL.git} (accessed June 2026)}, compiles it via CMake, and sets the \texttt{Validate} binary as its entry point.
+The Python-side integration (\texttt{v2\_syntactic\_validation.py}) writes the candidate \gls{pddl} domain to a temporary file in the same directory as the problem instance, mounts that directory into the VAL container, and invokes:
+
+\begin{lstlisting}[language={}, basicstyle=\small\ttfamily, numbers=none, frame=none, xleftmargin=0.5cm, breaklines=true]
+docker run --rm -v <mount_dir>:/pddl val_validator \
+    /pddl/<domain_file> /pddl/<problem_file>
+\end{lstlisting}
+
+A zero exit code indicates syntactic validity; any non-zero exit code causes the domain to be rejected at V2.
+The full \texttt{stderr} output from VAL is captured and logged for diagnostic purposes.
+The temporary domain file is deleted in a \texttt{finally} block to avoid polluting the benchmark directory.
+On Windows development machines (used for testing), the volume mount path is automatically converted from Windows format (e.g., \texttt{D:\textbackslash path}) to Docker-compatible format (e.g., \texttt{/d/path}).
+
+\subsection{Validation Pipeline Implementation}
+\label{sec:impl:val:pipeline}
+
+The four validation stages described in \Cref{sec:design:validation} are implemented as independent Python modules in \texttt{validation\_and\_evaluation/scripts/validation/}, each exposing a single entry-point function:
+
+\begin{description}[style=nextline, leftmargin=1.0cm]
+  \item[\textbf{V1} (\texttt{v1\_extraction.py}):] Implements the \gls{pddl} extraction algorithm. The function \texttt{extract\_pddl\_from\_response()} first unescapes JSON-encoded strings, strips markdown code fences via regex, locates the \texttt{(define} keyword, and then performs parenthesis balancing to extract the complete S-expression. Returns an empty string on failure.
+
+  \item[\textbf{V2} (\texttt{v2\_syntactic\_validation.py}):] Implements the VAL invocation described above. The function \texttt{validate\_with\_val()} accepts a \gls{pddl} string and a problem file path, returning a \texttt{ValResult} dataclass with the validity verdict, exit code, and captured output.
+
+  \item[\textbf{V3} (\texttt{v3\_identity\_check.py}):] Implements normalised string comparison. The function \texttt{is\_identical\_to\_original()} normalises both domains by stripping comments, collapsing whitespace, and converting to lowercase, then performs character-level comparison. Returns \texttt{True} if the domains are identical (a rejection condition).
+
+  \item[\textbf{V4} (\texttt{v4\_semantic\_equivalence.py}):] Implements the set-based semantic comparison described in \Cref{sec:design:v4_semantic}. The module contains a custom \gls{pddl} parser that uses parenthesis-balanced extraction (not fragile regular expressions) to decompose domains into structured representations. Each component is compared as an unordered set; any set-level difference constitutes a semantic change. The parser handles both parenthesised and flat-style type declarations, flattens \texttt{(and ...)} conjunctions, and separates add and delete effects. The function \texttt{check\_semantic\_equivalence()} returns a \texttt{SemanticResult} dataclass containing the equivalence verdict, 18 binary feature flags (9~components $\times$ 2~flags each), and a detailed JSON-serializable diff report.
+\end{description}
+
+The stage-specific validation orchestrators (e.g., \texttt{run\_stage1\_validation.py}) iterate over all generated domains, invoke the four modules sequentially, and persist the results to both the \gls{llm} generation CSV and the validation metrics CSV.
+If a domain fails any stage, subsequent stages are skipped, and the failure reason is recorded for diagnostic analysis.
+
+
+%% -----------------------------------------------------------------------
+%%  5.5  LLM INTEGRATION
+%% -----------------------------------------------------------------------
 \section{LLM Integration}
 \label{sec:impl:llm_integration}
-% LiteLLM API abstraction layer
-% How models are called uniformly across providers (OpenAI, Anthropic, Google, Meta)
-% Prompt injection, response parsing, error handling
+
+The pipeline integrates four \glspl{llm} from three different providers, each accessed through its native SDK.
+Rather than using a third-party abstraction library (e.g., LiteLLM), we implemented a custom provider abstraction layer that directly wraps each provider's official Python SDK.
+This design decision was motivated by the need for precise control over error classification, token counting, and response validation---aspects that third-party abstractions may handle inconsistently across providers.
+
+\subsection{Provider Abstraction Layer}
+\label{sec:impl:llm:providers}
+
+The provider layer is implemented as a class hierarchy rooted in an abstract base class \texttt{LLMProvider}, with one concrete subclass per provider.
+Three concrete subclasses---\texttt{OpenAIProvider}, \texttt{AnthropicProvider}, and \texttt{GeminiProvider}---each wrap one provider's SDK.
+A fourth subclass, \texttt{DeepSeekProvider}, inherits from \texttt{OpenAIProvider} rather than implementing a separate client, because DeepSeek exposes an OpenAI-compatible API (the only differences are the base URL and the API key source).
+\Cref{tab:llm_mapping} maps each \gls{llm} to its provider class and API endpoint.
+
+Each provider implements a single \texttt{generate(prompt)} method that returns a four-element tuple: the response text, the API call duration in seconds, the input token count, and the output token count.
+The uniform return type enables the orchestrator to treat all \glspl{llm} identically regardless of the underlying provider.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Mapping of \glspl{llm} to provider implementations and API endpoints.}
+  \label{tab:llm_mapping}
+  \small
+  \begin{tabular}{l l l l}
+    \toprule
+    \textbf{LLM} & \textbf{Provider Class} & \textbf{SDK} & \textbf{API Endpoint} \\
+    \midrule
+    GPT-5.4 & \texttt{OpenAIProvider} & \texttt{openai} & OpenAI default \\
+    DeepSeek-R1 & \texttt{DeepSeekProvider} & \texttt{openai} & \texttt{api.deepseek.com/v1} \\
+    Claude Opus~4.6 & \texttt{AnthropicProvider} & \texttt{anthropic} & Anthropic default \\
+    Gemini~3.1~Pro & \texttt{GeminiProvider} & \texttt{google-generativeai} & Google default \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\texttt{DeepSeekProvider} inherits from \texttt{OpenAIProvider} rather than implementing a separate client, because DeepSeek's API is fully compatible with the OpenAI chat completions format.
+The only difference is the base URL (\texttt{https://api.deepseek.com/v1}) and the API key source (\texttt{DEEPSEEK\_API\_KEY}).
+
+\subsection{Error Handling and Classification}
+\label{sec:impl:llm:errors}
+
+Each provider's \texttt{generate()} method catches provider-specific exceptions and re-raises them as a unified error hierarchy:
+
+\begin{itemize}
+  \item \textbf{\texttt{AuthError}:} Invalid or missing API key. Triggers immediate pipeline halt (no retry).
+  \item \textbf{\texttt{RateLimitError}:} Provider rate limit exceeded (HTTP~429). Triggers exponential backoff retry (up to 5~attempts).
+  \item \textbf{\texttt{ServerError}:} Provider-side failure (HTTP~5xx). Triggers fixed-interval retry (up to 3~attempts, 30-second wait).
+  \item \textbf{\texttt{TokenLimitError}:} Response exceeded the maximum token limit. In Stage~3, the error is logged and fed back to the \gls{llm} in the next iteration's history buffer.
+  \item \textbf{\texttt{NetworkTimeoutError}:} Connection timeout. Triggers retry (up to 2~attempts).
+  \item \textbf{\texttt{EmptyResponseError}:} The \gls{llm} returned an empty or incomplete response (e.g., the finish reason was not \texttt{stop}/\texttt{end\_turn}). No retry.
+\end{itemize}
+
+The retry logic is implemented using the \texttt{tenacity} library with configurable parameters from the experiment configuration file.
+The retry policy is specified per error type in the \texttt{retry\_policy} section of the YAML configuration (\Cref{sec:impl:codebase:config}).
+
+\subsection{Hyperparameter Control}
+\label{sec:impl:llm:hyperparams}
+
+All \gls{llm} calls use a temperature of $T{=}0.0$ for deterministic decoding.
+For deep-reasoning models (GPT-5.4 and DeepSeek-R1), the temperature and top-$p$ parameters are omitted from the API call because these models' APIs do not support explicit temperature control; instead, they use an internal reasoning process.
+The maximum completion token limit is set to 8{,}192 tokens, sufficient for the largest \gls{pddl} domains in the benchmark set.
+Each API call is stateless: no conversation history is maintained between calls, and each prompt is self-contained.
+These hyperparameters are documented in the \texttt{llm\_hyperparameters} section of the experiment configuration file.
+
+\subsection{Response Validation}
+\label{sec:impl:llm:validation}
+
+Before returning the response text, each provider verifies the API response's completion status.
+For OpenAI-compatible providers, the \texttt{finish\_reason} must be \texttt{stop}; for Anthropic, the \texttt{stop\_reason} must be \texttt{end\_turn}; for Gemini, the \texttt{finish\_reason} must be \texttt{STOP} (enumeration value~1).
+If the completion was truncated (e.g., due to the token limit), a \texttt{TokenLimitError} is raised for Gemini, and an \texttt{EmptyResponseError} is raised for other providers, ensuring that no incomplete \gls{pddl} domain is passed to the validation pipeline.
+
+\subsection{API Key Management}
+\label{sec:impl:llm:keys}
+
+API keys are stored in a \texttt{.env} file at the project root and loaded at runtime via the \texttt{python-dotenv} library.
+Each provider reads its key from a dedicated environment variable (\texttt{OPENAI\_API\_KEY}, \texttt{DEEPSEEK\_API\_KEY}, \texttt{ANTHROPIC\_API\_KEY}, \texttt{GEMINI\_API\_KEY}).
+The \texttt{.env} file is excluded from version control via \texttt{.gitignore} to prevent accidental exposure.
+If a required key is missing, the corresponding provider raises an \texttt{AuthError} during initialisation, preventing the pipeline from starting with incomplete credentials.
