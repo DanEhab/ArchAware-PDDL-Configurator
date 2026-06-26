@@ -1,5 +1,5 @@
 ﻿% !TeX spellcheck = en-US
-% LTeX: language=en-US
+% LTeX: language=en-GB
 % !TeX encoding = utf8
 % !TeX TXS-program:compile = txs:///lualatex/[--shell-escape]
 % !BIB program = biber
@@ -879,7 +879,7 @@
 % Same style as table of contents
 \section*{Abstract}
 
-\gls{ai} planning generates action sequences that solve complex real-world problems, from robotics to cloud orchestration. Domain-independent planners rely on domain models---typically specified in the \gls{pddl}---to declaratively describe the state space, actions, and goal conditions of a planning task, yet the internal search algorithms of different planners process these models in fundamentally different ways. Prior work has established that the purely textual arrangement of a domain model, without any change in its semantics, can drastically alter planner efficiency. Despite this, existing configuration approaches apply planner-agnostic heuristics that yield inconsistent results: a reordering that accelerates one planner may degrade another.
+\gls{ai} planning generates action sequences that solve complex real-world problems, from robotics to cloud orchestration. Domain-independent planners rely on domain models---typically specified in the \gls{pddl}---to declaratively describe the state space, actions, and goal conditions of a planning task, yet the internal architectures of different planners process these models in fundamentally different ways. Prior work has established that the purely textual arrangement of a domain model, without any change in its semantics, can drastically alter planner efficiency. Despite this, existing configuration approaches apply planner-agnostic heuristics that yield inconsistent results: a reordering that accelerates one planner may degrade another.
 
 We investigate whether \glspl{llm} can serve as architecture-aware domain model configurators that restructure PDDL domain descriptions to improve the efficiency of a specific target planner. We propose a multi-stage experimental pipeline comprising four configuration stages: a baseline of original domains, a general-purpose LLM prompt, an architecture-aware prompt that encodes planner-specific structural preferences derived from component-level analysis of each planner's internal architecture, and an LLM-Modulo feedback loop that iteratively refines configurations using quantitative execution telemetry from the target planner. A four-level validation pipeline ensures semantic equivalence throughout.
 

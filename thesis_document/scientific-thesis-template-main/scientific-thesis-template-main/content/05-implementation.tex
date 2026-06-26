@@ -1,5 +1,5 @@
 % !TeX root = ../main-english.tex
-% LTeX: language=en-US
+% LTeX: language=en-GB
 
 \chapter{Implementation}\label{ch:implementation}
 
@@ -447,7 +447,7 @@ Because Madagascar operates on SAT formulas rather than explicit state-space sea
 \label{sec:impl:val}
 
 The V2 stage of the validation pipeline (\Cref{sec:design:v2_val}) requires a syntactic validator for \gls{pddl} files.
-We use the VAL tool~\cite{HoweyLongFox2004}, the official validator of the \gls{ipc}, containerised in its own Docker image.
+We use the VAL tool~\cite{HoweyLongFox2004}, the standard plan validator used in the \gls{ipc}, containerised in its own Docker image.
 
 The VAL Docker image is built on Ubuntu~20.04 and clones the official VAL repository\footnote{\url{https://github.com/KCL-Planning/VAL.git} (accessed June 2026)}, compiles it via CMake, and sets the \texttt{Validate} binary as its entry point.
 The Python-side integration (\texttt{v2\_syntactic\_validation.py}) writes the candidate \gls{pddl} domain to a temporary file in the same directory as the problem instance, mounts that directory into the VAL container, and invokes:

@@ -1,5 +1,5 @@
 % !TeX root = ../main-english.tex
-% LTeX: language=en-US
+% LTeX: language=en-GB
 
 \chapter{Design of the Experimental Pipeline}\label{ch:design}
 \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
@@ -807,7 +807,7 @@ In Stage~3, the extraction additionally handles the two-sentence rationale that 
 \subsection{V2: Syntactic Validation}
 \label{sec:design:v2_val}
 
-The extracted \gls{pddl} domain is validated for syntactic correctness using the VAL tool~\cite{HoweyLongFox2004}, the official validator of the \gls{ipc}.
+The extracted \gls{pddl} domain is validated for syntactic correctness using the VAL tool~\cite{HoweyLongFox2004}, the standard plan validator used in the \gls{ipc}.
 VAL checks that the domain is well-formed according to the \gls{pddl} grammar: all predicates referenced in action preconditions and effects are declared, type hierarchies are consistent, and action schemas are syntactically correct.
 The domain is validated against the first problem instance of the corresponding benchmark to ensure type and object compatibility.
 If VAL reports any errors, the domain is marked as \texttt{REJECTED} at V2, and the full VAL error string is logged.
