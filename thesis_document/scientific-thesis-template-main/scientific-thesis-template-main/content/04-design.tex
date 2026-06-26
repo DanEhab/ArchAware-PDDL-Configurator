@@ -422,7 +422,7 @@ The \emph{Architecture Context} (Section~3) describes the internal processing pi
 The \emph{Architecture-Aware Reordering Rules} (Section~4) translate this architectural understanding into concrete, actionable instructions.
 For example, a prompt targeting a heuristic forward-search planner instructs the \gls{llm} to place goal-relevant predicates and actions earlier in the domain file, as these predicates are evaluated first during heuristic computation and influence tie-breaking in the search queue.
 A prompt targeting a SAT-based planner instead instructs the \gls{llm} to group mutually exclusive predicates adjacently, as the SAT encoding assigns consecutive variable indices to adjacent predicates, which can improve unit-propagation efficiency in the solver.
-The exact contents of all four architecture-aware prompts, and the detailed methodology used to derive them from component-level analysis, are fully detailed in Chapter~6 (Selection Methodology of Architecture-Aware Prompts).
+The exact contents of all four architecture-aware prompts, and the detailed methodology used to derive them from component-level analysis, are fully detailed in \Cref{sec:setup:arch_aware_prompt}.
 
 \subsection{Improvement Detection}
 \label{sec:design:stage2:improvement}
