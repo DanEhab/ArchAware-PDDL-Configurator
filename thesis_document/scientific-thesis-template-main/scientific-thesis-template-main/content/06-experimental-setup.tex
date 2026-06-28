@@ -1,7 +1,7 @@
 \chapter{Experimental Setup}\label{ch:experimental_setup}
 % Defines the specific ingredients, rules, and measurement instruments of the experiment
 
-This chapter specifies the concrete experimental parameters used to evaluate the pipeline designed in \Cref{ch:design}.
+The present chapter specifies the concrete experimental parameters used to evaluate the pipeline designed in \Cref{ch:design}.
 For each parameter---benchmark domains, planners, \glspl{llm}, prompt strategies, hardware, and hyperparameters---the selection rationale is documented together with the scientific methodology that justifies it.
 All parameters are centralised in the configuration file \texttt{experiment\_config.yaml} to ensure full reproducibility.
 
@@ -61,7 +61,7 @@ The four planners used in this study were selected from an initial pool of 35 cl
   \end{tabular}
 \end{table}
 
-This selection guarantees absolute codebase diversity: \gls{lama}-first uses the Fast Downward framework, Madagascar uses its own SAT-based infrastructure, \gls{bfws}-Preference uses the LAPKT toolkit, and DecStar extends Fast Downward with a fundamentally different search strategy (decoupled state-space search).
+Overall, this selection guarantees absolute codebase diversity: \gls{lama}-first uses the Fast Downward framework, Madagascar uses its own SAT-based infrastructure, \gls{bfws}-Preference uses the LAPKT toolkit, and DecStar extends Fast Downward with a fundamentally different search strategy (decoupled state-space search).
 
 
 %% -----------------------------------------------------------------------
@@ -237,18 +237,18 @@ The prior studies systematically evaluated five distinct prompting strategies ac
 (v)~$\Pi_\text{CoT}$ (chain-of-thought): rules plus a multi-turn analysis-then-execution protocol.
 
 The analysis revealed a counter-intuitive but significant finding: the simplest strategy, $\Pi_\text{ZS-S}$, decisively outperformed the more complex, heavily engineered prompts.
-Specifically, $\Pi_\text{ZS-S}$ achieved:
+Of the 140 configurations generated per strategy, $\Pi_\text{ZS-S}$ produced:
 \begin{itemize}
   \item A syntactic validity rate of 79.29\% (domains that parsed correctly without errors).
-  \item A semantic equivalence validity rate of 55.00\% (domains that perfectly preserved the original semantics).
+  \item A \emph{full validity rate} of 55.00\%---domains that were \emph{both} syntactically valid and semantically equivalent---the highest full validity rate among all five strategies.
 \end{itemize}
 
-\noindent In contrast, providing the \gls{llm} with established domain-engineering rules ($\Pi_\text{ZS-L}$) decreased the full validity rate to 45.00\%, and providing annotated examples ($\Pi_\text{FS-S}$, $\Pi_\text{FS-L}$) resulted in full validity rates of only 46.43\% and 50.71\%, respectively.
+\noindent Measured on this same full-validity metric, the more heavily engineered strategies all scored lower: providing the \gls{llm} with established domain-engineering rules ($\Pi_\text{ZS-L}$) reached only 45.00\%, while providing one or two annotated examples ($\Pi_\text{FS-S}$, $\Pi_\text{FS-L}$) reached 46.43\% and 50.71\%, respectively.
 The prior work concludes that if an \gls{llm} possesses the inherent capacity to understand \gls{pddl} semantics, minimal guidance prevents overfitting and reduces the likelihood of semantic drift.
 
 \subsection{Adopted Strategy}
 
-Given these empirical results, this study adopts the $\Pi_\text{ZS-S}$ (zero-shot-short) strategy as the Stage~1 baseline prompt, reproduced verbatim in Listing~\ref{lst:general_prompt}.
+Given these empirical results, this study adopts the $\Pi_\text{ZS-S}$ (zero-shot-short) strategy as the Stage~1 baseline prompt, reproduced verbatim in \Cref{lst:general_prompt}.
 This choice ensures methodological continuity with the foundational studies and provides a strict, standardised benchmark against which the architecture-aware prompts (Stage~2) and feedback loop (Stage~3) can be measured.
 The prompt encodes three constraints: (i)~strict semantic preservation; (ii)~raw output without explanatory text; and (iii)~general guidance referencing ``best practices from planning literature'' without specifying any particular planner.
 
@@ -267,7 +267,7 @@ The key finding from \citeauthor{Georgievski2025}~\cite{Georgievski2025} is that
 Their experiments show that generic structural optimisation is insufficient---what helps one architecture can actively hurt another.
 Their discussion explicitly calls for ``planner-specific feedback'' and notes that ``without access to planner internals, \glspl{llm} can only apply general domain configuration principles that happen to align with some planner architectures but conflict with others.''
 
-This observation motivates a fundamental shift from planner-agnostic prompting to architecture-aware prompting.
+These observations motivate a fundamental shift from planner-agnostic prompting to architecture-aware prompting.
 Rather than relying on six generic domain-engineering rules derived from the literature~\cite{Vallati2021, Franco2019, FoxLong2003, Helmert2009, McCluskey2017}, the architecture-aware prompts encode rules that are traceable to specific internal components of each target planner.
 
 \subsection{Prompt Template Extension}
@@ -442,7 +442,7 @@ For providers that do not offer immutable snapshot endpoints (e.g., DeepSeek), r
 
 \subsection{Configuration File Overview}
 
-Listing~\ref{lst:config_yaml} shows the key sections of the centralised configuration file.
+\Cref{lst:config_yaml} shows the key sections of the centralised configuration file.
 
 \begin{lstlisting}[language={}, caption={Key sections of \texttt{experiment\_config.yaml}. All experimental parameters are defined in this single file.}, label={lst:config_yaml}, basicstyle=\small\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
 random_seed: 42

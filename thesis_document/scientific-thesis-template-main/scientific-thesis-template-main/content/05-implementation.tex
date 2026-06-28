@@ -237,7 +237,7 @@ and (vi)~\emph{resilience}---\texttt{tenacity}~($\geq$\,9.0) for retry logic wit
 \label{sec:impl:docker}
 
 A central engineering challenge of this project is that the four selected planners span different compiler toolchains, library versions, and runtime environments---some of which are mutually incompatible.
-\gls{bfws}, for example, requires Python~2.7, GCC with 32-bit multilib support, and Boost libraries pinned to Ubuntu~18.04, while DecStar requires PyPy3, CPLEX~22.12, and a 64-bit build on Ubuntu~22.04.
+\gls{bfws}, for example, requires Python~2.7, GCC with 32-bit multilib support, and Boost libraries pinned to Ubuntu~18.04, while DecStar requires PyPy3, CPLEX~22.1.2, and a 64-bit build on Ubuntu~22.04.
 Installing all four planners natively on a single host would be infeasible without introducing version conflicts.
 
 We address this challenge by containerising each planner in an isolated Docker~\cite{Merkel2014} image.
@@ -307,7 +307,7 @@ The benchmark directory is mounted as a read-only volume at \texttt{/pddl}, and 
     \midrule
     \texttt{lama\_planner} & Fast Downward (\gls{lama}) & Ubuntu 22.04 & Git, CMake, G++, Python~3 \\[2pt]
     \texttt{bfws\_planner} & LAPKT-\gls{bfws}-Preference & Ubuntu 18.04 & Python~2.7, SCons, Boost, GCC multilib, Flex, Bison \\[2pt]
-    \texttt{decstar\_planner} & DecStar & Ubuntu 22.04 & PyPy3, CMake, G++, IBM CPLEX~22.12, Bliss~0.73, Osi-0.108.6, Java~JRE \\[2pt]
+    \texttt{decstar\_planner} & DecStar & Ubuntu 22.04 & PyPy3, CMake, G++, IBM CPLEX~22.1.2, Bliss~0.73, Osi-0.108.6, Java~JRE \\[2pt]
     \texttt{madagascar\_planner} & Madagascar (\texttt{MpC}) & Ubuntu 22.04 & Build-essential, Python~3 \\[2pt]
     \texttt{val\_validator} & VAL & Ubuntu 20.04 & G++, CMake, Flex, Bison, Git \\
     \bottomrule
@@ -391,7 +391,7 @@ Node counts are extracted from separate \texttt{Nodes expanded during search:} a
 \subsection{DecStar}
 \label{sec:impl:decstar}
 
-DecStar~\cite{GnadHoffmann2018} is a decoupled-search planner that competed in the Agile Track of the \gls{ipc}~2023.
+DecStar~\cite{GnadHoffmann2018} is a decoupled-search planner that won the Agile Track of the \gls{ipc}~2023.
 Its integration required the most complex Docker image due to the proprietary CPLEX dependency.
 
 \paragraph{Provenance and build process.}
@@ -399,7 +399,7 @@ The planner was cloned from the \gls{ipc}~2023 Classical Track organisation's re
 The Docker build process replicates the official \texttt{Apptainer.decstar\_agl} definition and involves four stages:
 
 \begin{enumerate}
-  \item \textbf{CPLEX installation:} The IBM ILOG CPLEX Studio~22.12 academic installer (\texttt{cplex\_studio2212.linux\_x86\_64.bin}) is injected into the container and installed silently. CPLEX provides the linear programming solver required by DecStar's factoring component.
+  \item \textbf{CPLEX installation:} The IBM ILOG CPLEX Studio~22.1.2 academic installer (\texttt{cplex\_studio2212.linux\_x86\_64.bin}) is injected into the container and installed silently. CPLEX provides the linear programming solver required by DecStar's factoring component.
   \item \textbf{Bliss~0.73:} The graph automorphism library is compiled from DecStar's bundled \texttt{third-party/bliss-0.73/} sources.
   \item \textbf{Osi-0.108.6:} The Open Solver Interface is compiled and linked against the CPLEX headers, enabling DecStar's LP-based factoring algorithm.
   \item \textbf{DecStar core:} The main planner (a modified Fast Downward fork) is compiled in 64-bit release mode via \texttt{pypy3 build.py release64}.
