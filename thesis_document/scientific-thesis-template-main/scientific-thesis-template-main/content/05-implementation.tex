@@ -474,7 +474,7 @@ The four validation stages described in \Cref{sec:design:validation} are impleme
 
   \item[\textbf{V3} (\texttt{v3\_identity\_check.py}):] Implements normalised string comparison. The function \texttt{is\_identical\_to\_original()} normalises both domains by stripping comments, collapsing whitespace, and converting to lowercase, then performs character-level comparison. Returns \texttt{True} if the domains are identical (a rejection condition).
 
-  \item[\textbf{V4} (\texttt{v4\_semantic\_equivalence.py}):] Implements the set-based semantic comparison described in \Cref{sec:design:v4_semantic}. The module contains a custom \gls{pddl} parser that uses parenthesis-balanced extraction (not fragile regular expressions) to decompose domains into structured representations. Each component is compared as an unordered set; any set-level difference constitutes a semantic change. The parser handles both parenthesised and flat-style type declarations, flattens \texttt{(and ...)} conjunctions, and separates add and delete effects. The function \texttt{check\_semantic\_equivalence()} returns a \texttt{SemanticResult} dataclass containing the equivalence verdict, 18 binary feature flags (9~components $\times$ 2~flags each), and a detailed JSON-serializable diff report.
+  \item[\textbf{V4} (\texttt{v4\_semantic\_equivalence.py}):] Implements the set-based semantic comparison described in \Cref{sec:design:v4_semantic}. The module contains a custom \gls{pddl} parser that uses parenthesis-balanced extraction (not fragile regular expressions) to decompose domains into structured representations. Each component is compared as an unordered set; any set-level difference constitutes a semantic change. The parser handles both parenthesised and flat-style type declarations, flattens \texttt{(and ...)} conjunctions, and separates add and delete effects. The function \texttt{check\_semantic\_equivalence()} returns a \texttt{SemanticResult} dataclass containing the equivalence verdict, 18 binary feature flags (9~components $\times$ 2~flags each), and a detailed JSON-serialisable diff report.
 \end{description}
 
 The stage-specific validation orchestrators (e.g., \texttt{run\_stage1\_validation.py}) iterate over all generated domains, invoke the four modules sequentially, and persist the results to both the \gls{llm} generation CSV and the validation metrics CSV.
@@ -487,7 +487,7 @@ If a domain fails any stage, subsequent stages are skipped, and the failure reas
 \section{LLM Integration}
 \label{sec:impl:llm_integration}
 
-The pipeline integrates four \glspl{llm} from three different providers, each accessed through its native SDK.
+The pipeline integrates four \glspl{llm} spanning four providers---OpenAI, DeepSeek, Anthropic, and Google---accessed through three official Python SDKs, since DeepSeek is reached through the OpenAI SDK via its OpenAI-compatible API.
 Rather than using a third-party abstraction library (e.g., LiteLLM), we implemented a custom provider abstraction layer that directly wraps each provider's official Python SDK.
 This design decision was motivated by the need for precise control over error classification, token counting, and response validation---aspects that third-party abstractions may handle inconsistently across providers.
 
@@ -496,7 +496,7 @@ This design decision was motivated by the need for precise control over error cl
 
 The provider layer is implemented as a class hierarchy rooted in an abstract base class \texttt{LLMProvider}, with one concrete subclass per provider.
 Three concrete subclasses---\texttt{OpenAIProvider}, \texttt{AnthropicProvider}, and \texttt{GeminiProvider}---each wrap one provider's SDK.
-A fourth subclass, \texttt{DeepSeekProvider}, inherits from \texttt{OpenAIProvider} rather than implementing a separate client, because DeepSeek exposes an OpenAI-compatible API (the only differences are the base URL and the API key source).
+A fourth subclass, \texttt{DeepSeekProvider}, inherits from \texttt{OpenAIProvider} rather than implementing a separate client, because DeepSeek's API is fully compatible with the OpenAI chat-completions format; only the base URL (\texttt{https://api.deepseek.com/v1}) and the API key source (\texttt{DEEPSEEK\_API\_KEY}) differ.
 \Cref{tab:llm_mapping} maps each \gls{llm} to its provider class and API endpoint.
 
 Each provider implements a single \texttt{generate(prompt)} method that returns a four-element tuple: the response text, the API call duration in seconds, the input token count, and the output token count.
@@ -518,9 +518,6 @@ The uniform return type enables the orchestrator to treat all \glspl{llm} identi
     \bottomrule
   \end{tabular}
 \end{table}
-
-\texttt{DeepSeekProvider} inherits from \texttt{OpenAIProvider} rather than implementing a separate client, because DeepSeek's API is fully compatible with the OpenAI chat completions format.
-The only difference is the base URL (\texttt{https://api.deepseek.com/v1}) and the API key source (\texttt{DEEPSEEK\_API\_KEY}).
 
 \subsection{Error Handling and Classification}
 \label{sec:impl:llm:errors}
