@@ -157,7 +157,7 @@ The four stages share a common infrastructure layer located in \texttt{experimen
 \label{sec:impl:codebase:infra}
 
 \Cref{tab:shared_modules} lists the shared infrastructure modules and their responsibilities.
-These modules implement the cross-cutting concerns described in \Cref{sec:design:safeguards}: thread-safe data persistence, checkpoint-resume logic, and structured error handling.
+These modules implement the cross-cutting concerns described in \Cref{sec:design:safeguards}: thread-safe data persistence, checkpoint-resume logic, structured error handling, periodic progress heartbeating, and terminal-output capture (mirrored to timestamped log files).
 
 \begin{table}[!htbp]
   \centering

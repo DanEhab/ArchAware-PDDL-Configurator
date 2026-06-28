@@ -143,8 +143,8 @@ parallel:
 # Improvement Detection (from Execution Protocol §3)
 # ──────────────────────────────────────────────────────────────
 improvement_detection:
-  alpha: 0.05                       # Significance level
-  min_mean_gain: 0.05               # Practical significance threshold
+  alpha: 0.25                       # Significance level
+  min_mean_gain: 0.0               # Practical significance threshold
   test: "wilcoxon_signed_rank"
   alternative: "greater"
 

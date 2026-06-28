@@ -2,9 +2,8 @@
 % LTeX: language=en-GB
 
 \chapter{Design of the Experimental Pipeline}\label{ch:design}
-\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 
-This chapter presents the design of the experimental pipeline used to investigate architecture-aware domain model configuration.
+The present chapter describes the design of the experimental pipeline used to investigate architecture-aware domain model configuration.
 The pipeline implements a four-stage ablation study that progressively introduces architecture-specific knowledge and execution-based feedback into the \gls{llm}-driven configuration process.
 \Cref{sec:design:overview} introduces the overall pipeline architecture and the rationale behind its staged design.
 \Cref{sec:design:stage0,sec:design:stage1,sec:design:stage2,sec:design:stage3} describe the four experimental stages in detail, including the improvement detection and cross-planner testing procedures that are integral to Stage~2.
@@ -129,33 +128,27 @@ The pipeline is designed around four key principles:
 
   \item \textbf{Full reproducibility.}
         All experimental parameters---domains, \glspl{llm}, planners, hyperparameters, instance selections, resource constraints, and random seeds---are centralised in a single configuration file (see \Cref{ch:experimental_setup}).
-        Every pipeline stage implements checkpoint-resume logic: on restart, completed runs are detected from existing CSV records and skipped, ensuring \emph{idempotent execution} without duplicate entries or lost progress.
+        Every stage is designed to be \emph{idempotent}, so that an interrupted run can be resumed without duplicating or losing work; the underlying checkpointing mechanism is described in \Cref{sec:design:safeguards} and \Cref{ch:implementation}.
 
   \item \textbf{Comprehensive data capture.}
-        Each stage produces structured telemetry data persisted in both stage-local and global CSV files to enable both stage-specific and cross-stage analysis.
-        Three categories of data are captured throughout: (i)~\emph{pipeline logs}---heartbeat files recording progress every 60 seconds, timestamped terminal output captures, and error registers with full diagnostic dumps; (ii)~\emph{\gls{llm} generation metadata}---API response times, token usage, raw responses, and validation verdicts; and (iii)~\emph{planner execution metrics}---the 17-column measurement schema described in the stage-specific sections below.
+        Each stage produces structured telemetry, persisted to both stage-local and global CSV files, to enable stage-specific and cross-stage analysis.
+        The two measurements central to the experiments are \emph{\gls{llm} generation metadata} (API timing, token usage, raw responses, and validation verdicts) and \emph{planner execution metrics} (the measurement schema introduced in \Cref{sec:design:overview:data}); the operational logs that record progress and diagnostics support reproducibility and are described in \Cref{ch:implementation}.
 \end{itemize}
 
 \subsection{Global Data Architecture}
 \label{sec:design:overview:data}
 
-All stages share a unified data architecture centred on two global CSV files that accumulate records across the entire experiment:
+The experiment records two complementary kinds of structured data, each accumulated in a global file across all stages and mirrored by stage-local copies:
 
 \begin{enumerate}
-  \item \textbf{Global planner execution CSV} (\texttt{planner\_execution\_data.csv}): contains one row per planner run across all stages.
-        Each row records a unique \texttt{Run\_ID}, the domain name, domain file path, problem instance, planner used, stage label (e.g., \texttt{Baseline}, \texttt{General}, \texttt{Arch\_Aware}, \texttt{Feedback\_Loop1}), \gls{llm} used (if applicable), prompt ID, and the full set of planner execution metrics (see \Cref{tab:planner_csv_schema}).
-        To ensure statistical robustness, the data capture writes \texttt{N/A} rather than \texttt{0} for missing metrics, reflecting the fact that non-heuristic planners (like SAT-based or width-based approaches) architecturally do not produce state expansion measurements.
+  \item \textbf{Planner execution records:} one row per planner run, capturing the run's identity---domain, problem instance, planner, stage label (e.g., \texttt{Baseline}, \texttt{General}, \texttt{Arch\_Aware}, \texttt{Feedback\_Loop1}), and, for Stages~1--3, the generating \gls{llm} and prompt---together with the planner execution metrics defined in \Cref{tab:planner_csv_schema}.
+        Metrics that a planner architecturally cannot report---for example, state-expansion counts for \gls{sat}-based or width-based planners---are recorded as \texttt{N/A} rather than \texttt{0}, preserving the distinction between ``not applicable'' and ``zero'' for the statistical analysis.
 
-  \item \textbf{Global \gls{llm} generation CSV} (\texttt{llm\_generation\_data.csv}): contains one row per \gls{llm} API call across Stages~1--3.
-        This file acts as a central ledger for all generation attempts, tracking performance and token usage (\texttt{LLM\_Status}, \texttt{LLM\_API\_Time\_s}, \texttt{Input\_Tokens}, \texttt{Output\_Tokens}) as well as maintaining links to the raw text outputs (\texttt{Raw\_Response\_Path}) and the pass/fail verdicts from all four stages of the validation pipeline (\texttt{Passed\_V1} through \texttt{Passed\_V4}). 
-        The full 17-column schema for this CSV is detailed later in \Cref{tab:llm_gen_csv}.
+  \item \textbf{\gls{llm} generation records:} one row per \gls{llm} API call across Stages~1--3, capturing timing and token usage, a link to the raw response, and the pass/fail verdict at each of the four validation levels (\Cref{tab:llm_gen_csv}).
 \end{enumerate}
 
-In addition, each stage maintains \emph{local copies} of its data for stage-specific analysis.
-The dual-write strategy---local and global simultaneously---ensures that stage-level analysis can proceed without cross-stage interference while the global files enable unified cross-stage comparison.
-
-\paragraph{Logging infrastructure.}
-Every stage maintains three categories of operational logs: (i)~a \texttt{pipeline\_heartbeat.log} that records progress every 60~seconds via a background daemon thread; (ii)~timestamped terminal output captures mirrored via a \texttt{TeeLogger} that writes simultaneously to the console and a log file; and (iii)~an \texttt{error\_register.csv} that records each error with a timestamp, component, run~ID, domain, problem instance, planner, error type, and path to a detailed error dump file containing the full \texttt{stdout} and \texttt{stderr} output.
+Maintaining both global and stage-local copies allows each stage to be analysed in isolation, while the global files support the cross-stage comparison of \Cref{ch:results}.
+The persistence mechanism---thread-safe writers, checkpointing, and the operational logs that record progress and diagnostics---is described in \Cref{ch:implementation}.
 
 \begin{table}[htbp]
   \centering
@@ -208,16 +201,16 @@ The combinatorial scope of Stage~0 is defined by three dimensions:
 
 \noindent where $\mathcal{D}$ is the set of benchmark domains, $\mathcal{P}$ is the set of planners, and $\mathcal{I}$ is the set of selected problem instances per domain (see \Cref{ch:experimental_setup} for the specific selections and their justifications).
 
-The orchestrator builds a fixed work queue of all 75 (domain, instance) pairs and spawns four parallel planner threads---one per planner---each processing the same work queue independently via a \texttt{ThreadPoolExecutor}.
+The orchestrator builds a fixed work queue of all 75 (domain, instance) pairs and processes it with four parallel planner workers---one per planner---each consuming the shared queue independently.
 This design ensures that faster planners do not block slower ones: a planner that completes each run in under one second finishes its full queue while a slower planner may still be processing its first domain.
-All threads write to the global planner execution CSV through a thread-safe CSV manager protected by a mutual exclusion lock.
+All workers write to the global planner execution CSV; the thread-safe persistence mechanism is described in \Cref{ch:implementation}.
 
 \subsection{Per-Run Measurements}
 \label{sec:design:stage0:metrics}
 
 For each of the 300~runs, the pipeline captures the complete set of planner execution metrics listed in \Cref{tab:planner_csv_schema} (columns 9--16).
 The output status is determined through a priority-based classification: memory exhaustion signals (\texttt{MEMOUT}) are checked first, followed by the planner's own status report, with a fallback to \texttt{FAILURE} for unclassifiable exits.
-These measurements constitute the \emph{baseline metrics} that serve as the denominator in all subsequent comparative analyses---coverage deltas, PAR10 ratios, and IPC score gains are all computed relative to this stage.
+These measurements constitute the \emph{baseline metrics} that serve as the reference for all subsequent comparative analyses---coverage deltas and IPC score gains are computed relative to this stage.
 
 \subsection{Data Artefacts}
 \label{sec:design:stage0:data}
@@ -267,7 +260,7 @@ The Stage~1 pipeline is coordinated by a single master script that executes thre
     As in Stage~0, four planner threads execute concurrently, each processing its assigned domain--instance pairs.
 \end{description}
 
-Each phase implements idempotent checkpoint logic: Phase~A checks whether the output file for a given (domain, \gls{llm}) pair already exists on disk before making an API call; Phase~B checks the \texttt{Validation~Status} column before processing each file; Phase~C uses a checkpoint set of completed (domain, problem, planner, \gls{llm}) tuples for $O(1)$ duplicate detection.
+Each phase is idempotent: already-completed work---generations, validations, or planner runs---is detected and skipped on resume, so the pipeline can be safely interrupted and restarted (\Cref{sec:design:safeguards}).
 
 \subsection{Prompt Design}
 \label{sec:design:stage1:prompt}
@@ -290,7 +283,7 @@ DOMAIN TO REORDER:
 {domain_str}
 \end{lstlisting}
 
-This design intentionally provides no architecture-specific guidance, replicating the planner-agnostic approach of \citeauthor{Georgievski2025}~\cite{Georgievski2025} with a simplified prompt structure.
+By design, the prompt provides no architecture-specific guidance, replicating the planner-agnostic approach of \citeauthor{Georgievski2025}~\cite{Georgievski2025} with a simplified prompt structure.
 The prompt encodes three key constraints: (i)~strict semantic preservation---the \gls{llm} may reorder elements but may not alter any logical content; (ii)~raw output---the response must contain only the reordered \gls{pddl} without explanatory text; and (iii)~general guidance---the prompt references generic ``best practices from planning literature'' without specifying any particular planner or search strategy.
 The \gls{llm} must rely entirely on its pre-trained knowledge of planning literature to determine which reorderings might be beneficial.
 The rationale behind this specific prompt formulation is discussed in \Cref{ch:experimental_setup}.
@@ -442,6 +435,7 @@ For each problem instance~$i$, the IPC score of a configuration~$C$ is computed 
 
 \noindent where $T_i(C)$ is the wall-clock runtime of the planner on instance~$i$ under configuration~$C$.
 The IPC score ranges from 0 (unsolved) to 1 (matched the best-known time), with logarithmic compression ensuring that moderate slowdowns are penalised proportionally.
+Because $T^*_i$ is the best time \emph{observed so far} in the experiment, this score is used here as a within-pipeline signal for improvement screening; the final cross-stage comparison in \Cref{ch:results} recomputes all IPC scores against a single, globally consistent reference time obtained once the complete experiment has finished.
 The \emph{IPC score gain} for instance~$i$ is:
 
 \begin{equation}\label{eq:ipc_gain}
@@ -453,10 +447,13 @@ A configuration is declared as \emph{improved} if and only if all three of the f
 
 \begin{description}[style=nextline, leftmargin=2.5cm, labelwidth=2.2cm]
   \item[\textbf{Condition~A}] \textbf{(Statistical Significance):}
-        The Wilcoxon signed-rank test on the per-instance IPC score gains yields $p \leq \alpha$, with the significance level set to $\alpha = 0.25$ (relaxed to account for \gls{llm} volatility).
+        The one-sided Wilcoxon signed-rank test on the per-instance IPC score gains yields $p \leq \alpha$.
+        It is important to stress that this test acts as an \emph{internal selection gate}---a screening criterion that decides which configurations are promising enough to carry forward to cross-planner testing (Phase~E)---rather than as a confirmatory test of the thesis's hypotheses.
+        For this screening purpose the threshold is deliberately relaxed to $\alpha = 0.25$: at the conventional $\alpha = 0.05$, the small per-domain sample (15~instances) would discard many configurations whose target-planner gains, although not yet strongly significant, still merit cross-architecture investigation.
+        The relaxed gate therefore favours \emph{recall} of candidate improvements, while Conditions~B and~C guard against admitting configurations that are not genuinely beneficial.
+        The confirmatory statistical analyses reported in \Cref{ch:results}---which substantiate the actual findings of the thesis---use the conventional $\alpha = 0.05$.
+        The Wilcoxon test is chosen over the paired $t$-test because planner runtime distributions are inherently non-normal---some instances solve in milliseconds while others time out at the resource limit, creating extreme skew; both \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025} confirmed non-normality via Shapiro--Wilk tests and adopted the Wilcoxon test for the same reason.
         The test is one-sided (alternative hypothesis: the median gain is positive), reflecting the directional hypothesis that architecture-aware configuration should improve performance.
-        The Wilcoxon test is chosen over the paired $t$-test because planner runtime distributions are inherently non-normal---some instances solve in milliseconds while others time out at the resource limit, creating extreme skew.
-        Both \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025} confirmed non-normality via Shapiro--Wilk tests and adopted the Wilcoxon test for the same reason.
 
   \item[\textbf{Condition~B}] \textbf{(Practical Significance):}
         The mean IPC score gain across all instances is strictly positive: $\overline{\text{gain}} > 0$.
@@ -482,7 +479,7 @@ For every triple where improvement is detected in Phase~D, Phase~E automatically
 Each cross-test run follows the same execution protocol as the target-planner runs (same resource constraints, same 15 problem instances).
 The results are recorded with a distinct stage label (\texttt{Cross\_Test}) in a separate local CSV, while also being appended to the global planner execution CSV.
 
-This cross-testing protocol serves two purposes:
+The cross-testing protocol serves two purposes:
 
 \begin{enumerate}
   \item \textbf{Architecture-specificity analysis:} it determines whether the improvement is truly architecture-specific (benefits only the target planner) or a general structural improvement (benefits all planners regardless of architecture).
@@ -646,7 +643,9 @@ For each of the up to three iterations, the following steps are executed:
 
   \item \textbf{Compute IPC score:}
         The IPC score is calculated using \Cref{eq:ipc_score}, comparing the current iteration's results against the baseline.
-        The reference time $T^*_i$ considers only the baseline and current iteration's runtimes.
+        Here the reference time $T^*_i$ is deliberately restricted to the baseline and the current iteration's runtimes---rather than the best across all configurations, as in Stage~2.
+        This avoids a \emph{moving reference}: because every feedback iteration contributes new timing data, including later iterations in $T^*_i$ would make an earlier iteration's score depend on results that did not yet exist when it was generated, confounding the per-iteration verdict.
+        Restricting $T^*_i$ to the baseline and the current iteration therefore yields a stable, fair comparison at each step.
 
   \item \textbf{Determine verdict:}
         \texttt{IMPROVEMENT} if the mean IPC gain versus baseline is positive; \texttt{REGRESSION} otherwise.
@@ -736,7 +735,6 @@ Stage~3 produces the richest set of artefacts in the pipeline:
 %% -----------------------------------------------------------------------
 %%  4.6  VALIDATION PIPELINE
 %% -----------------------------------------------------------------------
-\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
 \section{Validation Pipeline}
 \label{sec:design:validation}
 
@@ -793,7 +791,7 @@ If a domain fails any stage, subsequent stages are skipped, and the domain is re
   \label{fig:validation_pipeline}
 \end{figure}
 
-This four-level pipeline extends the three-stage validation approach of \citeauthor{Georgievski2025}~\cite{Georgievski2025} by adding the V1 extraction stage, which handles the practical challenge that \glspl{llm} frequently embed \gls{pddl} code within markdown formatting, explanatory text, or other extraneous content.
+The four-level pipeline extends the three-stage validation approach of \citeauthor{Georgievski2025}~\cite{Georgievski2025} by adding the V1 extraction stage, which handles the practical challenge that \glspl{llm} frequently embed \gls{pddl} code within markdown formatting, explanatory text, or other extraneous content.
 
 \subsection{V1: PDDL Extraction}
 \label{sec:design:v1_extraction}
@@ -863,7 +861,6 @@ Additionally, a JSON report for each domain provides the exact structural diff.
 %% -----------------------------------------------------------------------
 %%  4.7  COMPUTATIONAL SAFEGUARDS
 %% -----------------------------------------------------------------------
-\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 \section{Computational Safeguards}
 \label{sec:design:safeguards}
 
@@ -871,8 +868,8 @@ Scientific rigour requires that all planner executions occur under strictly cont
 We enforce the following computational safeguards, aligned with the \gls{ipc} Agile Track standards and the experimental protocols of \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025}:
 
 \paragraph{Containerised isolation:}
-Each planner execution runs inside an isolated Docker container with fixed resource allocations.
-Containers ensure that planners cannot access shared system resources, preventing cross-contamination between concurrent runs and guaranteeing that timing measurements reflect only the planner's computation.
+Each planner executes inside an isolated container with fixed resource allocations, so that planners cannot access shared system resources; this prevents cross-contamination between concurrent runs and guarantees that timing measurements reflect only the planner's computation.
+The containerisation strategy and the exact \texttt{docker} invocation are detailed in \Cref{sec:impl:docker}.
 
 \paragraph{CPU isolation:}
 Each container is restricted to a single CPU core.
@@ -880,34 +877,25 @@ This constraint ensures reproducible timing measurements: if multiple cores were
 Single-core allocation also reflects the \gls{ipc} evaluation protocol and ensures that reported runtimes are comparable across runs~\cite{Elis2025}.
 
 \paragraph{Memory limits:}
-A hard memory cap of 8~GB is enforced with no swap space permitted (\texttt{memory-swap} set equal to \texttt{memory}).
+A hard memory cap of 8~GB is enforced, with no swap space permitted.
 This prevents planners from spilling data structures to disk, which would corrupt timing measurements.
 When a planner exceeds the memory limit, the operating system's out-of-memory killer terminates the container immediately, and the run is recorded as \texttt{MEMOUT}.
 
 \paragraph{Time limits:}
 A planner-level time limit of 360~seconds is enforced, consistent with the \gls{ipc} Agile Track.
 An additional safety-net timeout of 375~seconds at the host level (360 + 15~second buffer) allows planners to finish their own timeout handling and print their \texttt{[RESULT]} and \texttt{[METRIC]} output lines before being forcefully terminated.
-Runs that exceed the time limit are recorded as \texttt{TIMEOUT}, with wall-clock time set to the timeout value for PAR10 and IPC score computation.
+Runs that exceed the time limit are recorded as \texttt{TIMEOUT}, with wall-clock time set to the timeout value for IPC score computation.
 
 \paragraph{Checkpoint and resume:}
-Every completed run is immediately persisted to the results CSV.
-On restart, the pipeline reads the existing CSV and loads all completed run tuples into a hash set for $O(1)$ duplicate detection.
-This mechanism ensures \emph{idempotent execution}: re-running the pipeline after an interruption produces the same result as an uninterrupted run, without duplicate entries or lost progress.
-This is essential for experiments that span multiple days of continuous execution.
-
-\paragraph{Thread-safe data persistence:}
-Since four planner threads (or four \gls{llm} threads) write concurrently to the same CSV files, all CSV read and write operations are protected by mutual exclusion locks (\texttt{threading.Lock}).
-Auto-incrementing run IDs start from $\max(\text{existing IDs}) + 1$ on restart to avoid collisions.
-All \texttt{None} values are written as the string \texttt{N/A} to ensure statistical tools can distinguish ``not applicable'' from ``zero.''
+Every completed run is persisted immediately, and on restart the pipeline skips work that is already recorded.
+This guarantees \emph{idempotent execution}---re-running the pipeline after an interruption produces the same result as an uninterrupted run, without duplicate entries or lost progress---which is essential for experiments that span multiple days of continuous execution.
+The checkpointing implementation is detailed in \Cref{ch:implementation}.
 
 \paragraph{\gls{llm} hyperparameter control:}
-All \gls{llm} calls use a temperature of $T{=}0.0$ (fully deterministic decoding) and no conversation history between calls.
-Each call is stateless: the \gls{llm} receives only the prompt and produces a single response without access to any prior context beyond what is explicitly included in the prompt.
-This ensures that variations in output are attributable to the prompt content rather than to stochastic sampling or implicit context carry-over.
+All \gls{llm} calls use a temperature of $T{=}0.0$ (deterministic decoding) and are stateless---no conversation history is carried between calls---so that any variation in output is attributable to the prompt content rather than to stochastic sampling or context carry-over.
+The provider-specific handling of these settings is described in \Cref{sec:impl:llm_integration}.
 
 \paragraph{Dedicated execution environment:}
 To eliminate the timing variance introduced by shared cloud infrastructure (``noisy-neighbour'' effects and hypervisor steal time), all planner executions are performed on dedicated local hardware.
 This decision is motivated by the sensitivity of the Wilcoxon signed-rank test to measurement noise: because the test detects potentially marginal architectural speedups, even small timing perturbations could produce spurious results.
 The specific hardware configuration is described in \Cref{ch:experimental_setup}.
-
-\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
