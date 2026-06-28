@@ -69,7 +69,7 @@ The problem file specifies a concrete scenario within the domain~\cite{McDermott
   \item \textbf{Domain reference:} a link to the corresponding domain file.
 \end{itemize}
 
-This separation enables domain-independent planning: a single planner can handle diverse problem types by using the same algorithmic approach with different domain and problem specifications~\cite{GhallabNauTraverso2004}.
+The separation of the two files enables domain-independent planning: a single planner can handle diverse problem types by using the same algorithmic approach with different domain and problem specifications~\cite{GhallabNauTraverso2004}.
 \Cref{lst:blocksworld_domain} and \Cref{lst:blocksworld_problem} illustrate this structure using the classic \emph{Blocksworld} domain, in which a robotic arm manipulates blocks on a table.
 The domain file in \Cref{lst:blocksworld_domain} declares five predicates that describe the world state and four action schemas that define legal state transitions.
 The corresponding problem file in \Cref{lst:blocksworld_problem} instantiates a specific scenario with three blocks and a goal configuration.
@@ -229,7 +229,7 @@ The structural sensitivity of planners, combined with the factorial growth of th
 \label{sec:bg:llms}
 
 \Glspl{llm} are neural networks trained on extensive text corpora to predict the next token in a sequence, enabling them to generate coherent and contextually relevant text~\cite{Brown2020, Zhao2023}.
-Over the past several years, \glspl{llm} have demonstrated remarkable capabilities in code generation, editing, and refactoring of code-like artefacts from natural-language instructions, making them candidates for tasks that involve structured formal languages such as PDDL~\cite{Minaee2024}.
+Over the past several years, \glspl{llm} have demonstrated remarkable capabilities in code generation, editing, and refactoring of code-like artefacts from natural-language instructions, making them candidates for tasks that involve structured formal languages such as PDDL~\cite{Minaee2024, Cassano2023}.
 
 \subsection{Architecture and Capabilities}
 \label{sec:bg:llm_arch}
