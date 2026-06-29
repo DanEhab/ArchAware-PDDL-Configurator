@@ -67,7 +67,7 @@ Despite these advances, three critical research gaps remain:
         Because distinct planner architectures---such as heuristic forward search, width-based search, decoupled search, and compilation to \gls{sat}---process and evaluate domains through fundamentally different algorithmic pipelines, generic structural optimisation yields inconsistent results.
         An \gls{llm}-generated reordering that improves one planner may degrade another~\cite{Georgievski2025}.
 
-  % Comment 10: added Vallati2025 alongside Kambhampati2024 for the feedback/verification idea.
+        % Comment 10: added Vallati2025 alongside Kambhampati2024 for the feedback/verification idea.
   \item \textbf{Absence of execution-based feedback.}
         All prior \gls{llm}-based approaches generate domain configurations in a single forward pass, without access to quantitative feedback from actual planner executions.
         This precludes iterative refinement: the \gls{llm} cannot learn from the consequences of its structural choices or correct configuration errors that only manifest at runtime.
@@ -96,19 +96,19 @@ To decompose this overarching question into tractable components, we formulate t
 
 \begin{description}[style=nextline, leftmargin=1.5cm, labelwidth=1cm]
   \item[\textbf{SQ1:}]
-    What are the architecture models of state-of-the-art planners, which components (e.g., parsing, translation, grounding, search, heuristics) are present across different planner architecture models, and how are those components implemented?
+        What are the architecture models of state-of-the-art planners, which components (e.g., parsing, translation, grounding, search, heuristics) are present across different planner architecture models, and how are those components implemented?
 
   \item[\textbf{SQ2:}]
-    Can \glspl{llm} successfully apply targeted structural transformations when explicitly prompted with the underlying mechanics of a specific planner architecture?
+        Can \glspl{llm} successfully apply targeted structural transformations when explicitly prompted with the underlying mechanics of a specific planner architecture?
 
   \item[\textbf{SQ3:}]
-    To what degree does an LLM-Modulo feedback loop---providing the \gls{llm} with quantitative execution metrics---improve the efficiency of domain configurations compared to single-pass generations?
+        To what degree does an LLM-Modulo feedback loop---providing the \gls{llm} with quantitative execution metrics---improve the efficiency of domain configurations compared to single-pass generations?
 
   \item[\textbf{SQ4:}]
-    How effectively can an automated validation pipeline prevent the \gls{llm} from hallucinating semantic changes during multi-turn iterative refinement?
+        How effectively can an automated validation pipeline prevent the \gls{llm} from hallucinating semantic changes during multi-turn iterative refinement?
 
   \item[\textbf{SQ5:}]
-    How do different planner architectures respond to structural variations in \gls{pddl} domain models, and what empirical patterns can be derived to map specific textual configurations to their ideal target architectures?
+        How do different planner architectures respond to structural variations in \gls{pddl} domain models, and what empirical patterns can be derived to map specific textual configurations to their ideal target architectures?
 \end{description}
 
 %% -----------------------------------------------------------------------
@@ -126,18 +126,18 @@ The experimental pipeline itself comprises four configuration stages:
 
 \begin{description}[style=nextline, leftmargin=2.5cm, labelwidth=2.2cm]
   \item[\textbf{Stage~0}] \textbf{(Baseline):}
-    Original, unmodified \gls{pddl} domains are executed against all selected planners to establish baseline performance measurements.
+        Original, unmodified \gls{pddl} domains are executed against all selected planners to establish baseline performance measurements.
 
   \item[\textbf{Stage~1}] \textbf{(General Prompt):}
-    Each \gls{llm} receives a planner-agnostic prompt requesting general structural optimisation of the domain, serving as the control condition against which architecture-aware interventions are measured.
+        Each \gls{llm} receives a planner-agnostic prompt requesting general structural optimisation of the domain, serving as the control condition against which architecture-aware interventions are measured.
 
   \item[\textbf{Stage~2}] \textbf{(Architecture-Aware Prompt):}
-    Each \gls{llm} receives a prompt that explicitly encodes the solver type and provides synthesised heuristic rules specific to the target planner's architecture, derived from the component-level analysis conducted for \textbf{SQ1} (see \Cref{ch:design}).
-    This stage addresses \textbf{SQ2}.
+        Each \gls{llm} receives a prompt that explicitly encodes the solver type and provides synthesised heuristic rules specific to the target planner's architecture, derived from the component-level analysis conducted for \textbf{SQ1} (see \Cref{ch:design}).
+        This stage addresses \textbf{SQ2}.
 
   \item[\textbf{Stage~3}] \textbf{(LLM-Modulo Feedback Loop):}
-    A programmatic meta-controller iteratively feeds quantitative execution telemetry (e.g., states expanded, search time) back to the \gls{llm} as diagnostic natural-language feedback, enabling multi-turn refinement of the domain configuration.
-    This stage addresses \textbf{SQ3}.
+        A programmatic meta-controller iteratively feeds quantitative execution telemetry (e.g., states expanded, search time) back to the \gls{llm} as diagnostic natural-language feedback, enabling multi-turn refinement of the domain configuration.
+        This stage addresses \textbf{SQ3}.
 \end{description}
 
 % Comment 13a: removed "official" before VAL.
@@ -185,7 +185,7 @@ The remainder of this thesis is organised as follows:
 
   \item[\Cref{ch:implementation}] provides the implementation details of the pipeline, including planner integration, prompt design, \gls{llm} interface, validation modules, and the feedback loop controller.
 
-  \item[\Cref{ch:experimental_setup}] describes the experimental setup, specifying the selected planners, domains, \glspl{llm}, hyperparameters, and evaluation metrics.
+  \item[\Cref{ch:experimental_setup}] describes the experimental setup, specifying the selected planners, domains, \glspl{llm}, and hyperparameters.
 
   \item[\Cref{ch:results}] reports and discusses the experimental results, organised by stage-specific analysis and cross-stage comparative analysis.
 
