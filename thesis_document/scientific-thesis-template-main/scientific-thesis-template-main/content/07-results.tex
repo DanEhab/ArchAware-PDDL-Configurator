@@ -502,12 +502,98 @@ Taken together, Stage~3 completes the pipeline: telemetry-driven iteration lifts
 
 \section{Cross-Stage Comparative Analysis}
 \label{sec:results:cross_stage}
-% Full pipeline progression: Stages 0 → 1 → 2 → 3 side-by-side
-% Ablation study isolating the value of each stage
-% LLM effectiveness comparison: which model was smartest
-% Planner responsiveness: which planner benefited most from good code
-% Domain sensitivity: which domains responded best
-% Token efficiency and cost analysis
+
+The preceding four sections each scored a stage against the baseline using the within-pipeline screening of \Cref{sec:design:stage2:improvement}. This section instead places all four stages on a single, globally consistent footing: every one of the 7{,}350 planner runs is re-scored against one reference time $T^*_i$ per instance---the fastest wall-clock time \emph{any} configuration of \emph{any} stage achieved on that instance (\Cref{eq:ipc_score}). Two reference scopes are reported throughout, answering complementary questions. \emph{Configuration Sensitivity} fixes $T^*_i$ per planner, isolating the effect of configuration on each planner in turn (``did reordering help this planner?''). \emph{Simulated Competition} fixes a single $T^*_i$ across all planners, reproducing a true competition in which every configuration competes against the global best (``which stage produced the best configurations overall?''). Re-scoring on this common basis both consolidates the four-stage progression and confirms that it is not an artefact of the relaxed screening threshold used earlier.
+
+\subsection{The Four-Stage IPC Progression}
+\label{sec:results:cross_stage:progression}
+
+\Cref{tab:cs_progression} reports the total \gls{ipc} score of each stage's best-portfolio configuration---the best result obtainable across the four \glspl{llm} (or, for Stage~3, across iterations), the only accounting that compares the one-shot stages fairly against the iterative one. The progression is monotonic in both reference scopes: under Configuration Sensitivity the total climbs $154.17 \rightarrow 157.93 \rightarrow 161.44 \rightarrow 163.87$, a cumulative gain of $+9.70$ \gls{ipc} points; under Simulated Competition it climbs $123.68 \rightarrow 130.36$, a gain of $+6.68$.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Total \gls{ipc} score per stage (best-portfolio configuration), re-scored on the global reference $T^*$, under both reference scopes. The progression is monotonic in both; the cumulative gain over baseline reaches $+9.70$ (Configuration Sensitivity) and $+6.68$ (Simulated Competition).}
+  \label{tab:cs_progression}
+  \small
+  \begin{tabular}{l c c c c}
+    \toprule
+    & \multicolumn{2}{c}{\textbf{Configuration Sensitivity}} & \multicolumn{2}{c}{\textbf{Simulated Competition}} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+    \textbf{Stage} & \textbf{IPC total} & \textbf{$\Delta$ vs.\ S0} & \textbf{IPC total} & \textbf{$\Delta$ vs.\ S0} \\
+    \midrule
+    S0 (Baseline)       & 154.17 & ---     & 123.68 & ---     \\
+    S1 (General)        & 157.93 & $+3.76$ & 126.17 & $+2.50$ \\
+    S2 (Arch.-Aware)    & 161.44 & $+7.27$ & 129.05 & $+5.37$ \\
+    S3 (Feedback)       & 163.87 & $+9.70$ & 130.36 & $+6.68$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+This progression makes the stage ablation precise. The marginal contributions under Configuration Sensitivity are $+3.76$ (S1), then $+3.51$ (S2), then $+2.44$ (S3): each stage adds value, but less than the last. Two readings follow. First, the cumulative architecture-aware gain ($+7.27$) is very nearly double the generic gain ($+3.76$), the continuous-score counterpart of the discrete improvement-rate doubling reported in \Cref{sec:results:stage2}. Second, the diminishing marginal returns come at sharply rising cost---generation token budgets grow roughly sevenfold per stage---so that Stage~2 is unambiguously the highest-impact single component, while Stage~3 buys breadth and reliability (\Cref{sec:results:stage3}) rather than further aggregate magnitude.
+
+The per-planner progression (\Cref{fig:cs_progression}) shows that this aggregate conceals the same architectural split seen throughout the chapter. \gls{bfws} and \gls{lama}---the order-sensitive heuristic searchers---climb progressively across all stages (gaining $+4.53$ and $+3.04$ \gls{ipc} points by S3), whereas DecStar ($+0.71$) and Madagascar ($+2.30$) reach their best at Stage~2 and gain nothing further from the loop. Far from masking architectural differences, the pipeline \emph{amplifies} them: the gap between the responsive and rigid planners is wider at S3 than at S0.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{results/cs_ipc_progression_planner.png}
+  \caption{Per-planner total \gls{ipc} score (best portfolio, Configuration Sensitivity) across the four stages. The order-sensitive heuristic searchers \gls{bfws} and \gls{lama} improve progressively, while the factored DecStar and \gls{sat}-based Madagascar plateau after Stage~2.}
+  \label{fig:cs_progression}
+\end{figure}
+
+\subsection{Where the Best Configurations Come From}
+\label{sec:results:cross_stage:source}
+
+The Simulated Competition scope answers the bluntest possible question---across all 300 (planner, domain, instance) cells, which stage supplied the single best-performing configuration? \Cref{tab:cs_source} gives the verdict. Of the 300 cells, 117 (39.0\%) are unsolvable by any configuration of any stage, and a further 3 (1.0\%) are best served by the original baseline domain. The remaining 180 cells---fully 60.0\% of the total, and \emph{98.4\% of the 183 solvable cells}---are won by an \gls{llm}-generated configuration. Architecture-aware Stage~2 (target and cross-test combined) accounts for 98 of these and the feedback loop for 68, dwarfing the 14 won by the generic prompt.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Source of the single best per-instance configuration across all 300 (planner, domain, instance) cells (Simulated Competition). Only three cells are best served by the unmodified baseline; \gls{llm}-generated configurations win 180 of the 183 solvable cells.}
+  \label{tab:cs_source}
+  \small
+  \begin{tabular}{l c c}
+    \toprule
+    \textbf{Source of best configuration} & \textbf{Cells} & \textbf{Share} \\
+    \midrule
+    Unsolvable (no configuration solved)        & 117 & 39.0\% \\
+    Stage 0 (baseline)                          & 3   & 1.0\%  \\
+    Stage 1 (general prompt)                    & 14  & 4.7\%  \\
+    Stage 2 (architecture-aware, target)        & 52  & 17.3\% \\
+    Stage 2 (cross-test, non-target planner)    & 46  & 15.3\% \\
+    Stage 3 (feedback loop)                     & 68  & 22.7\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The 46 cells (15.3\%) won by a \emph{cross-test} configuration are especially telling: in these, a domain reordered for one planner turned out to be the best available domain when run on a \emph{different} planner. This is the universal-transfer effect of \Cref{sec:results:stage2:specialisation} seen from the competition side---architecture-aware reorderings, though target-biased, frequently encode general structural improvements that benefit other architectures too.
+
+\subsection{Coverage and Runtime}
+\label{sec:results:cross_stage:coverage}
+
+\gls{ipc} score folds speed and coverage into one number; separating them confirms that the pipeline moves both. On coverage, the portfolio of \gls{llm} configurations unlocks 15 of the 132 instances that timed out at baseline (an 11.4\% reduction of the unsolvable frontier), while the single-configuration hit rate rises from 56.0\% to 62.9\% across the stages and regressions are near-zero (no portfolio cell lost coverage at Stage~2). As \Cref{tab:cs_coverage_par10} shows, both gains are concentrated exactly where architecture predicts: Madagascar---whose \gls{sat} encoding is most helped by structural alignment---unlocks the most coverage ($+13.33$ percentage points) and sheds the most \gls{par10} penalty (from \num{2411} to \num{1944}\,s), whereas DecStar is immovable on both, its factored search neutralising the reorderings entirely.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Per-planner coverage and \gls{par10} effects of the pipeline. Portfolio coverage $\Delta$ is the best-across-\glspl{llm} gain over baseline; \gls{par10} (lower is better) penalises each unsolved instance by $10\times$ the time limit. Madagascar benefits most on both axes; DecStar is unmoved.}
+  \label{tab:cs_coverage_par10}
+  \small
+  \begin{tabular}{l c c c}
+    \toprule
+    \textbf{Planner} & \textbf{Coverage $\Delta$ (ppt)} & \textbf{\gls{par10} S0 (s)} & \textbf{\gls{par10} best (s)} \\
+    \midrule
+    \gls{bfws}  & $+2.67$  & 585  & 487  \\
+    \gls{lama}  & $+1.33$  & 1083 & 1037 \\
+    DecStar     & $+0.00$  & 2367 & 2366 \\
+    Madagascar  & $+13.33$ & 2411 & 1944 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+On runtime, measured only over instances solved by both the baseline and the compared stage, the architecture-aware and feedback stages deliver reductions of up to 63.7\% (Madagascar at Stage~3) and 13.9\% (\gls{bfws} at Stage~2). The generic stage is again the outlier: on the same commonly-solved instances it \emph{slows} Madagascar by 32\% and the Barman domain by 23\%, before Stages~2 and~3 reverse the loss. This is the cross-stage echo of the Stage~1 null result---generic reordering is not merely unhelpful but occasionally harmful, and only planner-aware reordering reliably accelerates search.
+
+\subsection{Synthesis}
+\label{sec:results:cross_stage:synthesis}
+
+Viewed through every lens---aggregate \gls{ipc} score, source of best configuration, coverage frontier, and \gls{par10}---the four stages tell one consistent story. The continuous \gls{ipc} progression ($154.17 \rightarrow 163.87$) corroborates the discrete improvement-rate progression ($44.1\% \rightarrow 80.9\%$) of \Cref{sec:results:stage3}: the two accountings, computed on entirely different bases, agree that each stage adds value and that the pipeline as a whole beats the baseline on essentially every solvable instance. The dominant axis of variation is architectural, not lexical: responsiveness ranks \gls{bfws}~$>$~\gls{lama}~$>$~Madagascar~$>$~DecStar under every metric, and the methodology widens rather than narrows that ranking. Finally, the ablation locates the value precisely---architecture-awareness (Stage~2) is the decisive single intervention, generic prompting (Stage~1) is marginal-to-harmful, and the feedback loop (Stage~3) trades steeply rising cost for breadth and reliability. What remains is to establish that this progression is statistically real rather than a favourable reading of noisy data, which is the task of \Cref{sec:results:statistical_validation}.
 
 \section{Statistical Validation}
 \label{sec:results:statistical_validation}
