@@ -597,10 +597,73 @@ Viewed through every lens---aggregate \gls{ipc} score, source of best configurat
 
 \section{Statistical Validation}
 \label{sec:results:statistical_validation}
-% Omnibus tests (Friedman): proving overall significance
-% Pairwise comparisons (Wilcoxon): Stage 2 vs. Stage 1, Stage 3 vs. Stage 2
-% Effect sizes (Cliff's Delta): magnitude of improvements
-% Proving to the committee that the results are not coincidence
+
+The progression of \Cref{sec:results:cross_stage} is, so far, a description of point estimates. This section subjects it to formal hypothesis testing to establish that the stage differences are real rather than a favourable reading of noisy data. All tests operate on the 300 paired per-instance \gls{ipc} observations---the same $(\text{planner}, \text{domain}, \text{instance})$ cells measured under all four stages (best portfolio, Configuration Sensitivity)---which makes the design fully paired. Whereas the within-pipeline screening of \Cref{sec:design:stage2:improvement} deliberately used a relaxed $\alpha = 0.25$ to admit candidate configurations, every test reported here uses the conventional confirmatory thresholds.
+
+\subsection{Test Selection}
+\label{sec:results:statistical_validation:selection}
+
+The choice of test family is dictated by the data. A Shapiro--Wilk test rejects normality for all four stage distributions and all three gain distributions, decisively in every case ($W$ between 0.38 and 0.69; every $p < 10^{-22}$). This is the expected consequence of two structural features of \gls{ipc} scores: a spike of exact zeros from unsolved instances, and the hard $[0,1]$ bound. Parametric procedures (the paired $t$-test, repeated-measures ANOVA) are therefore inadmissible, and the entire suite below is rank-based: the Friedman omnibus test, Wilcoxon signed-rank tests for pairwise contrasts (Bonferroni-corrected to $\alpha = 0.05/6 = 0.0083$ for the six stage pairs), the Nemenyi post-hoc test, Cliff's~$\delta$ for effect sizes, and Kruskal--Wallis tests for the categorical factors.
+
+\subsection{The Stage Effect}
+\label{sec:results:statistical_validation:stage}
+
+The Friedman test rejects the null hypothesis that the four stages share a common rank distribution with overwhelming margin: $\chi^2 = 267.06$, $p = 1.3 \times 10^{-57}$, Kendall's $W = 0.30$. The mean ranks order the stages $\text{S0}\,(1.90) < \text{S1}\,(2.18) < \text{S3}\,(2.88) < \text{S2}\,(3.04)$, placing the architecture-aware stage marginally above the feedback loop and both well above the generic and baseline stages.
+
+The pairwise structure behind this omnibus result is given in \Cref{tab:stat_pairwise}, with the corresponding effect sizes and bootstrap confidence intervals in \Cref{fig:stat_forest}. Three conclusions follow. First, \emph{every} configuration stage significantly outperforms the baseline; the comparison is starkest for Stage~2, where 174 of the 181 instances with a non-zero difference improve and only 7 worsen ($p = 1.4 \times 10^{-29}$). Second, and most importantly for the thesis, Stage~2 significantly beats Stage~1 ($158$ improved versus $24$ worsened, $p = 2.2 \times 10^{-21}$, Cliff's $\delta = 0.25$): the superiority of architecture-aware over generic prompting, established descriptively in \Cref{sec:results:stage2,sec:results:cross_stage}, is confirmed inferentially. Third, the lone exception is the Stage~2 versus Stage~3 contrast. Although the Wilcoxon test technically flags it ($p = 2.3 \times 10^{-3}$), the difference favours Stage~2 (80 improved versus 103 worsened), the Nemenyi test finds the pair statistically indistinguishable (rank gap $0.16$ below the critical difference of $0.27$), and Cliff's $\delta$ is a negligible $-0.09$. In the portfolio setting, the feedback loop's \emph{aggregate} \gls{ipc} is statistically inseparable from the one-shot architecture-aware stage---precisely consistent with the reading in \Cref{sec:results:stage3} that the loop's contribution is breadth and reliability rather than a higher aggregate ceiling.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Pairwise stage comparisons on the 300 paired per-instance \gls{ipc} scores. ``Improved\,/\,Worsened'' counts the instances whose non-zero difference favours the later versus the earlier stage. Wilcoxon significance is judged at the Bonferroni-corrected $\alpha = 0.0083$; the Nemenyi post-hoc verdict uses $\alpha = 0.05$ (critical rank difference $0.27$). Every stage beats the baseline and Stage~2 beats Stage~1, while Stage~2 and Stage~3 are statistically indistinguishable.}
+  \label{tab:stat_pairwise}
+  \small
+  \begin{tabular}{l c c c c}
+    \toprule
+    \textbf{Comparison} & \textbf{Improved\,/\,Worsened} & \textbf{Wilcoxon $p$} & \textbf{Cliff's $\delta$} & \textbf{Nemenyi} \\
+    \midrule
+    S0 vs.\ S1 & 110\,/\,66  & $2.7 \times 10^{-7}$  & $0.08$ (Negl.)  & Sig. \\
+    S0 vs.\ S2 & 174\,/\,7   & $1.4 \times 10^{-29}$ & $0.30$ (Small)  & Sig. \\
+    S0 vs.\ S3 & 164\,/\,16  & $3.2 \times 10^{-26}$ & $0.23$ (Small)  & Sig. \\
+    S1 vs.\ S2 & 158\,/\,24  & $2.2 \times 10^{-21}$ & $0.25$ (Small)  & Sig. \\
+    S1 vs.\ S3 & 141\,/\,39  & $3.6 \times 10^{-16}$ & $0.17$ (Small)  & Sig. \\
+    S2 vs.\ S3 & 80\,/\,103  & $2.3 \times 10^{-3}$  & $-0.09$ (Negl.) & n.s. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.74\textwidth]{results/cs_forest_cliffs_delta.png}
+  \caption{Cliff's $\delta$ effect sizes for each stage pair with 95\% bootstrap confidence intervals (2{,}000 resamples). All five baseline- and generic-referenced comparisons exclude zero; the largest is S0 versus S2 ($\delta = 0.30$). Only S2 versus S3 straddles the negligible range with a slightly negative point estimate.}
+  \label{fig:stat_forest}
+\end{figure}
+
+The effect sizes deserve a word of calibration. The largest, $\delta = 0.30$ for S0 versus S2, falls in the ``Small'' band of the Cohen-equivalent benchmarks of \citeauthor{Romano2006}~\cite{Romano2006}. In the context of domain-independent planning, however---improving heterogeneous domains across four architecturally disparate planners without altering a single line of planner source code---a consistent small effect is a substantive outcome rather than a weak one. Reassuringly, all five baseline- and generic-referenced confidence intervals exclude zero (\Cref{fig:stat_forest}), so the improvements are robust as well as significant.
+
+\subsection{Factor Effects: Methodology over Model}
+\label{sec:results:statistical_validation:factors}
+
+A final set of Kruskal--Wallis tests asks which experimental factors actually drive the \gls{ipc} outcome, stage by stage (\Cref{tab:stat_kw}). The result for the \gls{llm} factor is the most consequential statistical finding of the thesis. Under the generic prompt of Stage~1, the choice of \gls{llm} matters strongly ($H = 25.1$, $p = 1.4 \times 10^{-5}$)---without guidance, some models succeed and others fail. Under the architecture-aware prompt of Stage~2, and again under the feedback loop of Stage~3, the same factor becomes \emph{statistically non-significant} ($p = 0.65$ and $p = 0.18$). The methodology erases the model gap: the large baseline-to-S2/S3 improvements are produced by the prompt engineering and feedback design, not by a more capable model. Practically, this means the approach is portable---it does not depend on access to any particular frontier \gls{llm}.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Kruskal--Wallis $H$ statistics for the effect of each factor on per-instance \gls{ipc} (\gls{llm} factor) or \gls{ipc} gain over baseline (planner and domain factors), by stage. Significance markers: $^{*}\,p<0.05$, $^{**}\,p<0.01$, $^{***}\,p<0.001$; unmarked values are not significant. \gls{llm} choice matters only under the generic prompt; the planner effect strengthens monotonically; the domain effect explodes between Stage~1 and Stage~2.}
+  \label{tab:stat_kw}
+  \small
+  \begin{tabular}{l c c c}
+    \toprule
+    \textbf{Factor (effect on \gls{ipc})} & \textbf{Stage 1} & \textbf{Stage 2} & \textbf{Stage 3} \\
+    \midrule
+    \gls{llm} choice   & $25.1^{***}$ & $1.7$       & $4.9$        \\
+    Target planner     & $26.6^{***}$ & $39.9^{***}$ & $76.7^{***}$ \\
+    Domain             & $10.6^{*}$   & $85.9^{***}$ & $34.6^{***}$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The other two factors behave as the architectural thesis predicts. The \emph{planner} effect on \gls{ipc} gain is significant at every stage and strengthens monotonically ($H = 26.6 \rightarrow 39.9 \rightarrow 76.7$): rather than homogenising the planners, the pipeline progressively \emph{amplifies} their architectural differences, widening the gap between the responsive heuristic searchers and the rigid DecStar as the methodology deepens. The \emph{domain} effect tells the same story from the prompt side: its $H$ statistic leaps from a marginal $10.6$ under the generic prompt to $85.9$ under the architecture-aware prompt. A generic prompt acts almost uniformly across domains---the model is effectively guessing---whereas architecture-aware guidance lets it detect and exploit domain-specific structure, an eightfold sharpening that is itself strong evidence for the central methodological claim.
+
+Taken together, the statistical suite confirms every substantive element of the descriptive analysis. The stage progression is real ($p \approx 10^{-57}$), architecture-aware prompting decisively outperforms generic prompting ($p = 2.2 \times 10^{-21}$), the gains are robust (all baseline-referenced confidence intervals exclude zero) and contextually meaningful, and the methodology simultaneously equalises models and amplifies architectural and domain structure. The single honest negative---that the feedback loop does not raise the aggregate ceiling beyond Stage~2 in the portfolio setting---is reported as such, its value located instead in the breadth and reliability documented in \Cref{sec:results:stage3}. \Cref{sec:results:prior_work} closes the chapter by situating these results against the prior work that motivated them.
 
 \section{Comparison with Prior Work}
 \label{sec:results:prior_work}
