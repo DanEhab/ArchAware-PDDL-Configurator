@@ -418,10 +418,87 @@ Taken together, Stage~2 delivers the central positive finding of the thesis: sup
 
 \section{Feedback Loop Results (Stage 3)}
 \label{sec:results:stage3}
-% Validation and convergence analysis
-% How the loop caught errors and fixed them iteratively
-% Success rate improvement (e.g., ~44\% to ~80\%)
-% Iterative learning patterns and failure recovery analysis
+
+Stage~3 closes the loop. Where Stage~2 produced a single architecture-aware configuration per triple, Stage~3 wraps that configuration in the \gls{llm}-Modulo generate--test--critique cycle of \Cref{sec:bg:llm_modulo}: each Stage~2 domain becomes a \emph{seed}, and for up to three iterations the model is shown a per-instance telemetry table from the target planner---which instances solved, how fast, and at what \gls{ipc} score---and asked to revise its reordering accordingly (\Cref{sec:design:stage3}). Of the 80 (domain, \gls{llm}, planner) triples, the 12 always-timeout triples identified in \Cref{sec:results:stage0} are excluded as uncontestable, leaving 68 contestable triples; the loop executed 218 iterations and 2{,}955 planner runs over roughly 37~hours. The question is whether quantitative execution feedback lets the model surpass its own one-shot Stage~2 result.
+
+\subsection{Iterative Improvement and Failure Recovery}
+\label{sec:results:stage3:efficacy}
+
+The feedback loop improved 32 of the 68 contestable triples (47.1\%) beyond their Stage~2 seed. The 36 triples whose seed was never beaten are not loop failures: in most the Stage~2 configuration was already at or near the best reordering reachable within three iterations. Where improvements did occur, the first iteration was the most productive---18 of the 32 best results---which is intuitive, since iteration~1 is the model's first exposure to \emph{any} execution feedback after the blind one-shot Stage~2 prompt, the largest single jump in information. Tellingly, the remaining 14 improvements arrive at iterations~2 and~3, and the convergence profile is non-monotonic: 18 triples improve on the first try, 14 are ``late bloomers'' peaking only at iteration~2 or~3, just 2 improve continuously, and 36 never beat the seed. This shape---together with rationales that visibly shift from generic restatements of the prompt to adaptive self-correction (``I revert to the iteration-1 approach but avoid the action reshuffle that regressed'')---indicates that the loop drives genuine learning from feedback rather than merely buying extra random attempts.
+
+The loop's second contribution is reliability. All five triples that had \emph{failed} in Stage~2---Gemini and GPT-5.4 generations that overran the completion-token limit---were fully recovered (a 100\% recovery rate) once Stage~3 raised the limit and explicitly informed the model of the prior failure through the seed-routing mechanism of \Cref{sec:design:stage3:seed}. These were not marginal saves: the recovered Barman\,$\times$\,Gemini\,$\times$\,\gls{lama} triple reached the maximum possible \gls{ipc} score of 15.00, and Depots\,$\times$\,GPT-5.4\,$\times$\,\gls{bfws} reached 14.58---among the strongest results anywhere in the dataset. The loop thus doubles as a recovery mechanism that converts transient one-shot failures into top-tier configurations.
+
+\subsection{The Combined Result}
+\label{sec:results:stage3:combined}
+
+The headline figure of the thesis emerges when the two \gls{llm} stages are scored together against the Stage~0 baseline on a common footing.
+Of the 68 contestable triples, the Stage~2 seed alone already beat the baseline on 30 (44.1\%); adding the feedback loop's iterations raises this to 55 (80.9\%), as \Cref{tab:s3_combined} details.
+The loop contributes 25 net improvements on top of Stage~2, very nearly doubling the share of configurations that outperform the unmodified domain.\footnote{These baseline-relative rates are computed over the 68 contestable triples against the single globally consistent \gls{ipc} reference (\Cref{sec:design:stage2:improvement}), and so use a different denominator and a stricter accounting than the within-pipeline screening figure of \Cref{sec:results:stage2}; the two views are reconciled in \Cref{sec:results:cross_stage}.}
+The 13 triples that remain unimproved fall into the two categories the earlier stages already anticipated: fundamental planner--domain incompatibilities (the structural floor of \Cref{sec:results:stage0}) and seeds whose Stage~2 reordering was already effectively optimal.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Combined Stage~2\,+\,3 efficacy over the 68 contestable triples, by the iteration that produced each triple's baseline-beating configuration. The one-shot Stage~2 seed accounts for 30 improvements; the feedback loop adds 25 more, lifting the improvement rate from 44.1\% to 80.9\%.}
+  \label{tab:s3_combined}
+  \small
+  \begin{tabular}{l c}
+    \toprule
+    \textbf{Source of best configuration (vs.\ Stage~0 baseline)} & \textbf{Count} \\
+    \midrule
+    Stage~2 seed (one-shot)        & 30 \\
+    Feedback-loop iteration~1      & 12 \\
+    Feedback-loop iteration~2      & 5  \\
+    Feedback-loop iteration~3      & 8  \\
+    \midrule
+    \textbf{Total improved (of 68 contestable)} & \textbf{55 (80.9\%)} \\
+    Not improved                   & 13 (19.1\%) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Independent corroboration comes from the aggregate solve rate, plotted across iterations in \Cref{fig:s3_solve_rate}. Pooled over all triples and planners, the fraction of individual planner runs that succeed climbs from 56.9\% at iteration~1 to 64.4\% and then 69.0\%, while the mean \gls{ipc} score rises in step from 7.81 to 8.76. Because this is a population-level measure---untied to any single ``best iteration'' bookkeeping---the monotonic climb is direct evidence that successive rounds of telemetry make the model's reorderings progressively better at helping planners solve instances, not merely at winning the per-triple maximum.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{results/s3_solve_rate_trend.png}
+  \caption{Aggregate planner solve rate across the three feedback-loop iterations, pooled over all contestable triples and planners. The steady climb from 56.9\% to 69.0\% is population-level evidence that telemetry-driven iteration improves reordering quality.}
+  \label{fig:s3_solve_rate}
+\end{figure}
+
+\subsection{Learning Dynamics and Cost}
+\label{sec:results:stage3:dynamics}
+
+The population trend conceals sharp differences in how individual models exploit feedback, shown in \Cref{fig:s3_ipc_progression} and summarised in \Cref{tab:s3_llm}. Claude Opus~4.6 and GPT-5.4 learn steadily---GPT-5.4 even accelerates, overtaking the field by iteration~3---whereas Gemini~3.1~Pro peaks at iteration~2 and then regresses, and DeepSeek-R1 is essentially flat across all three rounds. The ability to convert quantitative telemetry into better structure is therefore a genuinely model-dependent capability, not a property of the loop alone.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{results/s3_ipc_progression.png}
+  \caption{Mean \gls{ipc} score by iteration for each \gls{llm}. Claude and GPT-5.4 improve steadily, GPT-5.4 accelerating to the top; Gemini peaks at iteration~2 then regresses; DeepSeek-R1 stays flat, showing little learning from feedback.}
+  \label{fig:s3_ipc_progression}
+\end{figure}
+
+These curves explain the otherwise surprising re-ordering of the models between stages (\Cref{tab:s3_llm}). Gemini leads Stage~3 (58.8\% of its contestable triples improved), buoyed by three of the five failure recoveries and by the most concise output of any model. Claude, the Stage~2 leader at 65.0\%, falls to 47.1\%: its one-shot seeds were already so strong that little headroom remained, leaving it the smallest mean gain ($+0.10$). DeepSeek is again the outlier---lowest improvement rate (35.3\%) while emitting \num{180741} output tokens, $4.3\times$ GPT-5.4 and Gemini, confirming across both \gls{llm} stages that its chain-of-thought volume is spent rather than invested on what is fundamentally a structural, not a logical, task.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Per-\gls{llm} feedback-loop summary. The Stage~3 rate is the share of each model's 17 contestable triples improved over its own seed; the mean gain and output-token totals expose Gemini as the most cost-effective model and DeepSeek-R1 as the least.}
+  \label{tab:s3_llm}
+  \small
+  \begin{tabular}{l c c c c}
+    \toprule
+    \textbf{LLM} & \textbf{Stage 2 rate} & \textbf{Stage 3 rate} & \textbf{Output tokens} & \textbf{Mean gain vs.\ seed} \\
+    \midrule
+    Gemini 3.1 Pro  & 58.8\% & 58.8\% & \num{43005}  & $+2.20$ \\
+    GPT-5.4         & 50.0\% & 47.1\% & \num{42035}  & $+1.66$ \\
+    Claude Opus 4.6 & 65.0\% & 47.1\% & \num{54159}  & $+0.10$ \\
+    DeepSeek-R1     & 50.0\% & 35.3\% & \num{180741} & $+0.21$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The architectural through-line of the earlier stages persists. Across planners, \gls{lama} and \gls{bfws} improved most under the loop (both 55\%), Madagascar reached 50\%, and DecStar again trailed at 25\%---the same resistance seen in Stage~2 and for the same reason: its star-topology factoring abstracts away the textual ordering the model is manipulating, so the loop helps DecStar mainly by rescuing it from outright failure rather than by incremental tuning. Two further observations bound the result. First, validation quality \emph{declines} across iterations (93.8\%, 90.0\%, 86.8\%) as the accumulating history inflates the prompt and squeezes the output budget; crucially, the hard-critic gate of \Cref{sec:design:validation} caught all 21 invalid iterations before any reached a planner, so no semantically altered domain was ever scored. Second, the per-iteration yield of new best configurations (18, 5, 9) and the degrading validation rate together suggest diminishing returns, making the three-iteration cap a defensible compromise and adaptive stopping a natural item for future work.
+
+Taken together, Stage~3 completes the pipeline: telemetry-driven iteration lifts the baseline-relative improvement rate from 44.1\% to 80.9\%, recovers every Stage~2 failure, and produces measurable population-level learning---while exposing equally clear limits in DecStar, the incompatible planner--domain pairs, and the onset of diminishing returns. \Cref{sec:results:cross_stage} now places all four stages on a single, globally consistent footing.
 
 \section{Cross-Stage Comparative Analysis}
 \label{sec:results:cross_stage}
