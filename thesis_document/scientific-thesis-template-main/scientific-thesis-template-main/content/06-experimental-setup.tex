@@ -353,8 +353,7 @@ and Madagascar uses mutual exclusion alignment to accelerate fixpoint invariant 
 \section{Hardware and Environment}
 \label{sec:setup:hardware}
 
-To eliminate the timing variance introduced by shared cloud infrastructure (noisy-neighbour effects and hypervisor steal time), all planner executions are performed on dedicated local hardware, as motivated in \Cref{sec:design:safeguards}.
-This decision is particularly critical because the Wilcoxon signed-rank test used for improvement detection is sensitive to measurement noise: marginal architectural speedups could otherwise produce spurious results.
+As motivated in \Cref{sec:design:safeguards}, all planner executions are performed on dedicated local hardware rather than on shared cloud infrastructure, so that the noise-sensitive improvement-detection tests are not confounded by external timing variance.
 
 \Cref{tab:hardware} lists the hardware configuration.
 
@@ -386,8 +385,7 @@ The 64~GB system memory allows four planner containers to execute in parallel wi
 \section{Hyperparameters and Reproducibility}
 \label{sec:setup:hyperparameters}
 
-All experimental parameters are centralised in a single YAML configuration file (\texttt{experiment\_config.yaml}) to ensure that the complete experimental setup can be reconstructed from a single source of truth.
-This section documents the key hyperparameters and the reproducibility measures employed.
+The key hyperparameters and the reproducibility measures employed are documented below; their exact values reside in the central \texttt{experiment\_config.yaml} file.
 
 \subsection{LLM Hyperparameters}
 
@@ -412,13 +410,13 @@ This section documents the key hyperparameters and the reproducibility measures 
 
 \subsection{Planner Execution Constraints}
 
-Each Docker container is subject to the following resource constraints, following the \gls{ipc} Agile Track conventions:
+Each planner container is subject to the following resource constraints, following the \gls{ipc} Agile Track conventions and enforced via the \texttt{docker run} flags detailed in \Cref{sec:impl:docker}:
 
 \begin{itemize}
   \item \textbf{Time limit:} 360 seconds (6 minutes) per problem instance.
-  \item \textbf{Memory limit:} 8~GB (with swap disabled via \texttt{--memory-swap=8g}).
-  \item \textbf{CPU allocation:} 1 core per container (\texttt{--cpus=1.0}).
-  \item \textbf{OOM handling:} The container is terminated immediately if the memory limit is exceeded (\texttt{oom-kill-disable=false}).
+  \item \textbf{Memory limit:} 8~GB, with swap disabled.
+  \item \textbf{CPU allocation:} 1 core per container.
+  \item \textbf{OOM handling:} the container is terminated immediately if the memory limit is exceeded.
 \end{itemize}
 
 \subsection{Problem Instance Selection}

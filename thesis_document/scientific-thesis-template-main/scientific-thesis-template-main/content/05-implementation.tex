@@ -271,7 +271,7 @@ The script accepts two positional arguments---the domain file path and the probl
 \end{lstlisting}
 
 The Python-side \texttt{planner\_runner} module (\Cref{tab:shared_modules}) parses these lines using string matching and regular expressions, maps the metric keys to the CSV column schema (\Cref{tab:planner_csv_schema}), and converts values to the appropriate numeric types.
-The sentinel value \texttt{N/A} is used for metrics that a planner architecturally cannot report (e.g., state expansion counts for SAT-based Madagascar) and is written as the string \texttt{N/A} in the CSV rather than \texttt{0} to preserve the semantic distinction between ``not applicable'' and ``zero.''
+The sentinel value \texttt{N/A} is used for metrics that a planner architecturally cannot report (e.g., state-expansion counts for SAT-based Madagascar) and is written verbatim into the CSV rather than as \texttt{0}, for the reason given in \Cref{sec:design:overview:data}.
 
 \subsection{Docker Invocation}
 \label{sec:impl:docker:invocation}
@@ -539,11 +539,9 @@ The retry policy is specified per error type in the \texttt{retry\_policy} secti
 \subsection{Hyperparameter Control}
 \label{sec:impl:llm:hyperparams}
 
-All \gls{llm} calls use a temperature of $T{=}0.0$ for deterministic decoding.
-For deep-reasoning models (GPT-5.4 and DeepSeek-R1), the temperature and top-$p$ parameters are omitted from the API call because these models' APIs do not support explicit temperature control; instead, they use an internal reasoning process.
-The maximum completion token limit is set to 8{,}192 tokens, sufficient for the largest \gls{pddl} domains in the benchmark set.
-Each API call is stateless: no conversation history is maintained between calls, and each prompt is self-contained.
-These hyperparameters are documented in the \texttt{llm\_hyperparameters} section of the experiment configuration file.
+The hyperparameter \emph{values} and their experimental justification are given in \Cref{sec:setup:hyperparameters}; this section records only how they are realised at the SDK level.
+The one provider-specific subtlety is that the deep-reasoning models (GPT-5.4 and DeepSeek-R1) do not accept an explicit temperature or top-$p$ argument, so these fields are omitted from their requests, whereas the remaining models receive them explicitly.
+All requests are otherwise issued statelessly, with no conversation history carried between calls.
 
 \subsection{Response Validation}
 \label{sec:impl:llm:validation}
