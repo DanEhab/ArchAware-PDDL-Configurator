@@ -300,10 +300,121 @@ Closing precisely this gap---by injecting planner-architecture knowledge into th
 
 \section{Architecture-Aware Prompt Results (Stage 2)}
 \label{sec:results:stage2}
-% The breakthrough results
-% Validation rates, IPC score jumps, coverage improvements
-% Cross-testing analysis: proving architectural rules actually matter
-% Comparison with Stage 1: interpreting why architecture-aware hints outperform generic ones
+
+Stage~2 replaces the planner-agnostic prompt of Stage~1 with the four planner-tailored, architecture-aware prompts of \Cref{sec:setup:arch_aware_prompt}, each of which injects a synthesised description of one target planner's internal pipeline together with planner-specific reordering rules.
+Every \gls{llm} now produces a separate configuration for each planner, so the design expands to $4~\text{\glspl{llm}} \times 5~\text{domains} \times 4~\text{planner prompts} = 80$ generations.
+The stage answers two questions in sequence.
+The first is one of \emph{efficacy}: does naming the target planner and describing how it reads a domain yield measurable improvements where the generic prompt did not?
+The second, and the one that bears most directly on the thesis hypothesis, is one of \emph{specialisation}: are those improvements genuinely tied to the planner they were designed for, or do they merely make the domain better for everyone?
+A dedicated cross-testing phase (\Cref{sec:design:stage2:improvement}) is what makes the second question answerable.
+
+\subsection{Generation and Validation}
+\label{sec:results:stage2:generation}
+
+Of the 80 generations, 75 (93.8\%) passed validation. The five losses split into three Gemini~3.1~Pro outputs that exceeded the completion-token limit on the longest prompts (the DecStar and \gls{lama} prompts for Depots and Barman) and two GPT-5.4 outputs rejected at the semantic check~(V4)---on the \gls{lama} prompt for Ricochet Robots and the \gls{bfws} prompt for Depots---where the model went beyond reordering and altered a precondition or effect in its attempt to optimise. Claude Opus~4.6 again validated on all 20 calls.
+
+More revealing than the pass rate is \emph{what} changed. Under the architecture-aware prompts the reordering of predicate declarations jumps to 75 of 75 valid domains (100\%), against just 22\% under the generic prompt of Stage~1 (\Cref{fig:s1_reordering}). This is the clearest behavioural fingerprint that the architectural guidance was actually absorbed: all four prompts name predicate ordering as the highest-priority lever (for mutex discovery, novelty-table indexing, or SAT variable assignment), and the models obeyed uniformly. Add-effects (87\%), preconditions (85\%), and actions (75\%) follow, while parameters (1\%) and the declarative sections (0\%) remain untouched---the same safe, operational-only discipline observed in Stage~1. As in earlier stages, DeepSeek-R1's reasoning trace inflated its output to roughly \num{106185} tokens (about seven times GPT-5.4 and Claude), with no corresponding advantage in outcome.
+
+\subsection{Improvement Efficacy}
+\label{sec:results:stage2:efficacy}
+
+Each of the 75 validated configurations was executed on its target planner (1{,}125 runs) and evaluated by the three-condition improvement test of \Cref{sec:design:stage2:improvement}, which requires a statistically significant, practically positive, and coverage-preserving gain in per-instance \gls{ipc} score over the Stage~0 baseline.
+\emph{Forty-two of the 75 configurations (56.0\%) qualified as improved}---a decisive departure from the inert generic reorderings of Stage~1.
+Because this gate is the pipeline's internal screening step, it applies the relaxed $\alpha = 0.25$ threshold motivated in \Cref{sec:design:stage2:improvement}; the confirmatory analysis at the conventional $\alpha = 0.05$ is reported separately in \Cref{sec:results:statistical_validation}.
+
+The single most important result of the stage is \emph{how} that improvement rate distributes across the four target planners (\Cref{tab:s2_improvement_planner}).
+The ordering---\gls{lama} (100\%) $>$ \gls{bfws} (57.9\%) $>$ DecStar (38.9\%) $>$ Madagascar (30.0\%)---tracks almost exactly how sensitive each architecture is to the textual ordering of a domain.
+\gls{lama}'s entire forward-search pipeline is order-driven: predicate order shapes mutex and landmark discovery, and precondition order determines which supports the FF heuristic selects as preferred operators, so every one of its 18 configurations improved.
+Madagascar sits at the opposite pole: it compiles the task to \gls{sat}, and the solver's dynamic variable-ordering heuristic (VSIDS) rapidly overrides whatever initial variable order the PDDL layout imposes, washing out most of the \gls{llm}'s structural intent.
+\gls{bfws} and DecStar fall in between, consistent with their partial reliance on textual structure.
+This monotonic relationship between architectural order-sensitivity and responsiveness to configuration is, in miniature, the empirical core of the thesis.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Stage~2 improvement rate by target planner. The ranking mirrors each architecture's structural sensitivity to PDDL element ordering, from the fully order-driven \gls{lama} to the \gls{sat}-based Madagascar, whose solver heuristics override the textual order.}
+  \label{tab:s2_improvement_planner}
+  \small
+  \begin{tabular}{l l c c}
+    \toprule
+    \textbf{Target Planner} & \textbf{Architecture} & \textbf{Improved} & \textbf{Rate} \\
+    \midrule
+    \gls{lama}  & Heuristic search (FF + landmarks) & 18/18 & 100.0\% \\
+    \gls{bfws}  & Width-based (novelty)             & 11/19 & 57.9\% \\
+    DecStar     & Decoupled (star topology)         & 7/18  & 38.9\% \\
+    Madagascar  & \gls{sat} compilation             & 6/20  & 30.0\% \\
+    \midrule
+    \textbf{Overall} & --- & \textbf{42/75} & \textbf{56.0\%} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The gains themselves are real but moderate. \Cref{fig:s2_ipc_gains} shows the distribution of mean \gls{ipc} gains across all 75 configurations: a dense cluster of small positive values, a positive skew, and a ceiling near $0.09$---no single configuration exceeds a gain of $0.1$. Architecture-aware reordering therefore delivers consistent fine-tuning rather than dramatic breakthroughs, a reading reinforced by the reliability of the gains: 19 of the 42 improvements reach $p \leq 0.001$. Crucially, the improvements are almost purely about speed, not coverage: 41 of the 42 preserve baseline coverage exactly ($\Delta\text{Coverage} = 0$), the lone exception being Snake\,$\times$\,Madagascar under Claude, which solves one additional instance. The reorderings make planners solve the \emph{same} instances faster.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{results/s2_ipc_gains_hist.png}
+  \caption{Distribution of mean \gls{ipc} gain over baseline for all 75 Stage~2 configurations. The mass of positive but modest gains (ceiling near $0.09$, none above $0.1$) indicates consistent fine-tuning; the left tail collects configurations that failed to improve, including the twelve immovable zero-coverage triples.}
+  \label{fig:s2_ipc_gains}
+\end{figure}
+
+The breakdown by domain and by model (\Cref{tab:s2_improvement_domain_llm}) refines the picture. Depots improves in all 14 of its configurations: its high baseline coverage gives the Wilcoxon test maximal power (15 paired, non-zero instances), and its rich logistics structure offers many legal reordering opportunities. Ricochet Robots is the most resistant (26.7\%) for the opposite reasons---low baseline coverage and a deeply combinatorial search that reordering cannot reshape. Among the models, Claude Opus~4.6 leads at 65.0\%, a margin attributable less to deeper planning insight than to reliability: its perfect validation record meant all 20 of its configurations reached the planners, whereas token-limit and semantic losses thinned the fields of Gemini and GPT-5.4. The 33 configurations that did not improve are dominated by the structural floor identified in Stage~0: 12 of them are zero-coverage triples---the VisitAll\,$\times$\,\{DecStar, Madagascar\} and Ricochet\,Robots\,$\times$\,Madagascar pairs---on which both baseline and configured domains time out on every instance. Reordering cannot bridge a fundamental planner--domain incompatibility; it can only accelerate searches that already terminate.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Stage~2 improvement rate by domain (left) and by \gls{llm} (right). Depots improves universally; Ricochet Robots resists most. The differing \gls{llm} denominators reflect the validation losses of \Cref{sec:results:stage2:generation}.}
+  \label{tab:s2_improvement_domain_llm}
+  \small
+  \begin{tabular}{l c @{\hspace{2.5em}} l c}
+    \toprule
+    \textbf{Domain} & \textbf{Improved} & \textbf{LLM} & \textbf{Improved} \\
+    \midrule
+    Depots          & 14/14 (100.0\%) & Claude Opus 4.6 & 13/20 (65.0\%) \\
+    Snake           & 10/16 (62.5\%)  & Gemini 3.1 Pro  & 10/17 (58.8\%) \\
+    Barman          & 8/14 (57.1\%)   & DeepSeek-R1     & 10/20 (50.0\%) \\
+    VisitAll        & 6/16 (37.5\%)   & GPT-5.4         & 9/18 (50.0\%) \\
+    Ricochet Robots & 4/15 (26.7\%)   & ---             & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Architecture Specialisation}
+\label{sec:results:stage2:specialisation}
+
+Establishing that the prompts \emph{improve} the target planner is only half the claim; the thesis asserts that the improvements are \emph{specific} to that planner. To test this, every one of the 42 improved domains was re-executed on the three planners it was \emph{not} designed for---1{,}890 additional cross-test runs. For each configuration we define its \emph{specialisation index} as the target-planner \gls{ipc} gain minus the mean gain across the three non-target planners, computed on a per-instance local reference so that target and non-target cells are numerically comparable. A positive index means the optimisation favoured its intended planner. Each configuration is then classed as \emph{specialised} (non-targets are actively hurt, by more than a $0.005$ noise margin), \emph{universally better} (non-targets also gain, but no more than the target), \emph{anti-specialised} (non-targets gain more than the target), or \emph{neutral}.
+
+\Cref{fig:s2_specialisation} plots target gain against mean non-target gain, and \Cref{tab:s2_specialisation} summarises the verdicts. The headline figures support the hypothesis: 34 of 42 configurations (81.0\%) carry a positive specialisation index, and the mean index is $+0.0313$---architecture-aware prompting systematically biases improvement toward the named planner. Strict specialisation (target up, non-targets down) accounts for 16 configurations (38.1\%) and a further 15 (35.7\%) are universally better, against only 8 (19.0\%) anti-specialised.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{results/s2_specialization_scatter.png}
+  \caption{Target-planner \gls{ipc} gain versus mean non-target gain for the 42 improved configurations. Points below the horizontal axis (bottom-right) are strictly specialised---the configuration helps its target while hurting other architectures---and are dominated by \gls{lama}; the high-magnitude points in the upper-right are universally better and come mostly from Depots.}
+  \label{fig:s2_specialisation}
+\end{figure}
+
+The per-planner pattern (\Cref{tab:s2_specialisation}) is itself architecturally coherent. \gls{lama} produces by far the most strictly specialised configurations (10 of 18, 56\%): because its optimisations exploit order-sensitivity unique to forward search---placing static preconditions first for fast applicability short-circuiting, for instance---they frequently \emph{degrade} planners that read the domain differently. \gls{bfws} carries the highest mean index ($+0.0536$) yet leans universal (6 of 11), and Madagascar is similar: orderings that suit \gls{sat} compilation (goal predicates first, mutex groups adjacent) double as generically clean PDDL that happens to help everyone. The one dissonant case is DecStar, the only planner with a negative mean index ($-0.0079$) and a majority of anti-specialised configurations (4 of 7): its decoupled star-topology decomposition appears to be the architecture whose advantages current \glspl{llm} translate least reliably into reordering rules---an explicit target for the feedback loop and for future prompt engineering.
+
+Two interpretive points temper and strengthen the result in equal measure. First, the universally-better configurations are not a failure of the hypothesis but a by-product of it: in resolving a domain-wide inefficiency for one planner (a goal-critical predicate buried last, say), the model often cleans up structure that was hindering all planners. Indeed, the very largest gains in \Cref{fig:s2_specialisation} are universal and concentrated in Depots, while strict specialisation is associated with more moderate target gains---creating a planner-specific advantage demands delicate structural trade-offs, whereas the biggest wins come from universal cleanup. Second, the thesis claim is precisely the one the data support: not that architecture-aware prompting helps the target \emph{exclusively}, but that it \emph{systematically biases} optimisation toward the target, which the positive mean index and the 81\% majority confirm.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Specialisation verdicts for the 42 improved configurations, by target planner. A positive mean index indicates target-biased optimisation. \gls{lama} specialises most strongly; DecStar is the sole planner with a negative mean index.}
+  \label{tab:s2_specialisation}
+  \small
+  \begin{tabular}{l c c c c c}
+    \toprule
+    \textbf{Target Planner} & \textbf{Specialised} & \textbf{Univ.\ Better} & \textbf{Anti-Spec.} & \textbf{Neutral} & \textbf{Mean Index} \\
+    \midrule
+    \gls{lama}  & 10 & 4 & 3 & 1 & $+0.0338$ \\
+    \gls{bfws}  & 3  & 6 & 0 & 2 & $+0.0536$ \\
+    DecStar     & 2  & 1 & 4 & 0 & $-0.0079$ \\
+    Madagascar  & 1  & 4 & 1 & 0 & $+0.0284$ \\
+    \midrule
+    \textbf{Total} & \textbf{16 (38.1\%)} & \textbf{15 (35.7\%)} & \textbf{8 (19.0\%)} & \textbf{3 (7.1\%)} & \textbf{$+0.0313$} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Taken together, Stage~2 delivers the central positive finding of the thesis: supplying an \gls{llm} with planner-architecture knowledge converts the inert reorderings of Stage~1 into improvements that are both frequent (56\% of configurations) and target-biased (81\% positive specialisation index). The boundaries are equally clear---44\% of configurations still fail to improve, DecStar resists specialisation, and twelve planner--domain pairs remain fundamentally unsolvable. Whether an iterative loop that feeds real execution telemetry back to the model can push past these limits is the question taken up by Stage~3 (\Cref{sec:results:stage3}).
 
 \section{Feedback Loop Results (Stage 3)}
 \label{sec:results:stage3}
