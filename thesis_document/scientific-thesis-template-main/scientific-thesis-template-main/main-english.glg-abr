@@ -1,7 +1,7 @@
 This is makeindex, version 2.18 [MiKTeX 26.5].
 Scanning style file ./main-english.ist...........................done (27 attributes redefined, 0 ignored).
-Scanning input file main-english.glo-abr....done (373 entries accepted, 0 rejected).
-Sorting entries......done (4057 comparisons).
-Generating output file main-english.gls-abr....done (96 lines written, 0 warnings).
+Scanning input file main-english.glo-abr....done (428 entries accepted, 0 rejected).
+Sorting entries......done (4270 comparisons).
+Generating output file main-english.gls-abr....done (109 lines written, 0 warnings).
 Output written in main-english.gls-abr.
 Transcript written in main-english.glg-abr.
