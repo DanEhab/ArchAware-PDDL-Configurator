@@ -667,5 +667,32 @@ Taken together, the statistical suite confirms every substantive element of the 
 
 \section{Comparison with Prior Work}
 \label{sec:results:prior_work}
-% Direct comparison with Daniel Elis's thesis results
-% How the architecture-aware, feedback-loop pipeline outperforms the generic baseline
+
+This thesis extends the foundational study of \citeauthor{Elis2025}~\cite{Elis2025}, which first probed whether \glspl{llm} could restructure \gls{pddl} domains through static prompting (zero-shot, few-shot, and chain-of-thought variants swept across several models and temperatures). That study established the feasibility of the idea but exposed two ceilings: an overall semantic validity rate near 49\%, and a weak, regression-prone optimisation rate of roughly 14--26\% of configurations improving over the baseline. The architecture-aware prompts and feedback loop developed here were designed precisely to lift those ceilings. \Cref{tab:elis_comparison} sets the two studies side by side.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Comparison with the prior work of \citeauthor{Elis2025}~\cite{Elis2025}. The upper block contrasts methodology; the lower block contrasts headline outcomes. Because the two studies differ in planners, domains, and model generation (see text), the figures are contextual rather than a controlled head-to-head.}
+  \label{tab:elis_comparison}
+  \small
+  \begin{tabular}{l l l}
+    \toprule
+    \textbf{Dimension} & \textbf{Prior work~\cite{Elis2025}} & \textbf{This thesis} \\
+    \midrule
+    Prompt strategy            & 5 static (zero/few-shot, \gls{cot})  & 2 dynamic (general + arch.-aware) \\
+    Architecture-awareness     & No                                   & Yes (planner-specific guidance) \\
+    Feedback loop              & No                                   & Yes (3-iteration, telemetry-driven) \\
+    Formal improvement test    & No                                   & Yes (3-condition gate) \\
+    Base domain generations    & 700                                  & 100 \\
+    \addlinespace
+    Overall validity rate      & 49\% (343/700)                       & 93\% (93/100) \\
+    Configs improved vs.\ S0   & $\sim$14--26\%                       & 80.9\% (55/68) \\
+    Mean \gls{ipc} gain        & Mixed; regressions common            & Positive for every model at S2 \\
+    Significance testing       & $\chi^2$ only                        & Non-parametric suite + effect sizes \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+On both headline metrics the gap is large, but the two gains must be attributed with care. The leap in validity (49\%~$\rightarrow$~93\%) is only partly methodological: a substantial share owes to the generational advance in the underlying models, since the 2026 models used here treat \gls{pddl} syntax as essentially solved (the strongest two reach 100\% syntactic validity), whereas the prior study predates them. The leap in improvement rate ($\sim$20\%~$\rightarrow$~80.9\%), by contrast, cannot be explained by better models alone---architecture-aware prompting and the feedback loop are mechanisms entirely absent from the prior framework, and it is they, not model scale, that convert the inert generic reorderings of Stage~1 into the targeted, regression-free improvements of Stages~2 and~3.
+
+A second caveat is equally important: the cross-thesis comparison is not a controlled experiment. The two studies overlap in only one planner (Madagascar) and one domain (Barman), and differ further in model generation and instance count, so the absolute figures in \Cref{tab:elis_comparison} describe trajectories rather than a like-for-like contest. The rigorous causal evidence for the methodological claim therefore rests not on this external comparison but on the \emph{internal} ablation of this thesis: the Stage~1 versus Stage~2 contrast (\Cref{sec:results:stage2}) holds the planners, domains, and models fixed and varies only the prompt design, and \Cref{sec:results:statistical_validation} confirmed that architecture-awareness alone produces a significant improvement ($p = 2.2 \times 10^{-21}$). Read together, the prior work establishes where the field stood, while the controlled ablation establishes why architecture-awareness advances it---realising, with empirical support, the planner-aware configuration that \citeauthor{Elis2025} identified as a direction for future work. The boundaries of that claim, including the limited planner and domain coverage just noted, are examined systematically in \Cref{ch:threats}.
