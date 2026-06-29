@@ -212,9 +212,91 @@ With this reference landscape established, \Cref{sec:results:stage1} turns to th
 
 \section{General Prompt Results (Stage 1)}
 \label{sec:results:stage1}
-% Did a simple "improve this code" prompt work?
-% Validation rates, IPC score gains, coverage changes
-% Analysis: worked partially, but often generated broken or unhelpful code
+
+Stage~1 introduces the first \gls{llm} intervention: the generic, planner-agnostic prompt of \Cref{sec:setup:general_prompt} (the $\Pi_\text{ZS-S}$ zero-shot-short strategy), which simply asks each model to reorder a domain ``to improve AI planner efficiency'' without naming or describing any target planner.
+Each of the four \glspl{llm} processed all five domains, producing 20 candidate domains; those that passed validation were executed across all four planners and 15 instances, for 1{,}080 planner runs.
+Because the prompt withholds all architectural knowledge, this stage functions as a controlled reference point for the configuration idea itself, and its guiding question is deliberately binary: \emph{does generic reordering, on its own, move planner performance?}
+
+\subsection{Generation and Validation}
+\label{sec:results:stage1:generation}
+
+All 20 \gls{llm} API calls returned a complete response without error, and every response passed extraction (V1) and VAL syntax checking (V2) of the four-level validation pipeline (\Cref{sec:design:validation}).
+Two outputs were rejected at the identity check (V3)---both from DeepSeek-R1, on Ricochet Robots and Barman---leaving 18 of 20 candidates (90\%) valid, all of which passed the semantic-equivalence check (V4) intact (\Cref{tab:s1_generation}).
+The perfect syntax and semantic rates are themselves a finding: when instructed to emit only valid PDDL and to preserve meaning, no model introduced a syntax error or an illegal logical change. The models reliably separate reorderable surface form from load-bearing semantics.
+
+The two rejections expose a behavioural axis among the models. DeepSeek-R1, whose reasoning architecture deliberates before answering, judged two domains already well-ordered and returned them verbatim; the identity guard (V3) rejects such outputs because they are indistinguishable from the Stage~0 baseline. The same conservatism is visible in the reordering effort of \Cref{tab:s1_generation}: DeepSeek-R1 made only 9 individual reorderings, against 28--33 for the other three models, with Claude Opus~4.6 the most active. This caution carries no efficiency benefit---DeepSeek-R1 emitted \num{10201} output tokens, roughly three times its peers, as its chain-of-thought trace inflates the completion---making it simultaneously the most expensive and the least productive model at this stage.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Stage~1 generation outcome per \gls{llm}: valid domains (of five), total output tokens, and the number of individual component reorderings recorded by the diff analyser across the valid domains. DeepSeek-R1 is both the most conservative (fewest reorderings, two identity rejections) and the most token-intensive.}
+  \label{tab:s1_generation}
+  \small
+  \begin{tabular}{l c c c c}
+    \toprule
+    \textbf{LLM} & \textbf{Valid Domains} & \textbf{Output Tokens} & \textbf{Items Reordered} & \textbf{Avg.\ per Domain} \\
+    \midrule
+    GPT-5.4          & 5/5 & \num{3239}  & 31 & 6.2 \\
+    DeepSeek-R1      & 3/5 & \num{10201} & 9  & 3.0 \\
+    Claude Opus 4.6  & 5/5 & \num{3866}  & 33 & 6.6 \\
+    Gemini 3.1 Pro   & 5/5 & \num{3541}  & 28 & 5.6 \\
+    \midrule
+    \textbf{Total}   & \textbf{18/20} & \num{20847} & \textbf{101} & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{What the Models Chose to Reorder}
+\label{sec:results:stage1:reordering}
+
+\Cref{fig:s1_reordering} shows how the 18 valid reorderings distribute across the nine PDDL component types.
+The edits concentrate sharply on \emph{operational} components---preconditions (modified in 16 of 18 domains), actions (12), add-effects (11), delete-effects (6), and predicates (4)---while four components are \emph{never} touched: requirements, types, functions, and parameters.
+Both ends of this distribution are informative.
+The leading order---preconditions before actions before effects---matches the intuition of the planning literature: precondition order governs early applicability pruning during successor generation, and action order governs the sequence in which operators are first considered.
+The four zeros are arguably the stronger result.
+Requirements, types, and functions are declarative sections parsed once at initialisation, with no bearing on search; and parameter order is semantically load-bearing, since permuting an action's parameters would invalidate every problem file that references it.
+That all four models avoided these components---parameters above all---corroborates the V4 outcome from a second direction: the reorderings are safe and operationally targeted, not random shuffling.
+Absent planner-specific guidance, the models converge on the same generic intuition about what matters; they differ only in degree, not in kind.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.74\textwidth]{results/s1_reordering_frequency.png}
+  \caption{Number of valid Stage~1 domains (of 18) in which each PDDL component was reordered. All models edit only operational components (preconditions, actions, effects, predicates) and never the declarative or semantically significant ones (requirements, types, functions, parameters).}
+  \label{fig:s1_reordering}
+\end{figure}
+
+\subsection{Planner Impact: A Controlled Null Result}
+\label{sec:results:stage1:impact}
+
+Valid and sensible as these edits are, they leave planner performance essentially unchanged.
+The Stage~1 overall solve rate is 56.57\% (611/1{,}080), against the Stage~0 baseline of 56.00\%---a difference of barely half a percentage point.
+\Cref{tab:s1_solve_rate} confirms that the stability holds planner by planner: no planner moves by more than 3.5 percentage points, the largest shifts being Madagascar's $+3.34$ and \gls{bfws}'s $-2.00$.
+The timeout landscape is likewise frozen in place: the hardest domains (Snake, Ricochet Robots) and the most timeout-prone planners (DecStar, Madagascar) remain exactly those identified in \Cref{sec:results:stage0}, each within about two percentage points of its baseline rate.
+Coverage is even invariant \emph{across} the four models---every (domain, planner) cell, from the saturated Depots\,$\times$\,\gls{bfws} (15/15) to the incompatible VisitAll\,$\times$\,DecStar (0/15), records the same coverage no matter which \gls{llm} produced the domain.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Per-planner solve rate, Stage~0 baseline versus Stage~1 general prompt (the Stage~1 figure averages over all four \glspl{llm}). No planner shifts by more than 3.5~percentage points; the overall change is $+0.57$~pp.}
+  \label{tab:s1_solve_rate}
+  \small
+  \begin{tabular}{l c c c}
+    \toprule
+    \textbf{Planner} & \textbf{Stage 0} & \textbf{Stage 1} & \textbf{$\Delta$ (pp)} \\
+    \midrule
+    \gls{bfws}  & 85.33\% & 83.33\% & $-2.00$ \\
+    \gls{lama}  & 70.67\% & 71.11\% & $+0.44$ \\
+    DecStar     & 34.67\% & 35.19\% & $+0.52$ \\
+    Madagascar  & 33.33\% & 36.67\% & $+3.34$ \\
+    \midrule
+    \textbf{Overall} & 56.00\% & 56.57\% & $+0.57$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+This near-perfect stability is, in one sense, exactly what a semantics-preserving transformation should produce: an instance that is fundamentally unsolvable or already trivial at baseline remains so after its components are merely reshuffled.
+But the same stability is the central negative result of the stage---generic reordering does not shift the difficulty landscape.
+Coverage is admittedly a coarse lens, and small per-instance runtime changes can still occur within an unchanged coverage envelope; those finer \gls{ipc}-score effects are quantified in the cross-stage analysis (\Cref{sec:results:cross_stage}).
+At the level of what a planner-agnostic prompt can \emph{reliably} achieve, however, the conclusion is unambiguous: instructing a model that a domain should be ``more efficient'' is not the same as telling it how a particular planner will read that domain.
+Closing precisely this gap---by injecting planner-architecture knowledge into the prompt---is the task of Stage~2 (\Cref{sec:results:stage2}).
 
 \section{Architecture-Aware Prompt Results (Stage 2)}
 \label{sec:results:stage2}
