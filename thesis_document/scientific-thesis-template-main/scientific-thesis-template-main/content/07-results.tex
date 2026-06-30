@@ -293,7 +293,7 @@ Because this gate is the pipeline's internal screening step, it applies the rela
 The single most important result of the stage is \emph{how} that improvement rate distributes across the four target planners (\Cref{tab:s2_improvement_planner}).
 The ordering---\gls{lama} (100\%) $>$ \gls{bfws} (57.9\%) $>$ DecStar (38.9\%) $>$ Madagascar (30.0\%)---tracks almost exactly how sensitive each architecture is to the textual ordering of a domain.
 \gls{lama}'s entire forward-search pipeline is order-driven: predicate order shapes mutex and landmark discovery, and precondition order determines which supports the FF heuristic selects as preferred operators, so every one of its 18 configurations improved.
-Madagascar sits at the opposite pole: it compiles the task to \gls{sat}, and the solver's dynamic variable-ordering heuristic (VSIDS) rapidly overrides whatever initial variable order the PDDL layout imposes, washing out most of the \gls{llm}'s structural intent.
+Madagascar sits at the opposite pole: it compiles the task to \gls{sat}, and the solver's dynamic variable-ordering heuristics (such as VSIDS) rapidly override whatever initial variable order the PDDL layout imposes, washing out most of the \gls{llm}'s structural intent.
 \gls{bfws} and DecStar fall in between, consistent with their partial reliance on textual structure.
 This monotonic relationship between architectural order-sensitivity and responsiveness to configuration is, in miniature, the empirical core of the thesis.
 
@@ -382,7 +382,7 @@ Two interpretive points temper and strengthen the result in equal measure. First
   \end{tabular}
 \end{table}
 
-Taken together, Stage~2 delivers the central positive finding of the thesis: supplying an \gls{llm} with planner-architecture knowledge converts the inert reorderings of Stage~1 into improvements that are both frequent (56\% of configurations) and target-biased (81\% positive specialisation index). The boundaries are equally clear---44\% of configurations still fail to improve, DecStar resists specialisation, and twelve planner--domain pairs remain fundamentally unsolvable. Whether an iterative loop that feeds real execution telemetry back to the model can push past these limits is the question taken up by Stage~3 (\Cref{sec:results:stage3}).
+Taken together, Stage~2 delivers the central positive finding of the thesis: supplying an \gls{llm} with planner-architecture knowledge converts the inert reorderings of Stage~1 into improvements that are both frequent (56\% of configurations) and target-biased (81\% positive specialisation index). The boundaries are equally clear---44\% of configurations still fail to improve, DecStar resists specialisation, and twelve planner--domain--model triples remain fundamentally unsolvable. Whether an iterative loop that feeds real execution telemetry back to the model can push past these limits is the question taken up by Stage~3 (\Cref{sec:results:stage3}).
 
 \section{Feedback Loop Results (Stage 3)}
 \label{sec:results:stage3}
