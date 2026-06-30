@@ -86,8 +86,8 @@
 		\setentrycounter[]{page}\glsnumberformat{96}\delimN 
 		\setentrycounter[]{page}\glsnumberformat{100}\delimN 
 		\setentrycounter[]{page}\glsnumberformat{102\delimN 103}\delimN 
-		\setentrycounter[]{page}\glsnumberformat{105\delimN 106}\delimN 
-		\setentrycounter[]{page}\glsnumberformat{108\delimN 109}\delimN 
+		\setentrycounter[]{page}\glsnumberformat{105}\delimN 
+		\setentrycounter[]{page}\glsnumberformat{107\delimR 109}\delimN 
 		\setentrycounter[]{page}\glsnumberformat{111\delimR 118}\delimN 
 		\setentrycounter[]{page}\glsnumberformat{121\delimN 122}}}\glsgroupskip
 \glsgroupheading{P}\relax \glsresetentrylist %

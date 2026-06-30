@@ -239,7 +239,7 @@ Valid and sensible as these edits are, they leave planner performance essentiall
 The Stage~1 overall solve rate is 56.57\% (611/1{,}080), against the Stage~0 baseline of 56.00\%---a difference of barely half a percentage point.
 \Cref{tab:s1_solve_rate} confirms that the stability holds planner by planner: no planner moves by more than 3.5 percentage points, the largest shifts being Madagascar's $+3.34$ and \gls{bfws}'s $-2.00$.
 The timeout landscape is likewise frozen in place: the hardest domains (Snake, Ricochet Robots) and the most timeout-prone planners (DecStar, Madagascar) remain exactly those identified in \Cref{sec:results:stage0}, each within about two percentage points of its baseline rate.
-Coverage is even invariant \emph{across} the four models---every (domain, planner) cell, from the saturated Depots\,$\times$\,\gls{bfws} (15/15) to the incompatible VisitAll\,$\times$\,DecStar (0/15), records the same coverage no matter which \gls{llm} produced the domain.
+Coverage is also largely insensitive to \emph{which} model produced the domain: the saturated cells (Depots\,$\times$\,\gls{bfws} at 15/15) and the incompatible cells (VisitAll\,$\times$\,DecStar at 0/15) are identical across all four \glspl{llm}, and the partially solved cells differ by at most one or two instances (for instance, \gls{bfws} on Snake solves 7--8 instances depending on the model).
 
 \begin{table}[htbp]
   \centering
