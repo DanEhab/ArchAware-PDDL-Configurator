@@ -15,9 +15,7 @@ The chapter follows the logical progression of the pipeline.
 \label{sec:results:stage0}
 
 Stage~0 executes the four target planners on the five original, unmodified \gls{ipc} domains, with no \gls{llm} in the loop.
-As set out in \Cref{sec:design:stage0}, its purpose is twofold.
-First, it records the \emph{reference} runtimes $T_i$ against which all later \gls{ipc} score gains are computed (\Cref{eq:ipc_score}).
-Second, it characterises the difficulty landscape---which domains are intrinsically hard, which planners struggle, and, most importantly, \emph{where measurable headroom for configuration actually exists}.
+As set out in \Cref{sec:design:stage0}, Stage~0 measures how each planner performs on the unmodified domains---the performance that every later stage is compared against---and characterises the difficulty landscape: which domains are intrinsically hard, which planners struggle, and where there is genuine room for configuration to help.
 The full factorial design comprises $4~\text{planners} \times 5~\text{domains} \times 15~\text{instances} = 300$ runs.
 
 \subsection{Aggregate Execution Outcome}
@@ -63,25 +61,20 @@ Madagascar, the only \gls{sat}-based planner, occupies the opposite extreme.
 It translates each planning task into a sequence of Boolean formulae---one per candidate plan length---and delegates them to a \gls{sat} solver.
 When a short plan exists this is extraordinarily fast (Madagascar is the quickest planner on Depots, mean 0.58~s), but when the optimal horizon is long or unknown the solver must iterate over ever-larger formulae, which explains why Madagascar fails outright on the long-horizon VisitAll and Ricochet Robots domains.
 
-\paragraph{The survivorship caveat.}
-A naive reading of \Cref{tab:s0_planner_summary} invites two misinterpretations that must be dispelled before any cross-planner claim is made.
-First, \gls{bfws} records the \emph{highest} mean wall-clock time (66.98~s) despite being the strongest planner; second, DecStar and Madagascar record the \emph{lowest} mean plan costs (118.7 and 97.3) despite being the weakest.
-Both artefacts arise from a single source---a survivorship effect.
-Wall-clock time, plan cost, and states expanded are recorded only for \texttt{SUCCESS} runs, so each planner's averages are taken over a \emph{different} subset of instances.
-\gls{bfws} and \gls{lama} succeed on the long-horizon VisitAll instances (whose plans run to several thousand actions; see \Cref{sec:results:stage0:cost}), and those instances inflate both their mean runtimes and their mean costs.
-The weaker planners simply time out on the very same instances, so their averages are computed only over the short, easy instances they manage to solve.
-Consequently, \emph{coverage is the only planner-level aggregate in \Cref{tab:s0_planner_summary} that is comparable across planners}; every efficiency metric must be compared within a fixed (domain, instance) cell.
-This is the concrete empirical justification for the per-instance \gls{ipc}-score pairing used throughout the rest of this chapter.
+Two columns of \Cref{tab:s0_planner_summary} look paradoxical at first: \gls{bfws} records the \emph{highest} mean wall-clock time (66.98~s) despite being the strongest planner, and DecStar and Madagascar record the \emph{lowest} mean plan costs (118.7 and 97.3) despite being the weakest.
+Both effects have the same cause: wall-clock time, plan cost, and states expanded are recorded only for \texttt{SUCCESS} runs, so each planner's averages are taken over a \emph{different} set of instances.
+\gls{bfws} and \gls{lama} solve the long-horizon VisitAll instances---whose plans run to several thousand actions---and those instances inflate both their mean runtimes and their mean costs, whereas the weaker planners time out on them and are averaged only over the short, easy instances they do solve.
+Coverage is therefore the only planner-level aggregate in \Cref{tab:s0_planner_summary} that can be compared across planners; every efficiency metric must instead be compared within a fixed (domain, instance) cell---the reason for the per-instance \gls{ipc}-score pairing used throughout the rest of the chapter.
 
-When a like-for-like comparison \emph{is} made, \gls{bfws}'s efficiency advantage is stark.
-On Ricochet Robots, for instance, \gls{bfws} expands a mean of \num{95825} states against \gls{lama}'s \num{1380370} and DecStar's \num{530587}---an order-of-magnitude economy on identical instances, confirming that its novelty heuristic prunes the search space far more aggressively than delete-relaxation heuristics or decoupled search.
+When a like-for-like comparison \emph{is} made, \gls{bfws}'s efficiency advantage is clear.
+On Ricochet Robots, for example, it expands far fewer states than its rivals on the same instances---a mean of \num{95825}, against \gls{lama}'s \num{1380370} and DecStar's \num{530587}---confirming that its novelty heuristic prunes the search space more aggressively than delete-relaxation heuristics or decoupled search.
 
 \subsection{Domain Difficulty Landscape}
 \label{sec:results:stage0:domains}
 
-Aggregating over planners reveals an equally pronounced spread across domains, shown in \Cref{tab:s0_domain_difficulty}.
+The domains differ just as sharply, as \Cref{tab:s0_domain_difficulty} shows.
 Depots is almost trivially easy (98.3\% solved; 59 of 60 runs), whereas Snake is the hardest (31.7\%), with Ricochet Robots close behind (36.7\%).
-The ordering is structurally intuitive.
+This ranking follows directly from each domain's structure.
 Depots (IPC~2002) is a well-studied logistics domain with a strongly typed three-level hierarchy and spatially independent sub-problems, properties that every architecture exploits effectively.
 Snake (IPC~2018), by contrast, is untyped, relies on negative preconditions, and is dense with irreversible dead-end states: a single wrong move can render the goal unreachable, forcing planners to waste effort exploring doomed regions of the state space.
 Ricochet Robots (IPC~2023) is hard for a different reason---its sliding-block mechanic produces long action sequences and demands that pieces be coordinated as mutual blockers, a structure that defeats most goal-distance heuristics.
@@ -89,7 +82,7 @@ The 67-percentage-point gap between the easiest and hardest domain confirms that
 
 \begin{table}[htbp]
   \centering
-  \caption{Domain difficulty ranking, ordered from hardest to easiest by overall solve rate (all four planners, 60 runs per domain). The final column names the planner with the lowest mean wall-clock time among its successful runs; this value is itself subject to the survivorship effect of \Cref{sec:results:stage0:planners} and indicates only which architecture is best matched to each domain.}
+  \caption{Domain difficulty ranking, ordered from hardest to easiest by overall solve rate (all four planners, 60 runs per domain). The final column names the planner with the lowest mean wall-clock time among its successful runs; this value is itself subject to the same averaging effect noted in \Cref{sec:results:stage0:planners} and indicates only which architecture is best matched to each domain.}
   \label{tab:s0_domain_difficulty}
   \small
   \begin{tabular}{l c c l}
@@ -108,8 +101,8 @@ The 67-percentage-point gap between the easiest and hardest domain confirms that
 \subsection{The Planner--Domain Coverage Interaction}
 \label{sec:results:stage0:coverage}
 
-Planner-level and domain-level aggregates each tell only half the story; the decisive structure is their \emph{interaction}, visualised in the coverage heatmap of \Cref{fig:s0_coverage_heatmap} and quantified as runtimes in \Cref{tab:s0_walltime}.
-Three features of this matrix shape the entire remainder of the study.
+Neither the planner view nor the domain view is sufficient on its own; what matters is their \emph{interaction}, shown in the coverage heatmap of \Cref{fig:s0_coverage_heatmap} and as runtimes in \Cref{tab:s0_walltime}.
+Three features of this matrix recur throughout the later stages.
 
 \begin{figure}[htbp]
   \centering
@@ -124,18 +117,18 @@ No other planner is so uniformly robust, which makes \gls{bfws} the natural refe
 Second, three (domain, planner) cells are \emph{completely unsolvable}: VisitAll$\times$DecStar, VisitAll$\times$Madagascar, and Ricochet Robots$\times$Madagascar each score 0/15.
 These zeros are not noise but architectural incompatibilities.
 VisitAll's single agent and fully connected grid offer no independent sub-systems for DecStar's star-topology decomposition to exploit, so its factoring overhead yields only cost; and both unsolved domains require the long action horizons that are pathological for Madagascar's length-indexed \gls{sat} encoding.
-These three pairs reappear in Stage~3 as the twelve always-timeout triples (three pairs across the four \glspl{llm}) that are excluded from the contestable-improvement analysis, because no purely structural reordering can be expected to bridge a fundamental paradigm mismatch.
+These three pairs reappear in Stage~3 as the twelve always-timeout triples (three pairs across the four \glspl{llm}) that are excluded from the contestable-improvement analysis, since merely reordering the text of a domain cannot make a planner solve one that its search paradigm is fundamentally unsuited to.
 
 Third, seven cells are \emph{saturated} at 15/15, but they are not equally interesting as optimisation targets.
 \Cref{tab:s0_walltime} resolves them by runtime.
 Four are already \emph{trivially fast}---Depots under Madagascar (0.58~s), \gls{lama} (1.99~s), and \gls{bfws} (3.13~s), and Barman under \gls{lama} (3.62~s)---leaving essentially no runtime headroom, so that any Stage~1--3 gain on these cells can come only from plan-quality improvements.
-The other three saturated cells (VisitAll$\times$\gls{bfws} at 17.6~s, VisitAll$\times$\gls{lama} at 44.0~s, and Barman$\times$\gls{bfws} at 53.2~s) solve everything but slowly, and therefore offer substantial runtime that a better-structured domain could potentially recover.
+The other three saturated cells (VisitAll$\times$\gls{bfws} at 17.6~s, VisitAll$\times$\gls{lama} at 44.0~s, and Barman$\times$\gls{bfws} at 53.2~s) solve every instance but take appreciably longer than the trivially fast cells, and therefore leave runtime that a better-structured domain could potentially recover.
 
-Taken together, these features partition the configuration problem into three regimes that frame the later stages: \emph{saturated-fast} cells with little runtime headroom, \emph{zero-coverage} cells that are likely beyond the reach of reordering alone, and a broad \emph{contested middle}---the partially solved cells of Snake, Ricochet Robots, and the weaker planners on Barman and VisitAll---where coverage and runtime are genuinely movable and the bulk of the achievable improvement must lie.
+Together, these features sort the (domain, planner) cells into three groups that recur in the later stages: \emph{saturated-fast} cells with little runtime left to recover; \emph{zero-coverage} cells that reordering alone is unlikely to fix; and a broad \emph{contested middle}---the partially solved cells of Snake, Ricochet Robots, and the weaker planners on Barman and VisitAll---where both coverage and runtime can realistically change. Most of the room for improvement in the later stages lies in this middle group.
 
 \begin{table}[htbp]
   \centering
-  \caption{Mean wall-clock runtime (seconds) per planner and domain, over \texttt{SUCCESS} runs only. ``---'' marks the three zero-coverage cells, where no instance was solved. These per-cell runtimes constitute the reference times $T_i$ from which all \gls{ipc} score gains in the later stages are computed.}
+  \caption{Mean wall-clock runtime (seconds) per planner and domain, over \texttt{SUCCESS} runs only. ``---'' marks the three zero-coverage cells, where no instance was solved.}
   \label{tab:s0_walltime}
   \small
   \begin{tabular}{l c c c c}
@@ -154,7 +147,7 @@ Taken together, these features partition the configuration problem into three re
 \subsection{Plan Cost, Runtime Variance, and Measurement Scope}
 \label{sec:results:stage0:cost}
 
-The per-run trade-off between runtime and plan cost, plotted in \Cref{fig:s0_runtime_cost}, both substantiates the survivorship caveat of \Cref{sec:results:stage0:planners} and surfaces two further properties that govern how the later stages must be measured.
+Three measurement lessons from the baseline shape how the later stages must be compared. \Cref{fig:s0_runtime_cost} plots wall-clock time against plan cost for all 168 successful runs and makes the first of them visible.
 
 \begin{figure}[htbp]
   \centering
@@ -163,26 +156,27 @@ The per-run trade-off between runtime and plan cost, plotted in \Cref{fig:s0_run
   \label{fig:s0_runtime_cost}
 \end{figure}
 
-\paragraph{Plan cost is comparable only within a domain.}
-The scatter makes the cost confound of \Cref{sec:results:stage0:planners} visually unmistakable: the isolated cluster of plans costing 2{,}800--5{,}300 actions consists entirely of \gls{bfws} and \gls{lama} runs on VisitAll---a long-plan domain the weaker planners never solve.
-Compared \emph{within} a shared domain the apparent quality gap vanishes (on Depots all four planners produce 48.7--61.8-action plans; on Barman, 197--293), confirming that the planner-level cost averages of \Cref{tab:s0_planner_summary} reflect coverage, not solution quality.
+\paragraph{First, plan cost is comparable only within a domain.}
+The isolated cluster of very long plans (2{,}800--5{,}300 actions) in \Cref{fig:s0_runtime_cost} consists entirely of \gls{bfws} and \gls{lama} runs on VisitAll---the one domain that demands such long plans, and one the weaker planners never solve.
+Within any single domain the gap closes: on Depots all four planners produce 48.7--61.8-action plans, and on Barman 197--293.
+The low average plan costs of DecStar and Madagascar in \Cref{tab:s0_planner_summary} therefore reflect which instances they happened to solve, not better solution quality.
 
-\paragraph{Runtime variance is large even within a single cell.}
-Runtime also varies enormously \emph{between instances of the same} (domain, planner) \emph{cell}---the coefficient of variation reaches 2.57, and Depots$\times$DecStar alone spans a 62-fold range (0.86~s to 53.04~s) driven purely by per-instance structure.
-A naive comparison of \emph{average} solve times would be swamped by this variance, which is precisely why improvement is assessed with a paired test that scores each instance against its own baseline counterpart.
+\paragraph{Second, runtime varies widely even within a single cell.}
+Even for one (domain, planner) pair, solve times differ enormously from instance to instance: in the most extreme case, Depots$\times$DecStar, the easiest instance solves in 0.86~s and the hardest in 53.04~s.
+Comparing the \emph{average} solve time of a baseline against a configured domain would therefore be dominated by which instances happen to be involved, which is why every later comparison scores each instance against its own baseline counterpart rather than comparing averages.
 
-\paragraph{Measurable metrics are dictated by architecture.}
-Finally, the planners do not even expose the same telemetry (\Cref{sec:impl:planners}): the \gls{sat}-based Madagascar reports none of the state-space metrics, the \gls{bfws} (LAPKT) framework omits state-evaluation and peak-memory counts, and only \emph{plan cost} and \emph{wall-clock runtime} are reported by all four architectures.
-This is the final piece of the methodological rationale for the \gls{ipc} score: derived solely from wall-clock runtime and the binary solved/unsolved outcome, it is the one efficiency measure computable uniformly for every planner, and thus the only sound basis for the cross-architecture comparisons that follow.
+\paragraph{Third, the planners do not report the same telemetry.}
+Madagascar (\gls{sat}-based) reports no state-space counts at all, and \gls{bfws} omits state-evaluation and peak-memory figures (\Cref{sec:impl:planners}); only plan cost and wall-clock runtime are available for all four.
+Because the \gls{ipc} score is derived from wall-clock runtime and the solved/unsolved outcome alone, it is the one efficiency measure that can be computed identically for every planner---the reason it is used for all the cross-architecture comparisons that follow.
 
-\subsection{Synthesis: The Reference Landscape for Configuration}
+\subsection{Summary}
 \label{sec:results:stage0:synthesis}
 
-The baseline delivers exactly what the later stages require.
-It fixes the reference runtimes $T_i$ of \Cref{tab:s0_walltime}, and hence the per-instance baseline \gls{ipc} scores that form the zero point for every gain measured in Stages~1--3 (\Cref{eq:ipc_gain}).
-It delimits the contestable space, separating the twelve always-timeout triples and the four trivially fast cells---where little or no runtime can be recovered---from the broad contested middle where improvement is genuinely possible.
-And it exposes the planner-specific behavioural signatures that the architecture-aware prompts of \Cref{sec:setup:arch_aware_prompt} are explicitly designed to exploit: \gls{bfws}'s novelty-driven state economy, Madagascar's affinity for short-horizon \gls{sat} encodings, DecStar's dependence on decomposable sub-systems, and \gls{lama}'s balanced heuristic search.
-With this reference landscape established, \Cref{sec:results:stage1} turns to the first intervention---the general-purpose \gls{llm} prompt of Stage~1.
+The baseline provides what the later stages need.
+It records how each planner performs on the unmodified domains---the performance every later stage is measured against (\Cref{tab:s0_walltime}).
+It marks out where improvement is possible, separating the twelve always-timeout triples and the four trivially fast cells, where little or no runtime can be recovered, from the broad contested middle where improvement is genuinely possible.
+And it exposes the planner-specific behaviour that the architecture-aware prompts of \Cref{sec:setup:arch_aware_prompt} are designed to exploit: \gls{bfws}'s novelty-driven state economy, Madagascar's affinity for short-horizon \gls{sat} encodings, DecStar's dependence on decomposable sub-systems, and \gls{lama}'s balanced heuristic search.
+With the baseline established, \Cref{sec:results:stage1} turns to the first intervention---the general-purpose \gls{llm} prompt of Stage~1.
 
 \section{General Prompt Results (Stage 1)}
 \label{sec:results:stage1}
