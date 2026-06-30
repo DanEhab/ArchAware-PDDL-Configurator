@@ -2,15 +2,14 @@
 % Pure results presentation and interpretation — no design or methodology
 
 The present chapter reports the empirical results of the four-stage configuration pipeline designed in \Cref{ch:design} and parameterised in \Cref{ch:experimental_setup}.
-The presentation is deliberately evaluative rather than methodological: every stage is reported against the same two primary outcome measures.
-The first is \emph{coverage}---the number of benchmark instances a planner solves within the 360-second limit.
-The second is the \emph{\gls{ipc} score} of \Cref{eq:ipc_score}, a normalised per-instance efficiency measure that rewards fast solutions, ranges from~0 (unsolved) to~1 (matching the best observed time), and is computed against a single, globally consistent reference time once the complete experiment has finished.
-Because both measures are evaluated per instance and only then aggregated, every comparison reported here is made on identical (domain, instance, planner) units rather than across heterogeneous subsets---a property whose importance becomes apparent already in the baseline.
+Every stage is evaluated against the same two primary outcome measures.
+The first is \emph{coverage}: the number of benchmark instances a planner solves within the 360-second limit.
+The second is the \emph{\gls{ipc} score} of \Cref{eq:ipc_score}, a normalised per-instance efficiency measure that rewards fast solutions and ranges from~0 (unsolved) to~1 (matching the best observed time).
 
 The chapter follows the logical progression of the pipeline.
-\Cref{sec:results:stage0} characterises the unmodified baseline (Stage~0), establishing the reference point against which every later configuration is scored.
+\Cref{sec:results:stage0} characterises the unmodified baseline (Stage~0), establishing the reference against which later improvements are measured.
 \Cref{sec:results:stage1,sec:results:stage2,sec:results:stage3} then report the three configuration stages in turn---the general prompt, the architecture-aware prompt, and the feedback loop.
-\Cref{sec:results:cross_stage} synthesises the full progression, \Cref{sec:results:statistical_validation} provides the confirmatory statistical analysis, and \Cref{sec:results:prior_work} positions the findings relative to the prior work of \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025}.
+\Cref{sec:results:cross_stage} synthesises the full progression, \Cref{sec:results:statistical_validation} provides the statistical analysis, and \Cref{sec:results:prior_work} positions the findings relative to the prior work of \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025}.
 
 \section{Baseline Characterisation (Stage 0)}
 \label{sec:results:stage0}
