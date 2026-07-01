@@ -1,34 +1,103 @@
 \chapter{Threats to Validity}\label{ch:threats}
 % Dedicated chapter discussing potential threats following the standard four-type framework
 
+As with any empirical study, the findings reported in \Cref{ch:results} are subject to threats to validity, discussed here under the standard four-type classification~\cite{Wohlin2012}: internal validity (causal integrity), external validity (generalisability), construct validity (measurement appropriateness), and statistical conclusion validity (inferential reliability).
+For each threat the discussion identifies a concrete mitigation already built into the experimental design or, where no mitigation exists, states the residual risk explicitly.
+
 \section{Internal Validity}
 \label{sec:threats:internal}
-% Factors that could compromise causal conclusions within the experiment
-% Hardware noise: mitigated by dedicated local machine, but single-machine variance remains
-% API non-determinism: LLM outputs may vary despite temperature=0.0 due to provider-side batching
-% Docker overhead: containerisation adds latency that may affect absolute runtime measurements
-% Order effects: whether the sequence of problem instances affects planner warm-up behaviour
+
+Internal validity concerns whether the observed performance differences can be causally attributed to the experimental treatment---the prompt strategy and feedback loop---rather than to confounding factors.
+
+\paragraph{LLM non-determinism.}
+Although all models are queried with a temperature of~$0.0$ (\Cref{sec:setup:hyperparameters}), provider-side implementation details such as request batching, floating-point non-determinism across hardware, and undocumented internal reasoning exploration (particularly for deep-reasoning models like DeepSeek-R1) may cause the same prompt to produce slightly different outputs on repeated calls.
+Because each configuration was generated exactly once rather than averaged over multiple runs, a single stochastic deviation could shift a triple from ``improved'' to ``not improved'' or vice versa; since the selected planners are otherwise deterministic, this generation step is the pipeline's sole stochastic component, and repeating the full generation--validation--execution cycle to quantify its variance was infeasible within the computational budget of a bachelor thesis.
+We mitigate this by reporting population-level statistics over 68 contestable triples rather than drawing conclusions from individual cases, and by confirming the stage effect with the Friedman omnibus test ($p \approx 10^{-57}$, \Cref{sec:results:statistical_validation:stage}).
+
+\paragraph{Hardware-induced timing noise.}
+All planner executions ran on a single dedicated machine (\Cref{sec:setup:hardware}) with Docker containers constrained to one CPU core and 8~GB of memory, eliminating cross-machine variance.
+However, background operating-system processes and Docker's own overhead introduce residual wall-clock noise.
+Because the \gls{ipc} score is derived directly from wall-clock runtime, small timing fluctuations could affect per-instance scores.
+Furthermore, the 360-second timeout boundary creates an artificial ceiling for the \gls{ipc} score, which inherently bounds the observable variance for slower planners.
+We control for this measurement constraint by using the paired Wilcoxon signed-rank test, which compares each instance's configured runtime against its own baseline counterpart, thereby cancelling any instance-level difficulty bias.
+
+\paragraph{Order effects in planner execution.}
+Problem instances were executed sequentially within each planner container.
+If a planner maintains internal caches or exhibits warm-up effects, earlier instances could systematically differ from later ones.
+This risk is mitigated by the deterministic, stateless nature of all four selected planners: each instance is loaded, solved, and discarded independently, with no state carried between runs.
+
+\paragraph{Feedback-loop information leakage.}
+In Stage~3, the \gls{llm} receives execution telemetry from the target planner as part of the critique prompt (\Cref{sec:design:stage3}).
+Because the telemetry reveals which instances timed out, the model could hypothetically ``overfit'' its reordering to the specific set of 15 selected instances rather than improving the domain in general.
+However, the initial instance selection was rigorously randomised using a fixed global seed (\texttt{seed=42}) prior to execution (\Cref{sec:setup:hyperparameters}), ensuring the sample itself is unbiased.
+Furthermore, the model receives only aggregate per-instance solve/timeout verdicts and runtime, not the internal search trace, limiting its capacity for instance-level exploitation.
 
 \section{External Validity}
 \label{sec:threats:external}
-% Generalisability of findings beyond this specific experiment
-% Limited to 5 IPC benchmark domains — results may not generalise to all PDDL structures
-% Limited to 4 planners — other planner architectures (e.g., temporal, HTN) are untested
-% STRIPS subset of PDDL — does not cover numeric fluents, temporal planning, or ADL features
-% LLM model versions: results are tied to specific model snapshots that may be deprecated
+
+External validity concerns whether the findings generalise beyond the specific experimental conditions.
+
+\paragraph{Domain coverage.}
+The study evaluates five \gls{ipc} benchmark domains selected for structural diversity (\Cref{sec:setup:domains}).
+Although the domains span the full range of every quantified structural metric ($\lvert A \rvert \in [1,12]$, $\lvert O_t \rvert \in [0,7]$, max arity $\in [2,6]$), they represent only the STRIPS subset of \gls{pddl} and exclude temporal, numeric-fluent-heavy, and ADL domains.
+Results may not transfer to these richer language fragments.
+
+\paragraph{Planner coverage.}
+Four planners were selected to maximise architectural diversity (\Cref{sec:setup:planners}), but the planning community encompasses many additional paradigms---HTN planners, temporal planners, optimal-track planners, and portfolio systems---that are not represented.
+The observed architectural responsiveness ranking (\gls{bfws}~$>$~LAMA~$>$~Madagascar~$>$~DecStar) is specific to the four tested architectures and should not be extrapolated to untested paradigms without further experimentation.
+
+\paragraph{LLM model versions.}
+The four \glspl{llm} used (\Cref{sec:setup:llms}) represent a snapshot of the frontier as of early~2026.
+Model capabilities evolve rapidly; newer or fine-tuned models may produce qualitatively different reorderings.
+API version pinning (\Cref{sec:setup:hyperparameters}) ensures reproducibility of the reported results but cannot guarantee that the same conclusions hold for future model generations.
+The finding that architecture-aware prompting renders the \gls{llm} choice statistically non-significant (\Cref{sec:results:statistical_validation:factors}) partially mitigates this concern, as it suggests the methodology is more important than the specific model.
 
 \section{Construct Validity}
 \label{sec:threats:construct}
-% Whether the measurements actually capture the intended constructs
-% IPC score as a proxy for "planner efficiency" — may not capture all dimensions of planning quality
-% "Architecture-awareness" operationalised as manually crafted rules — other operationalisations are possible
-% Semantic equivalence check (V4) relies on structural comparison, not formal verification
-% Prompt design decisions may introduce experimenter bias
+
+Construct validity concerns whether the chosen measurements faithfully capture the intended theoretical constructs.
+
+\paragraph{IPC score as a proxy for planner efficiency.}
+The primary outcome measure, the \gls{ipc} score (\Cref{eq:ipc_score}), rewards fast solutions and penalises unsolved instances but does not capture plan quality (e.g., plan length or action cost) as a first-class dimension.
+A configuration that accelerates search but produces longer plans would register as an improvement under this metric.
+We partially address this by reporting plan cost alongside the \gls{ipc} score in the baseline characterisation (\Cref{sec:results:stage0:cost}), but the statistical tests are conducted on \gls{ipc} scores only.
+
+\paragraph{Operationalisation of ``architecture-awareness.''}
+The architecture-aware prompts (\Cref{sec:setup:arch_aware_prompt}) were manually crafted by analysing each planner's source code and deriving reordering rules traceable to specific internal components.
+This operationalisation is one of many possible encodings of architectural knowledge; a different analyst might emphasise different components or formulate rules differently.
+The design principles of traceability, differentiation, and actionability (\Cref{sec:setup:arch_aware_prompt}) constrain but do not eliminate this subjectivity.
+
+\paragraph{Semantic equivalence verification.}
+The fourth validation level (V4) relies on structural comparison of parsed \gls{pddl} trees---checking that the sets of predicates, actions, preconditions, and effects are identical modulo ordering---rather than on formal model-theoretic verification.
+While this structural check is conservative (it rejects any addition, deletion, or renaming), it cannot detect subtle semantic changes that preserve syntactic structure, such as a reordering that exploits an implicit assumption in a planner's grounding algorithm.
+In practice, the zero semantic-error rate among validated domains (\Cref{sec:results:cross_stage:validation}) suggests the risk is low, but it is not formally excluded.
+
+\paragraph{Improvement-detection threshold.}
+The three-condition improvement gate (\Cref{sec:design:stage2:improvement}) uses a relaxed significance threshold of $\alpha = 0.25$ for the within-pipeline Wilcoxon test, deliberately trading Type~I error risk for sensitivity in a screening context.
+A stricter threshold would classify fewer configurations as improved; a more lenient one would admit more noise.
+The confirmatory analysis of \Cref{sec:results:statistical_validation} re-tests all stage comparisons at the conventional $\alpha = 0.05$ (Bonferroni-corrected to $0.0083$), confirming that the headline findings survive the stricter standard.
 
 \section{Statistical Conclusion Validity}
 \label{sec:threats:statistical}
-% Reliability of statistical inferences drawn from the data
-% Sample size per experimental cell: whether sufficient for non-parametric test power
-% Multiple comparisons: risk of Type I errors across the many pairwise tests conducted
-% Non-parametric test assumptions: ordinal data requirements, independence assumptions
-% Effect size interpretation: Cliff's Delta thresholds are conventional, not domain-specific
+
+Statistical conclusion validity concerns the reliability of the statistical inferences drawn from the data.
+
+\paragraph{Sample size per experimental cell.}
+Each (planner, domain, \gls{llm}) triple comprises 15 paired observations.
+While sufficient for the Wilcoxon signed-rank test (which requires as few as six non-zero differences for adequate power), this sample size limits the detection of very small effects.
+The population-level tests (\Cref{sec:results:statistical_validation}), which pool all 300 observations, achieve substantially higher power.
+
+\paragraph{Multiple comparisons.}
+The six pairwise stage comparisons introduce a family-wise Type~I error risk.
+We control this with Bonferroni correction ($\alpha = 0.05 / 6 = 0.0083$), the most conservative standard adjustment.
+All five significant pairwise results survive this correction comfortably ($p \leq 2.7 \times 10^{-7}$, \Cref{tab:stat_pairwise}), so the risk of a false positive among the reported significant comparisons is negligible.
+
+\paragraph{Effect-size interpretation.}
+Cliff's~$\delta$ effect sizes are interpreted using the conventional thresholds of \citeauthor{Romano2006}~\cite{Romano2006} ($|\delta| < 0.147$: negligible; $< 0.33$: small; $< 0.474$: medium; $\geq 0.474$: large).
+These thresholds are domain-agnostic and may overstate or understate the practical significance of improvements in the specific context of AI planning, where even small runtime reductions can affect competition rankings.
+As noted in \Cref{sec:results:statistical_validation:stage}, a consistent small effect ($\delta = 0.30$) across four architecturally diverse planners and five heterogeneous domains---achieved without modifying any planner code---constitutes a substantive result in this field.
+
+\paragraph{Non-parametric test assumptions.}
+The Wilcoxon signed-rank test assumes that the paired differences are symmetric around their median, and the Friedman test assumes that the observations are ordinal and that the blocks (instances) are independent.
+The first assumption is difficult to verify with the heavy-tailed \gls{ipc}-score distributions observed (\Cref{sec:results:statistical_validation:selection}); any violation would reduce test power rather than inflate it, making the reported significant results conservative.
+Instance independence holds by construction, as each planner run is an isolated Docker execution with no shared state.
