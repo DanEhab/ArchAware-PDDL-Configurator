@@ -1,31 +1,109 @@
+% !TeX root = ../main-english.tex
+% LTeX: language=en-GB
+
 \chapter{Conclusion and Outlook}\label{ch:conclusion}
 
-\section{Summary of Contributions}
-\label{sec:concl:summary}
-% State the most important outcomes:
-% 1. Introduced a 4-stage pipeline for architecture-aware domain model configuration
-% 2. Proved that architecture-aware prompting mathematically outperforms generic prompting
-% 3. Demonstrated that a closed feedback loop increases validation/improvement rates significantly
-% 4. Showed that the engineering methodology matters more than the choice of LLM
+The structural form of a \gls{pddl} domain---the order in which its predicates, actions, preconditions, and effects are written---carries no logical meaning, yet it measurably changes how quickly a planner solves a task.
+Exploiting that fact has, until now, demanded expert intuition and manual trial and error.
+The work reported here largely automates it: a domain's surface structure is a controllable optimisation surface, and \glspl{llm} can operate that surface on a planner's behalf once they are told how that planner reads its input.
 
-\section{Answers to Research Questions}
+The central outcome is affirmative but bounded.
+Guided by planner-specific structural knowledge and refined by quantitative execution feedback, \glspl{llm} restructure domain models so that a target planner solves the same tasks faster---and sometimes solves tasks that previously timed out---across four architecturally diverse planners, five \gls{ipc} benchmark domains, and four frontier models, without altering a single line of planner source code or a single symbol of domain semantics.
+The improvement is statistically decisive (Friedman $p \approx 10^{-57}$) and, for domain-independent planning, practically meaningful.
+Its magnitude is set by planner architecture: the methodology reaches order-sensitive planners deeply and barely moves those that abstract textual order away---a boundary that is itself among the study's clearest results.
+
+\section{Answers to the Research Questions}
 \label{sec:concl:rq_answers}
-% Copy the research questions from Chapter 1 and provide definitive, data-backed answers
-% Each question gets a clear response grounded in the findings from Chapter 7
+
+The five sub-questions decompose the main research question; we answer each in the light of the full body of evidence, then return to the overarching question.
+
+\paragraph{SQ1 --- Planner architecture models.}
+A component-level analysis of \gls{bfws}, LAMA, DecStar, and Madagascar (\Cref{ch:design}) identified the internal modules common to modern planners---parser, translator and grounder, search engine, and heuristic evaluator---and traced how the textual ordering of \gls{pddl} elements propagates through each module to shape search behaviour.
+The analysis yields four planner-specific rule sets that become the substance of the architecture-aware prompts, converting an informal folklore about ``planner-friendly'' modelling into explicit, traceable heuristics.
+
+\paragraph{SQ2 --- Architecture-aware prompting.}
+Supplied with planner-specific rules, \glspl{llm} apply the intended transformations reliably: predicate reordering rises from 22\% of domains under the generic prompt to 100\% under the architecture-aware prompt (\Cref{ch:appendix:prompts}), and the share of configurations that improve their target planner climbs from the inert level of Stage~1 to 56.0\%.
+The improvements are demonstrably target-biased---81.0\% of them carry a positive specialisation index (mean $+0.0313$)---confirming that the optimisation is directed at the named planner rather than being merely generic.
+
+\paragraph{SQ3 --- Feedback loop.}
+The three-iteration \gls{llm}-Modulo loop raises the baseline-relative improvement rate from 44.1\% after the one-shot architecture-aware stage to 80.9\% once feedback is added, recovers every one of the five Stage~2 generation failures, and drives a monotonic rise in the population-level solve rate from 56.9\% to 69.0\% across iterations.
+Its contribution is breadth and reliability rather than a higher aggregate ceiling: measured on portfolio \gls{ipc} score the loop is statistically indistinguishable from the one-shot stage, yet it nearly doubles the number of domains that beat the unmodified baseline.
+
+\paragraph{SQ4 --- Validation pipeline.}
+Across the three \gls{llm} stages the four-level validation pipeline sustains a 93\% validity rate and rejects every semantically altered domain before it reaches a planner.
+Even as validity declines under the lengthening prompts of the feedback loop, the hard-critic gate catches all seventeen invalid Stage~3 iterations, so not one performance measurement in the study is contaminated by a change of meaning.
+Pairing a generative model with an external verifier is therefore not merely advisable but sufficient to keep multi-turn refinement semantically safe.
+
+\paragraph{SQ5 --- Cross-architecture patterns.}
+Responsiveness to structural configuration is ordered \gls{bfws}~$>$~LAMA~$>$~Madagascar~$>$~DecStar under every metric, and the pipeline widens rather than narrows this ranking: the planner effect on \gls{ipc} gain strengthens monotonically across stages ($H = 26.6 \rightarrow 39.9 \rightarrow 76.7$).
+Order-driven heuristic searchers reward reordering, whereas a planner that factors the ordering away (DecStar) or compiles it into \gls{sat} variables that its solver reorders anyway (Madagascar) resists it.
+The resulting mapping is actionable: promote goal-relevant and static predicates to accelerate mutex and landmark discovery for forward search, and expect little from architectures that abstract textual order away.
+
+\paragraph{Main research question.}
+Taken together, the sub-answers resolve the main research question: \glspl{llm} can dynamically optimise the structural configuration of \gls{pddl} domain models for distinct planner architectures, and they do so most effectively when guided by architecture-specific knowledge and iterative execution feedback.
+The effect is a consistent small improvement (Cliff's $\delta = 0.30$ for the architecture-aware stage against baseline, $p = 1.4 \times 10^{-29}$) that, achieved without touching planner source code and without a single semantic error, supplies the best configuration for 180 of the 183 solvable benchmark cells in a simulated competition.
+For domain-independent planning, a reliable, semantics-preserving gain of this breadth---obtained for free relative to the planners themselves---is a substantive advance.
+
+\section{Principal Insights}
+\label{sec:concl:insights}
+
+Three findings reach beyond the individual research questions and, in our view, matter most for how the field should approach domain model configuration.
+
+\paragraph{Planner architecture governs configurability.}
+The dominant axis of variation throughout the study is architectural, not lexical.
+Whether reordering helps at all depends less on the domain or the model than on how the target planner consumes its input: forward-search planners that read landmarks and preferred operators from textual order gain steadily, while decoupled and \gls{sat}-based planners neutralise the very orderings the \gls{llm} manipulates.
+Domain configuration is therefore not a universal good to be applied blindly but an architecture-dependent intervention.
+The right question is not \emph{whether} to reorder a domain but \emph{which} planners a given reordering can reach---and the component-level analysis of \Cref{ch:design} is what makes that question answerable in advance of any planner run.
+
+\paragraph{Methodology outweighs model choice.}
+Under a generic prompt the choice of \gls{llm} is a significant driver of quality ($p = 1.4 \times 10^{-5}$); under the architecture-aware prompt and the feedback loop it ceases to matter statistically ($p = 0.65$ and $p = 0.18$).
+The leverage lies in the prompt design and the feedback mechanism, not in privileged access to any one frontier model.
+The approach is consequently portable---it does not depend on a particular vendor or model generation, a reassuring property given how quickly that frontier moves.
+Extended chain-of-thought reasoning, moreover, is no substitute for architectural guidance: the most verbose model spends several times the tokens of its peers for the weakest returns, because reordering is a structural task rather than a logical-deduction one.
+
+\paragraph{Verifiable, iterative configuration is practical.}
+Coupling a generative model with an external verifier and quantitative telemetry converts an unreliable single-pass rewriter into a dependable optimiser.
+The feedback loop supplies the reliability---doubling the share of configurations that beat the baseline and recovering every one-shot failure---while the validation pipeline supplies the safety, admitting not one semantically altered domain across all 7{,}350 planner runs.
+The result is the first working instantiation of the \gls{llm}-Modulo paradigm for domain model configuration, and evidence that the paradigm's premise---creativity from the model, correctness from the verifier---holds in a demanding, execution-grounded setting.
 
 \section{Limitations}
 \label{sec:concl:limitations}
-% Software and practical limitations ONLY (experimental validity is in Chapter 8)
-% API latency: feedback loop takes several minutes per domain
-% Cost: token consumption across multiple LLM calls
-% Manual rule engineering: architecture-aware rules were hand-crafted from planner source code
-% Single-machine execution: limits the scale of experiments that can be run
 
-\section{Future Work}
+The contribution is bounded in several practical ways that complement the experimental validity threats of \Cref{ch:threats}.
+The architecture-aware rules were hand-crafted from a manual reading of each planner's source code---a labour-intensive process that does not scale to the dozens of planners in the community and whose quality depends on the analyst.
+The feedback loop, in turn, is expensive: it consumes multiple planner executions per iteration (roughly 37~hours of wall-clock time for Stage~3 alone) and repeated \gls{llm} calls, and its returns diminish sharply after the first iteration, which together bound the practical depth of refinement.
+Because each configuration is generated once rather than averaged over repeated samples, a single stochastic deviation in an \gls{llm} response can move a borderline triple across the improvement threshold; the population-level statistics guard the aggregate findings but not every individual cell.
+
+Two limitations are more fundamental.
+The experimental scope covers four planners and five STRIPS domains, leaving temporal, numeric, and HTN formalisms untested, so the responsiveness ranking should not be extrapolated to paradigms outside the tested set.
+And the approach is confined to \emph{reordering}: it can accelerate a search that already terminates, but it cannot repair a fundamental planner--domain incompatibility, as the twelve immovable zero-coverage triples and DecStar's persistent resistance make plain.
+Planners whose architectures abstract textual order away appear to mark a structural floor below which reordering-based configuration cannot reach.
+
+\section{Outlook}
 \label{sec:concl:future_work}
-% Each limitation should spawn an idea for future work
-% Automated rule extraction: use a separate LLM agent to read planner C++ source code and extract rules
-% Scaling to more planners/domains: temporal, HTN, numeric PDDL
-% Online adaptation: real-time feedback during planning, not just offline batch processing
-% Fine-tuning LLMs specifically for PDDL configuration tasks
-% Integration into planning competition infrastructure
+
+Each limitation points to a concrete line of further work.
+
+\begin{description}[style=nextline, leftmargin=0.3cm]
+  \item[\textbf{Automated rule extraction.}]
+        A dedicated \gls{llm} agent could analyse planner source code and automatically derive architecture-specific reordering rules, replacing the manual analysis conducted for SQ1 and enabling scalable coverage of new planners.
+
+  \item[\textbf{Broader planning formalisms.}]
+        Extending the pipeline to temporal, numeric-fluent, and HTN domains would test whether architecture-aware configuration generalises beyond STRIPS and whether richer language fragments expose additional configuration dimensions.
+
+  \item[\textbf{Beyond reordering.}]
+        Moving from pure reordering to semantics-preserving \emph{reformulation}---derived predicates, macro-operators, or task decompositions---paired with a correspondingly stronger validator, could reach improvements that reordering alone cannot, at the cost of a harder equivalence-checking problem.
+
+  \item[\textbf{Adaptive stopping and cross-planner feedback.}]
+        Replacing the fixed three-iteration cap with a convergence-aware criterion would curb cost without sacrificing the loop's reliability, while feeding consolidated multi-planner telemetry back to the model would search for universally beneficial configurations, exploiting the cross-transfer effect observed in Stage~2.
+
+  \item[\textbf{Fine-tuned configuration models.}]
+        The 7{,}350 planner runs and their associated domain--telemetry pairs constitute a labelled dataset that could fine-tune a smaller, specialised model for configuration, potentially matching frontier-model quality at a fraction of the inference cost.
+
+  \item[\textbf{Integration into planning infrastructure.}]
+        Embedding the configurator as a preprocessing module in competition and deployment pipelines---where it automatically tailors a domain to whichever planner will process it---would operationalise the approach for real-world use.
+\end{description}
+
+Across two decades, the structural configuration of planning domains has remained an art guided by intuition and manual tuning, with few guidelines and no standard procedure.
+The present work reframes it as an automatable, architecture-driven, and verifiable process: \glspl{llm} supply the structural creativity, planner-architecture knowledge supplies the direction, execution feedback supplies the correction, and an external validator supplies the guarantee of correctness.
+The approach does not configure every planner equally, and it does not replace the planner engineer---but it charts a credible path from ad-hoc modelling toward systematic, data-driven, planner-aware domain engineering, and it does so without asking the planning community to change a single line of the planners it already trusts.
