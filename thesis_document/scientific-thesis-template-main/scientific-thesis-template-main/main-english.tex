@@ -682,9 +682,18 @@
   translate=babel,
   abbreviations,         % create "abbreviations" glossary
   nomain,                % don't create "main" glossary
+  nogroupskip,           % no vertical gap between letter groups -> even row spacing
   stylemods=longbooktabs % do the adjustments for the longbooktabs styles
 ]{glossaries-extra}
 \setglossarystyle{long3col-booktabs}
+
+% --- Abbreviations list: show only the page where each abbreviation is FIRST
+% --- defined (i.e. its first use), instead of a full list of every page it
+% --- appears on. This hook disables location indexing for every use after the
+% --- first, so each entry's number list contains exactly one page.
+\renewcommand*{\glslinkpostsetkeys}{%
+  \GlsXtrIfUnusedOrUndefined{\glslabel}{}{\setkeys{glslink}{noindex}}%
+}
 
 % Hint by https://tex.stackexchange.com/a/463188/9075
 % \usepackage{glossary-longextra}
@@ -917,7 +926,15 @@ These results provide the first empirical validation of planner-aware, iterative
 %\listofalgorithms %Ist nur für Algorithmen, die mittels \begin{algorithm} umschlossen werden, nötig
 
 % Abbreviations / Acronyms
+% Tweaks scoped to this list only (\begingroup ... \endgroup): the third column
+% holds a single first-definition page, so label it "Page" (set after babel, so
+% the language translation cannot override it), and \arraystretch adds a little
+% vertical breathing room between the rows.
+\begingroup
+\renewcommand*{\pagelistname}{Page}
+\renewcommand*{\arraystretch}{1.4}
 \printglossary[type=\acronymtype,title={Abbreviations}]
+\endgroup
 % \printglossaries
 % \printnoidxglossaries
 % \printunsrtglossaries cannot be used, because then no indexing happens; source: https://tex.stackexchange.com/a/287128/9075
