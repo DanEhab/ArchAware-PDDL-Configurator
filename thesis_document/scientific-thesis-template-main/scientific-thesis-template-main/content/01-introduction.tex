@@ -12,7 +12,7 @@
 % Comment 1: replaced [Geo23] with standard textbooks [GNT04, RN21].
 % Comment 2: removed Chrpa2020 (habilitation, not suitable for this claim).
 % Comment 3: removed Guan2023 from this position (not relevant for this claim).
-\gls{ai} planning is a subfield of Artificial Intelligence that focuses on the automated generation of action sequences, known as \emph{plans}, to transition a system from an initial state to a desired goal state~\cite{GhallabNauTraverso2004, RussellNorvig2021}.
+Automated planning is a subfield of Artificial Intelligence (AI) that focuses on the automated generation of action sequences, known as \emph{plans}, to transition a system from an initial state to a desired goal state~\cite{GhallabNauTraverso2004, RussellNorvig2021}.
 As a core technology for deliberative reasoning, \gls{ai} planning enables autonomous agents to devise and execute strategies for achieving complex objectives across domains ranging from robotics and logistics to cloud orchestration and intelligent buildings~\cite{GhallabNauTraverso2004}.
 
 % Comment 4: removed "(the search algorithm)" — planning engine encompasses more than search.
@@ -25,7 +25,7 @@ This modularity enables a single planner to operate across diverse application d
 %             earlier observations that Vallati later operationalised.
 While this separation makes planners highly general, it introduces a subtle but consequential challenge: \emph{structural sensitivity}.
 Planning engines employ vastly different internal algorithms to parse \gls{pddl} files, construct intermediate representations, and search for valid plans.
-Early empirical studies by \citeauthor{HoweDahlman2002}~\cite{HoweDahlman2002} and \citeauthor{RiddleHolteBarley2011}~\cite{RiddleHolteBarley2011} observed that even minor structural changes to a domain model---such as the ordering of actions, predicates, or preconditions---can substantially influence planner performance and even alter competition rankings, \emph{without any change to the domain's semantics}.
+Early empirical studies by \citeauthor{HoweDahlman2002}~\cite{HoweDahlman2002} and \citeauthor{RiddleHolteBarley2011}~\cite{RiddleHolteBarley2011} observed that even minor structural changes to a domain model can substantially influence planner performance. Such changes---for example, the ordering of actions, predicates, or preconditions---can even alter competition rankings, \emph{without any change to the domain's semantics}.
 Building on these observations, \citeauthor{Vallati2015}~\cite{Vallati2015, Vallati2021} provided the first systematic evidence that such textual arrangements can cause orders-of-magnitude differences in planner runtime and coverage, and that a structural configuration beneficial for one planner may simultaneously degrade the performance of another.
 
 Currently, optimising the textual structure of domain models is a manual, trial-and-error process that demands expert intuition and deep knowledge of planner internals~\cite{McCluskey2017}.
@@ -146,7 +146,7 @@ A four-level validation pipeline ensures semantic equivalence at every stage by 
 The final configurations are formally benchmarked against the full suite of problem instances from the \gls{ipc} Agile Tracks.
 A four-stage ablation study isolates the incremental value of each stage, and statistical significance is validated using non-parametric tests.
 
-The evaluation spans four architecturally diverse planners (\gls{bfws}, \gls{lama}, DecStar, and Madagascar), five \gls{ipc} benchmark domains, and four state-of-the-art \glspl{llm}.
+The evaluation spans four architecturally diverse planners (\gls{bfws}, LAMA, DecStar, and Madagascar), five \gls{ipc} benchmark domains, and four state-of-the-art \glspl{llm}.
 
 % Comment 14: reframed contributions to emphasise empirical findings, not just methods.
 The original contributions of this thesis are:

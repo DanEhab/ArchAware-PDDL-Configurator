@@ -55,7 +55,7 @@ Domain model configuration, as defined by \citeauthor{Vallati2015}~\cite{Vallati
 Despite their demonstrated effectiveness, the classical configuration methods reviewed in this section share several important limitations.
 First, they require extensive offline planner evaluations: the SMAC-based approach of \citeauthor{Vallati2015}~\cite{Vallati2015} necessitates hundreds to thousands of planner runs to converge on a beneficial configuration, making the process computationally expensive and time-consuming.
 Second, the configuration space is constrained to a predefined set of ordering dimensions; the approaches do not discover novel structural patterns beyond the dimensions explicitly encoded in the parameter space.
-Third, while the methods are in principle applicable to any planner, each configuration run is tied to a specific target planner, and no mechanism exists to transfer insights across planner architectures or to understand \emph{why} a particular configuration benefits one planner but not another.
+Third, while the methods are in principle applicable to any planner, each configuration run is tied to a specific target planner. No mechanism exists to transfer insights across planner architectures, or to understand \emph{why} a particular configuration benefits one planner but not another.
 These limitations motivate the exploration of alternative configuration paradigms, in particular the use of \glspl{llm}, which are reviewed in the following section.
 
 %% -----------------------------------------------------------------------
@@ -74,7 +74,7 @@ They design a common prompt template $\Pi = \langle r, C, D, G \rangle$ consisti
 The five strategies progressively enrich the guidance provided to the \gls{llm}:
 \begin{enumerate}
   \item \textbf{Zero-shot-short ($\Pi_{\text{ZS-S}}$):} provides only a minimal task instruction to reorder for efficiency, without explicit principles.
-  \item \textbf{Zero-shot-long ($\Pi_{\text{ZS-L}}$):} augments the prompt with six domain-engineering configuration principles drawn from the configuration literature~\cite{Vallati2021, Helmert2009, McCluskey2017, FoxLong2003}, covering action ordering, predicate grouping, precondition ordering, static predicate clustering, effect ordering, and parameter consistency.
+  \item \textbf{Zero-shot-long ($\Pi_{\text{ZS-L}}$):} augments the prompt with six domain-engineering configuration principles drawn from the configuration literature~\cite{Vallati2021, Franco2019, FoxLong2003, Helmert2009, McCluskey2017}, covering action ordering, predicate grouping, precondition ordering, static predicate clustering, effect ordering, and parameter consistency.
   \item \textbf{Few-shot-short ($\Pi_{\text{FS-S}}$):} adds a single annotated example (from the IPC Elevator domain) showing a suboptimal domain, its optimised counterpart, and annotations linking each transformation to the underlying principle.
   \item \textbf{Few-shot-long ($\Pi_{\text{FS-L}}$):} adds a second annotated example (from the Tetris domain) to increase pattern coverage.
   \item \textbf{Chain-of-thought ($\Pi_{\text{CoT}}$):} implements a multi-turn protocol in which the \gls{llm} first produces an explicit reasoning strategy and then executes it, following the \gls{cot} paradigm~\cite{Wei2022}.
@@ -87,7 +87,7 @@ Stage~2 normalises both the original and generated domains and verifies that the
 Stage~3 performs element-level semantic comparison: for each structural component (requirements, types, predicates, actions, parameters, preconditions, add-effects, delete-effects), the pipeline extracts the corresponding elements from both domains and compares them as sets; any set-level difference indicates a semantic modification, and the configuration is marked invalid.
 
 \paragraph{Experimental setup and key results:}
-The evaluation spans seven \glspl{llm} (GPT-4o, o4-mini, Gemini~1.5~Pro, Claude~3.5~Sonnet, DeepSeek-Chat, Llama-3.1-8B-Instruct, and Mixtral-8x7B-Instruct), four temperature settings ($T \in \{0.0, 0.2, 0.5, 0.7\}$), five prompting strategies, and five \gls{ipc} benchmark domains (Barman, Genome Edit Distances, Thoughtful, Transport, and Visit All), with 20 problem instances per domain.
+The evaluation spans seven \glspl{llm} (GPT-4o, o4-mini, Gemini~1.5~Pro, Claude~3.5~Sonnet, DeepSeek-Chat, Llama-3.1-8B-Instruct, and Mixtral-8x7B-Instruct), four temperature settings ($T \in \{0.0, 0.2, 0.5, 0.7\}$), and five prompting strategies. The benchmark suite comprises five \gls{ipc} domains (Barman, Genome Edit Distances, Thoughtful, Transport, and Visit All), with 20 problem instances per domain.
 The planner selection comprises five systems spanning diverse search paradigms: SIW and BFS$_f$ (width-based), Mercury (heuristic forward search), Madagascar (SAT-based), and Fast Downward (heuristic forward search with landmark heuristics).
 
 Out of 700 total configurations (7 LLMs $\times$ 4 temperatures $\times$ 5 prompts $\times$ 5 domains), 514 (73\%) pass syntactic validation and 350 (50\%) preserve semantic equivalence, yielding 343 fully valid configurations.
@@ -238,7 +238,7 @@ The present thesis addresses all three gaps through a multi-stage experimental p
 We introduce \emph{architecture-aware prompting} (Stage~2), which encodes the internal architectural components of each target planner---parser, translator, grounder, heuristic evaluator, and search engine---into the \gls{llm} prompt, providing qualitatively different guidance compared to the generic principles used by \citeauthor{Georgievski2025}~\cite{Georgievski2025} (Gap~1).
 We instantiate the \emph{LLM-Modulo feedback loop} (Stage~3) for domain model configuration for the first time, iteratively feeding quantitative execution telemetry back to the \gls{llm} as diagnostic natural-language feedback to enable multi-turn refinement (Gap~2).
 We extend the three-stage validation pipeline of \citeauthor{Georgievski2025}~\cite{Georgievski2025} to a four-level pipeline that includes an additional \gls{pddl} extraction stage, ensuring semantic equivalence throughout the iterative process.
-Finally, we conduct a four-stage ablation study across four architecturally diverse planners (\gls{bfws}, \gls{lama}, DecStar, Madagascar) to isolate the contribution of each stage and derive empirical patterns that map structural configurations to target architectures (Gap~3).
+Finally, we conduct a four-stage ablation study across four architecturally diverse planners (\gls{bfws}, LAMA, DecStar, Madagascar) to isolate the contribution of each stage and derive empirical patterns that map structural configurations to target architectures (Gap~3).
 The design of this pipeline is presented in \Cref{ch:design}.
 
 \begin{table}[htbp]

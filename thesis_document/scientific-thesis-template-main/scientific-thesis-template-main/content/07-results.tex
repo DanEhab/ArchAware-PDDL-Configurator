@@ -41,7 +41,7 @@ The skew is not a nuisance to be smoothed away---it is the empirical reason why 
     \textbf{Planner} & \textbf{SUCCESS} & \textbf{TIMEOUT} & \textbf{Solve Rate} & \textbf{Mean Wall (s)} & \textbf{Mean Cost} & \textbf{Mean States Exp.} \\
     \midrule
     \gls{bfws}  & 64 & 11 & 85.33\% & 66.98 & 798.6  & \num{24395} \\
-    \gls{lama}  & 53 & 22 & 70.67\% & 38.01 & 1123.3 & \num{176143} \\
+    LAMA  & 53 & 22 & 70.67\% & 38.01 & 1123.3 & \num{176143} \\
     DecStar     & 26 & 49 & 34.67\% & 41.97 & 118.7  & \num{362984} \\
     Madagascar  & 25 & 50 & 33.33\% & 32.74 & 97.3   & N/R \\
     \midrule
@@ -54,7 +54,7 @@ The skew is not a nuisance to be smoothed away---it is the empirical reason why 
 \label{sec:results:stage0:planners}
 
 The four planners separate into two clear tiers.
-\gls{bfws} solves 85.33\% of instances (64/75) and \gls{lama} 70.67\% (53/75), whereas DecStar and Madagascar solve only 34.67\% (26/75) and 33.33\% (25/75) respectively---less than half the coverage of the leading pair.
+\gls{bfws} solves 85.33\% of instances (64/75) and LAMA 70.67\% (53/75), whereas DecStar and Madagascar solve only 34.67\% (26/75) and 33.33\% (25/75) respectively---less than half the coverage of the leading pair.
 \gls{bfws}'s lead is consistent with its width-based search paradigm (\Cref{sec:setup:planners}).
 Rather than relying on a single goal-distance heuristic, which may be poorly informed on unfamiliar domains, \gls{bfws} prioritises states that exhibit structurally \emph{novel} combinations of variable assignments; as the \gls{ipc}~2018 Agile-track winner, it is explicitly tuned to find \emph{any} valid plan quickly, an objective that aligns directly with this study's time-limited setting.
 Madagascar, the only \gls{sat}-based planner, occupies the opposite extreme.
@@ -63,11 +63,11 @@ When a short plan exists this is extraordinarily fast (Madagascar is the quickes
 
 Two columns of \Cref{tab:s0_planner_summary} look paradoxical at first: \gls{bfws} records the \emph{highest} mean wall-clock time (66.98~s) despite being the strongest planner, and DecStar and Madagascar record the \emph{lowest} mean plan costs (118.7 and 97.3) despite being the weakest.
 Both effects have the same cause: wall-clock time, plan cost, and states expanded are recorded only for \texttt{SUCCESS} runs, so each planner's averages are taken over a \emph{different} set of instances.
-\gls{bfws} and \gls{lama} solve the long-horizon VisitAll instances---whose plans run to several thousand actions---and those instances inflate both their mean runtimes and their mean costs, whereas the weaker planners time out on them and are averaged only over the short, easy instances they do solve.
+\gls{bfws} and LAMA solve the long-horizon VisitAll instances---whose plans run to several thousand actions---and those instances inflate both their mean runtimes and their mean costs, whereas the weaker planners time out on them and are averaged only over the short, easy instances they do solve.
 Coverage is therefore the only planner-level aggregate in \Cref{tab:s0_planner_summary} that can be compared across planners; every efficiency metric must instead be compared within a fixed (domain, instance) cell---the reason for the per-instance \gls{ipc}-score pairing used throughout the rest of the chapter.
 
 When a like-for-like comparison \emph{is} made, \gls{bfws}'s efficiency advantage is clear.
-On Ricochet Robots, for example, it expands far fewer states than its rivals on the same instances---a mean of \num{95825}, against \gls{lama}'s \num{1380370} and DecStar's \num{530587}---confirming that its novelty heuristic prunes the search space more aggressively than delete-relaxation heuristics or decoupled search.
+On Ricochet Robots, for example, it expands far fewer states than its rivals on the same instances---a mean of \num{95825}, against LAMA's \num{1380370} and DecStar's \num{530587}---confirming that its novelty heuristic prunes the search space more aggressively than delete-relaxation heuristics or decoupled search.
 
 \subsection{Domain Difficulty Landscape}
 \label{sec:results:stage0:domains}
@@ -92,7 +92,7 @@ The 67-percentage-point gap between the easiest and hardest domain confirms that
     Snake (IPC 2018)            & 19/60 & 31.7\% & Madagascar (81.6~s) \\
     Ricochet Robots (IPC 2023)  & 22/60 & 36.7\% & DecStar (67.1~s) \\
     VisitAll (IPC 2014)         & 30/60 & 50.0\% & \gls{bfws} (17.6~s) \\
-    Barman (IPC 2014)           & 38/60 & 63.3\% & \gls{lama} (3.6~s) \\
+    Barman (IPC 2014)           & 38/60 & 63.3\% & LAMA (3.6~s) \\
     Depots (IPC 2002)           & 59/60 & 98.3\% & Madagascar (0.6~s) \\
     \bottomrule
   \end{tabular}
@@ -121,8 +121,8 @@ These three pairs reappear in Stage~3 as the twelve always-timeout triples (thre
 
 Third, seven cells are \emph{saturated} at 15/15, but they are not equally interesting as optimisation targets.
 \Cref{tab:s0_walltime} resolves them by runtime.
-Four are already \emph{trivially fast}---Depots under Madagascar (0.58~s), \gls{lama} (1.99~s), and \gls{bfws} (3.13~s), and Barman under \gls{lama} (3.62~s)---leaving essentially no runtime headroom, so that any Stage~1--3 gain on these cells can come only from plan-quality improvements.
-The other three saturated cells (VisitAll$\times$\gls{bfws} at 17.6~s, VisitAll$\times$\gls{lama} at 44.0~s, and Barman$\times$\gls{bfws} at 53.2~s) solve every instance but take appreciably longer than the trivially fast cells, and therefore leave runtime that a better-structured domain could potentially recover.
+Four are already \emph{trivially fast}---Depots under Madagascar (0.58~s), LAMA (1.99~s), and \gls{bfws} (3.13~s), and Barman under LAMA (3.62~s)---leaving essentially no runtime headroom, so that any Stage~1--3 gain on these cells can come only from plan-quality improvements.
+The other three saturated cells (VisitAll$\times$\gls{bfws} at 17.6~s, VisitAll$\times$LAMA at 44.0~s, and Barman$\times$\gls{bfws} at 53.2~s) solve every instance but take appreciably longer than the trivially fast cells, and therefore leave runtime that a better-structured domain could potentially recover.
 
 Together, these features sort the (domain, planner) cells into three groups that recur in the later stages: \emph{saturated-fast} cells with little runtime left to recover; \emph{zero-coverage} cells that reordering alone is unlikely to fix; and a broad \emph{contested middle}---the partially solved cells of Snake, Ricochet Robots, and the weaker planners on Barman and VisitAll---where both coverage and runtime can realistically change. Most of the room for improvement in the later stages lies in this middle group.
 
@@ -133,7 +133,7 @@ Together, these features sort the (domain, planner) cells into three groups that
   \small
   \begin{tabular}{l c c c c}
     \toprule
-    \textbf{Domain} & \textbf{\gls{bfws}} & \textbf{\gls{lama}} & \textbf{DecStar} & \textbf{Madagascar} \\
+    \textbf{Domain} & \textbf{\gls{bfws}} & \textbf{LAMA} & \textbf{DecStar} & \textbf{Madagascar} \\
     \midrule
     VisitAll        & 17.57  & 44.01  & ---    & ---   \\
     Snake           & 145.42 & 87.26  & 93.32  & 81.59 \\
@@ -152,12 +152,12 @@ Three measurement lessons from the baseline shape how the later stages must be c
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{results/s0_runtime_cost_scatter.png}
-  \caption{Per-run wall-clock time (log scale) versus plan cost for all 168 successful baseline runs, coloured by planner and shaped by domain. The isolated upper cluster of high-cost plans belongs exclusively to \gls{bfws} and \gls{lama} on VisitAll; because DecStar and Madagascar never solve that domain, their absence from this region---not any intrinsic plan-quality advantage---explains their deceptively low mean plan costs.}
+  \caption{Per-run wall-clock time (log scale) versus plan cost for all 168 successful baseline runs, coloured by planner and shaped by domain. The isolated upper cluster of high-cost plans belongs exclusively to \gls{bfws} and LAMA on VisitAll; because DecStar and Madagascar never solve that domain, their absence from this region---not any intrinsic plan-quality advantage---explains their deceptively low mean plan costs.}
   \label{fig:s0_runtime_cost}
 \end{figure}
 
 \paragraph{First, plan cost is comparable only within a domain.}
-The isolated cluster of very long plans (2{,}800--5{,}300 actions) in \Cref{fig:s0_runtime_cost} consists entirely of \gls{bfws} and \gls{lama} runs on VisitAll---the one domain that demands such long plans, and one the weaker planners never solve.
+The isolated cluster of very long plans (2{,}800--5{,}300 actions) in \Cref{fig:s0_runtime_cost} consists entirely of \gls{bfws} and LAMA runs on VisitAll---the one domain that demands such long plans, and one the weaker planners never solve.
 Within any single domain the gap closes: on Depots all four planners produce 48.7--61.8-action plans, and on Barman 197--293.
 The low average plan costs of DecStar and Madagascar in \Cref{tab:s0_planner_summary} therefore reflect which instances they happened to solve, not better solution quality.
 
@@ -175,7 +175,7 @@ Because the \gls{ipc} score is derived from wall-clock runtime and the solved/un
 The baseline provides what the later stages need.
 It records how each planner performs on the unmodified domains---the performance every later stage is measured against (\Cref{tab:s0_walltime}).
 It marks out where improvement is possible, separating the twelve always-timeout triples and the four trivially fast cells, where little or no runtime can be recovered, from the broad contested middle where improvement is genuinely possible.
-And it exposes the planner-specific behaviour that the architecture-aware prompts of \Cref{sec:setup:arch_aware_prompt} are designed to exploit: \gls{bfws}'s novelty-driven state economy, Madagascar's affinity for short-horizon \gls{sat} encodings, DecStar's dependence on decomposable sub-systems, and \gls{lama}'s balanced heuristic search.
+And it exposes the planner-specific behaviour that the architecture-aware prompts of \Cref{sec:setup:arch_aware_prompt} are designed to exploit: \gls{bfws}'s novelty-driven state economy, Madagascar's affinity for short-horizon \gls{sat} encodings, DecStar's dependence on decomposable sub-systems, and LAMA's balanced heuristic search.
 With the baseline established, \Cref{sec:results:stage1} turns to the first intervention---the general-purpose \gls{llm} prompt of Stage~1.
 
 \section{General Prompt Results (Stage 1)}
@@ -251,7 +251,7 @@ Coverage is also largely insensitive to \emph{which} model produced the domain: 
     \textbf{Planner} & \textbf{Stage 0} & \textbf{Stage 1} & \textbf{$\Delta$ (pp)} \\
     \midrule
     \gls{bfws}  & 85.33\% & 83.33\% & $-2.00$ \\
-    \gls{lama}  & 70.67\% & 71.11\% & $+0.44$ \\
+    LAMA  & 70.67\% & 71.11\% & $+0.44$ \\
     DecStar     & 34.67\% & 35.19\% & $+0.52$ \\
     Madagascar  & 33.33\% & 36.67\% & $+3.34$ \\
     \midrule
@@ -279,7 +279,7 @@ A dedicated cross-testing phase (\Cref{sec:design:stage2:improvement}) is what m
 \subsection{Generation and Validation}
 \label{sec:results:stage2:generation}
 
-Of the 80 generations, 75 (93.8\%) passed validation. The five losses split into three Gemini~3.1~Pro outputs that exceeded the completion-token limit on the longest prompts (the DecStar and \gls{lama} prompts for Depots and Barman) and two GPT-5.4 outputs rejected at the semantic check~(V4)---on the \gls{lama} prompt for Ricochet Robots and the \gls{bfws} prompt for Depots---where the model went beyond reordering and altered a precondition or effect in its attempt to optimise. Claude Opus~4.6 again validated on all 20 calls.
+Of the 80 generations, 75 (93.8\%) passed validation. The five losses split into three Gemini~3.1~Pro outputs that exceeded the completion-token limit on the longest prompts (the DecStar and LAMA prompts for Depots and Barman) and two GPT-5.4 outputs rejected at the semantic check~(V4)---on the LAMA prompt for Ricochet Robots and the \gls{bfws} prompt for Depots---where the model went beyond reordering and altered a precondition or effect in its attempt to optimise. Claude Opus~4.6 again validated on all 20 calls.
 
 More revealing than the pass rate is \emph{what} changed. Under the architecture-aware prompts the reordering of predicate declarations jumps to 75 of 75 valid domains (100\%), against just 22\% under the generic prompt of Stage~1 (\Cref{fig:s1_reordering}). This is the clearest behavioural fingerprint that the architectural guidance was actually absorbed: all four prompts name predicate ordering as the highest-priority lever (for mutex discovery, novelty-table indexing, or SAT variable assignment), and the models obeyed uniformly. Add-effects (87\%), preconditions (85\%), and actions (75\%) follow, while parameters (1\%) and the declarative sections (0\%) remain untouched---the same safe, operational-only discipline observed in Stage~1. As in earlier stages, DeepSeek-R1's reasoning trace inflated its output to roughly \num{106185} tokens (about seven times GPT-5.4 and Claude), with no corresponding advantage in outcome.
 
@@ -291,22 +291,22 @@ Each of the 75 validated configurations was executed on its target planner (1{,}
 Because this gate is the pipeline's internal screening step, it applies the relaxed $\alpha = 0.25$ threshold motivated in \Cref{sec:design:stage2:improvement}; the confirmatory analysis at the conventional $\alpha = 0.05$ is reported separately in \Cref{sec:results:statistical_validation}.
 
 The single most important result of the stage is \emph{how} that improvement rate distributes across the four target planners (\Cref{tab:s2_improvement_planner}).
-The ordering---\gls{lama} (100\%) $>$ \gls{bfws} (57.9\%) $>$ DecStar (38.9\%) $>$ Madagascar (30.0\%)---tracks almost exactly how sensitive each architecture is to the textual ordering of a domain.
-\gls{lama}'s entire forward-search pipeline is order-driven: predicate order shapes mutex and landmark discovery, and precondition order determines which supports the FF heuristic selects as preferred operators, so every one of its 18 configurations improved.
+The ordering---LAMA (100\%) $>$ \gls{bfws} (57.9\%) $>$ DecStar (38.9\%) $>$ Madagascar (30.0\%)---tracks almost exactly how sensitive each architecture is to the textual ordering of a domain.
+LAMA's entire forward-search pipeline is order-driven: predicate order shapes mutex and landmark discovery, and precondition order determines which supports the FF heuristic selects as preferred operators, so every one of its 18 configurations improved.
 Madagascar sits at the opposite pole: it compiles the task to \gls{sat}, and the solver's dynamic variable-ordering heuristics (such as VSIDS) rapidly override whatever initial variable order the PDDL layout imposes, washing out most of the \gls{llm}'s structural intent.
 \gls{bfws} and DecStar fall in between, consistent with their partial reliance on textual structure.
 This monotonic relationship between architectural order-sensitivity and responsiveness to configuration is, in miniature, the empirical core of the thesis.
 
 \begin{table}[htbp]
   \centering
-  \caption{Stage~2 improvement rate by target planner. The ranking mirrors each architecture's structural sensitivity to PDDL element ordering, from the fully order-driven \gls{lama} to the \gls{sat}-based Madagascar, whose solver heuristics override the textual order.}
+  \caption{Stage~2 improvement rate by target planner. The ranking mirrors each architecture's structural sensitivity to PDDL element ordering, from the fully order-driven LAMA to the \gls{sat}-based Madagascar, whose solver heuristics override the textual order.}
   \label{tab:s2_improvement_planner}
   \small
   \begin{tabular}{l l c c}
     \toprule
     \textbf{Target Planner} & \textbf{Architecture} & \textbf{Improved} & \textbf{Rate} \\
     \midrule
-    \gls{lama}  & Heuristic search (FF + landmarks) & 18/18 & 100.0\% \\
+    LAMA  & Heuristic search (FF + landmarks) & 18/18 & 100.0\% \\
     \gls{bfws}  & Width-based (novelty)             & 11/19 & 57.9\% \\
     DecStar     & Decoupled (star topology)         & 7/18  & 38.9\% \\
     Madagascar  & \gls{sat} compilation             & 6/20  & 30.0\% \\
@@ -355,24 +355,24 @@ Establishing that the prompts \emph{improve} the target planner is only half the
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{results/s2_specialization_scatter.png}
-  \caption{Target-planner \gls{ipc} gain versus mean non-target gain for the 42 improved configurations. Points below the horizontal axis (bottom-right) are strictly specialised---the configuration helps its target while hurting other architectures---and are dominated by \gls{lama}; the high-magnitude points in the upper-right are universally better and come mostly from Depots.}
+  \caption{Target-planner \gls{ipc} gain versus mean non-target gain for the 42 improved configurations. Points below the horizontal axis (bottom-right) are strictly specialised---the configuration helps its target while hurting other architectures---and are dominated by LAMA; the high-magnitude points in the upper-right are universally better and come mostly from Depots.}
   \label{fig:s2_specialisation}
 \end{figure}
 
-The per-planner pattern (\Cref{tab:s2_specialisation}) is itself architecturally coherent. \gls{lama} produces by far the most strictly specialised configurations (10 of 18, 56\%): because its optimisations exploit order-sensitivity unique to forward search---placing static preconditions first for fast applicability short-circuiting, for instance---they frequently \emph{degrade} planners that read the domain differently. \gls{bfws} carries the highest mean index ($+0.0536$) yet leans universal (6 of 11), and Madagascar is similar: orderings that suit \gls{sat} compilation (goal predicates first, mutex groups adjacent) double as generically clean PDDL that happens to help everyone. The one dissonant case is DecStar, the only planner with a negative mean index ($-0.0079$) and a majority of anti-specialised configurations (4 of 7): its decoupled star-topology decomposition appears to be the architecture whose advantages current \glspl{llm} translate least reliably into reordering rules---an explicit target for the feedback loop and for future prompt engineering.
+The per-planner pattern (\Cref{tab:s2_specialisation}) is itself architecturally coherent. LAMA produces by far the most strictly specialised configurations (10 of 18, 56\%): because its optimisations exploit order-sensitivity unique to forward search---placing static preconditions first for fast applicability short-circuiting, for instance---they frequently \emph{degrade} planners that read the domain differently. \gls{bfws} carries the highest mean index ($+0.0536$) yet leans universal (6 of 11), and Madagascar is similar: orderings that suit \gls{sat} compilation (goal predicates first, mutex groups adjacent) double as generically clean PDDL that happens to help everyone. The one dissonant case is DecStar, the only planner with a negative mean index ($-0.0079$) and a majority of anti-specialised configurations (4 of 7): its decoupled star-topology decomposition appears to be the architecture whose advantages current \glspl{llm} translate least reliably into reordering rules---an explicit target for the feedback loop and for future prompt engineering.
 
 Two interpretive points temper and strengthen the result in equal measure. First, the universally-better configurations are not a failure of the hypothesis but a by-product of it: in resolving a domain-wide inefficiency for one planner (a goal-critical predicate buried last, say), the model often cleans up structure that was hindering all planners. Indeed, the very largest gains in \Cref{fig:s2_specialisation} are universal and concentrated in Depots, while strict specialisation is associated with more moderate target gains---creating a planner-specific advantage demands delicate structural trade-offs, whereas the biggest wins come from universal cleanup. Second, the thesis claim is precisely the one the data support: not that architecture-aware prompting helps the target \emph{exclusively}, but that it \emph{systematically biases} optimisation toward the target, which the positive mean index and the 81\% majority confirm.
 
 \begin{table}[htbp]
   \centering
-  \caption{Specialisation verdicts for the 42 improved configurations, by target planner. A positive mean index indicates target-biased optimisation. \gls{lama} specialises most strongly; DecStar is the sole planner with a negative mean index.}
+  \caption{Specialisation verdicts for the 42 improved configurations, by target planner. A positive mean index indicates target-biased optimisation. LAMA specialises most strongly; DecStar is the sole planner with a negative mean index.}
   \label{tab:s2_specialisation}
   \small
   \begin{tabular}{l c c c c c}
     \toprule
     \textbf{Target Planner} & \textbf{Specialised} & \textbf{Univ.\ Better} & \textbf{Anti-Spec.} & \textbf{Neutral} & \textbf{Mean Index} \\
     \midrule
-    \gls{lama}  & 10 & 4 & 3 & 1 & $+0.0338$ \\
+    LAMA  & 10 & 4 & 3 & 1 & $+0.0338$ \\
     \gls{bfws}  & 3  & 6 & 0 & 2 & $+0.0536$ \\
     DecStar     & 2  & 1 & 4 & 0 & $-0.0079$ \\
     Madagascar  & 1  & 4 & 1 & 0 & $+0.0284$ \\
@@ -394,7 +394,7 @@ Stage~3 closes the loop. Where Stage~2 produced a single architecture-aware conf
 
 The feedback loop improved 32 of the 68 contestable triples (47.1\%) beyond their Stage~2 seed. The 36 triples whose seed was never beaten are not loop failures: in most the Stage~2 configuration was already at or near the best reordering reachable within three iterations. Where improvements did occur, the first iteration was the most productive---18 of the 32 best results---which is intuitive, since iteration~1 is the model's first exposure to \emph{any} execution feedback after the blind one-shot Stage~2 prompt, the largest single jump in information. Tellingly, the remaining 14 improvements arrive at iterations~2 and~3, and the convergence profile is non-monotonic: 18 triples improve on the first try, 14 are ``late bloomers'' peaking only at iteration~2 or~3, just 2 improve continuously, and 36 never beat the seed. This shape---together with rationales that visibly shift from generic restatements of the prompt to adaptive self-correction (``I revert to the iteration-1 approach but avoid the action reshuffle that regressed'')---indicates that the loop drives genuine learning from feedback rather than merely buying extra random attempts.
 
-The loop's second contribution is reliability. All five triples that had \emph{failed} in Stage~2---Gemini and GPT-5.4 generations that overran the completion-token limit---were fully recovered (a 100\% recovery rate) once Stage~3 raised the limit and explicitly informed the model of the prior failure through the seed-routing mechanism of \Cref{sec:design:stage3:seed}. These were not marginal saves: the recovered Barman\,$\times$\,Gemini\,$\times$\,\gls{lama} triple reached the maximum possible \gls{ipc} score of 15.00, and Depots\,$\times$\,GPT-5.4\,$\times$\,\gls{bfws} reached 14.58---among the strongest results anywhere in the dataset. The loop thus doubles as a recovery mechanism that converts transient one-shot failures into top-tier configurations.
+The loop's second contribution is reliability. All five triples that had \emph{failed} in Stage~2---Gemini and GPT-5.4 generations that overran the completion-token limit---were fully recovered (a 100\% recovery rate) once Stage~3 raised the limit and explicitly informed the model of the prior failure through the seed-routing mechanism of \Cref{sec:design:stage3:seed}. These were not marginal saves: the recovered Barman\,$\times$\,Gemini\,$\times$\,LAMA triple reached the maximum possible \gls{ipc} score of 15.00, and Depots\,$\times$\,GPT-5.4\,$\times$\,\gls{bfws} reached 14.58---among the strongest results anywhere in the dataset. The loop thus doubles as a recovery mechanism that converts transient one-shot failures into top-tier configurations.
 
 \subsection{The Combined Result}
 \label{sec:results:stage3:combined}
@@ -464,7 +464,7 @@ These curves explain the otherwise surprising re-ordering of the models between 
   \end{tabular}
 \end{table}
 
-The architectural through-line of the earlier stages persists. Across planners, \gls{lama} and \gls{bfws} improved most under the loop (both 55\%), Madagascar reached 50\%, and DecStar again trailed at 25\%---the same resistance seen in Stage~2 and for the same reason: its star-topology factoring abstracts away the textual ordering the model is manipulating, so the loop helps DecStar mainly by rescuing it from outright failure rather than by incremental tuning. Two further observations bound the result. First, validation quality declines across the iterations as the accumulating history inflates the prompt and squeezes the output budget (the per-iteration rates and the hard-critic guarantee are consolidated in \Cref{sec:results:cross_stage:validation}). Second, this degradation, together with the falling per-iteration yield of new best configurations (18, 5, 9), suggests diminishing returns, making the three-iteration cap a defensible compromise and adaptive stopping a natural item for future work.
+The architectural through-line of the earlier stages persists. Across planners, LAMA and \gls{bfws} improved most under the loop (both 55\%), Madagascar reached 50\%, and DecStar again trailed at 25\%---the same resistance seen in Stage~2 and for the same reason: its star-topology factoring abstracts away the textual ordering the model is manipulating, so the loop helps DecStar mainly by rescuing it from outright failure rather than by incremental tuning. Two further observations bound the result. First, validation quality declines across the iterations as the accumulating history inflates the prompt and squeezes the output budget (the per-iteration rates and the hard-critic guarantee are consolidated in \Cref{sec:results:cross_stage:validation}). Second, this degradation, together with the falling per-iteration yield of new best configurations (18, 5, 9), suggests diminishing returns, making the three-iteration cap a defensible compromise and adaptive stopping a natural item for future work.
 
 Taken together, Stage~3 completes the pipeline: telemetry-driven iteration lifts the baseline-relative improvement rate from 44.1\% to 80.9\%, recovers every Stage~2 failure, and produces measurable population-level learning---while exposing equally clear limits in DecStar, the incompatible planner--domain pairs, and the onset of diminishing returns. \Cref{sec:results:cross_stage} now places all four stages on a single, globally consistent footing.
 
@@ -499,12 +499,12 @@ The preceding four sections each scored a stage against the baseline using the w
 
 The progression makes the stage ablation precise. The marginal contributions under Configuration Sensitivity are $+3.76$ (S1), then $+3.51$ (S2), then $+2.44$ (S3): each stage adds value, but less than the last. Two readings follow. First, the cumulative architecture-aware gain ($+7.27$) is very nearly double the generic gain ($+3.76$), the continuous-score counterpart of the discrete improvement-rate doubling reported in \Cref{sec:results:stage2}. Second, the diminishing marginal returns come at sharply rising cost---generation token budgets grow roughly sevenfold per stage---so that Stage~2 is unambiguously the highest-impact single component, while Stage~3 buys breadth and reliability (\Cref{sec:results:stage3}) rather than further aggregate magnitude.
 
-The per-planner progression (\Cref{fig:cs_progression}) shows that this aggregate conceals the same architectural split seen throughout the chapter. \gls{bfws} and \gls{lama}---the order-sensitive heuristic searchers---climb progressively across all stages (gaining $+4.53$ and $+3.04$ \gls{ipc} points by S3), whereas DecStar ($+0.71$) and Madagascar ($+2.30$) reach their best at Stage~2 and gain nothing further from the loop. Far from masking architectural differences, the pipeline \emph{amplifies} them: the gap between the responsive and rigid planners is wider at S3 than at S0.
+The per-planner progression (\Cref{fig:cs_progression}) shows that this aggregate conceals the same architectural split seen throughout the chapter. \gls{bfws} and LAMA---the order-sensitive heuristic searchers---climb progressively across all stages (gaining $+4.53$ and $+3.04$ \gls{ipc} points by S3), whereas DecStar ($+0.71$) and Madagascar ($+2.30$) reach their best at Stage~2 and gain nothing further from the loop. Far from masking architectural differences, the pipeline \emph{amplifies} them: the gap between the responsive and rigid planners is wider at S3 than at S0.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.78\textwidth]{results/cs_ipc_progression_planner.png}
-  \caption{Per-planner total \gls{ipc} score (best portfolio, Configuration Sensitivity) across the four stages. The order-sensitive heuristic searchers \gls{bfws} and \gls{lama} improve progressively, while the factored DecStar and \gls{sat}-based Madagascar plateau after Stage~2.}
+  \caption{Per-planner total \gls{ipc} score (best portfolio, Configuration Sensitivity) across the four stages. The order-sensitive heuristic searchers \gls{bfws} and LAMA improve progressively, while the factored DecStar and \gls{sat}-based Madagascar plateau after Stage~2.}
   \label{fig:cs_progression}
 \end{figure}
 
@@ -549,7 +549,7 @@ The 46 cells (15.3\%) won by a \emph{cross-test} configuration are especially te
     \textbf{Planner} & \textbf{Coverage $\Delta$ (ppt)} & \textbf{\gls{par10} S0 (s)} & \textbf{\gls{par10} best (s)} \\
     \midrule
     \gls{bfws}  & $+2.67$  & 585  & 487  \\
-    \gls{lama}  & $+1.33$  & 1083 & 1037 \\
+    LAMA  & $+1.33$  & 1083 & 1037 \\
     DecStar     & $+0.00$  & 2367 & 2366 \\
     Madagascar  & $+13.33$ & 2411 & 1944 \\
     \bottomrule
@@ -566,7 +566,7 @@ A premise of every result above---and the guarantee that addresses \textbf{SQ4}-
 \subsection{Synthesis}
 \label{sec:results:cross_stage:synthesis}
 
-Viewed through every lens---aggregate \gls{ipc} score, source of best configuration, coverage frontier, and \gls{par10}---the four stages tell one consistent story. The continuous \gls{ipc} progression ($154.17 \rightarrow 163.87$) corroborates the discrete improvement-rate progression ($44.1\% \rightarrow 80.9\%$) of \Cref{sec:results:stage3}: the two accountings, computed on entirely different bases, agree that each stage adds value and that the pipeline as a whole beats the baseline on essentially every solvable instance. The dominant axis of variation is architectural, not lexical: responsiveness ranks \gls{bfws}~$>$~\gls{lama}~$>$~Madagascar~$>$~DecStar under every metric, and the methodology widens rather than narrows that ranking. Finally, the ablation locates the value precisely---architecture-awareness (Stage~2) is the decisive single intervention, generic prompting (Stage~1) is marginal-to-harmful, and the feedback loop (Stage~3) trades steeply rising cost for breadth and reliability. What remains is to establish that this progression is statistically real rather than a favourable reading of noisy data, which is the task of \Cref{sec:results:statistical_validation}.
+Viewed through every lens---aggregate \gls{ipc} score, source of best configuration, coverage frontier, and \gls{par10}---the four stages tell one consistent story. The continuous \gls{ipc} progression ($154.17 \rightarrow 163.87$) corroborates the discrete improvement-rate progression ($44.1\% \rightarrow 80.9\%$) of \Cref{sec:results:stage3}: the two accountings, computed on entirely different bases, agree that each stage adds value and that the pipeline as a whole beats the baseline on essentially every solvable instance. The dominant axis of variation is architectural, not lexical: responsiveness ranks \gls{bfws}~$>$~LAMA~$>$~Madagascar~$>$~DecStar under every metric, and the methodology widens rather than narrows that ranking. Finally, the ablation locates the value precisely---architecture-awareness (Stage~2) is the decisive single intervention, generic prompting (Stage~1) is marginal-to-harmful, and the feedback loop (Stage~3) trades steeply rising cost for breadth and reliability. What remains is to establish that this progression is statistically real rather than a favourable reading of noisy data, which is the task of \Cref{sec:results:statistical_validation}.
 
 \section{Statistical Validation}
 \label{sec:results:statistical_validation}

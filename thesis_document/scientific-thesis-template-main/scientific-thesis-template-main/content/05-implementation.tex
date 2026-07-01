@@ -245,7 +245,7 @@ Docker provides operating-system-level virtualisation: each container packages t
 This approach offers three key advantages:
 
 \begin{enumerate}
-  \item \textbf{Dependency isolation:} Each planner's toolchain is entirely encapsulated within its container. The Ubuntu~18.04 environment required by \gls{bfws} coexists with the Ubuntu~22.04 environments required by \gls{lama}, DecStar, and Madagascar without any host-level conflicts.
+  \item \textbf{Dependency isolation:} Each planner's toolchain is entirely encapsulated within its container. The Ubuntu~18.04 environment required by \gls{bfws} coexists with the Ubuntu~22.04 environments required by LAMA, DecStar, and Madagascar without any host-level conflicts.
 
   \item \textbf{Reproducibility:} The Dockerfiles serve as executable build specifications. Any researcher can reconstruct the exact planner binaries by running \texttt{docker build} with the provided Dockerfiles, eliminating ``works on my machine'' failures.
 
@@ -305,7 +305,7 @@ The benchmark directory is mounted as a read-only volume at \texttt{/pddl}, and 
     \toprule
     \textbf{Image} & \textbf{Tool} & \textbf{Base OS} & \textbf{Key Dependencies} \\
     \midrule
-    \texttt{lama\_planner} & Fast Downward (\gls{lama}) & Ubuntu 22.04 & Git, CMake, G++, Python~3 \\[2pt]
+    \texttt{lama\_planner} & Fast Downward (LAMA) & Ubuntu 22.04 & Git, CMake, G++, Python~3 \\[2pt]
     \texttt{bfws\_planner} & LAPKT-\gls{bfws}-Preference & Ubuntu 18.04 & Python~2.7, SCons, Boost, GCC multilib, Flex, Bison \\[2pt]
     \texttt{decstar\_planner} & DecStar & Ubuntu 22.04 & PyPy3, CMake, G++, IBM CPLEX~22.1.2, Bliss~0.73, Osi-0.108.6, Java~JRE \\[2pt]
     \texttt{madagascar\_planner} & Madagascar (\texttt{MpC}) & Ubuntu 22.04 & Build-essential, Python~3 \\[2pt]
@@ -329,7 +329,7 @@ For each planner, we document the exact provenance, the build process, the comma
 \subsection{LAMA (Fast Downward)}
 \label{sec:impl:lama}
 
-\gls{lama}~\cite{RichterWestphal2010} is a heuristic forward-search planner built on the Fast Downward planning system~\cite{Helmert2006}.
+LAMA~\cite{RichterWestphal2010} is a heuristic forward-search planner built on the Fast Downward planning system~\cite{Helmert2006}.
 The Docker image clones the official Fast Downward repository\footnote{\url{https://github.com/aibasel/downward.git} (accessed June 2026)} and compiles it from source inside an Ubuntu~22.04 container:
 
 \begin{lstlisting}[language={}, caption={Build and invocation of LAMA inside its Docker container.}, label={lst:lama_build}, basicstyle=\small\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
@@ -344,13 +344,13 @@ cd downward && python3 build.py -j2
     "$DOMAIN_FILE" "$PROBLEM_FILE"
 \end{lstlisting}
 
-The \texttt{--alias lama-first} flag invokes the official \gls{lama}-first configuration registered in the \gls{ipc}.
-This is a deliberate correction from the predecessor thesis~\cite{Elis2025}, which used a manual proxy configuration (\texttt{--search "lazy\_greedy([ff(),~cea()], preferred=[ff(),~cea()])"}) that approximates but does not exactly replicate the \gls{ipc}-registered \gls{lama} configuration.
+The \texttt{--alias lama-first} flag invokes the official LAMA-first configuration registered in the \gls{ipc}.
+This is a deliberate correction from the predecessor thesis~\cite{Elis2025}, which used a manual proxy configuration (\texttt{--search "lazy\_greedy([ff(),~cea()], preferred=[ff(),~cea()])"}) that approximates but does not exactly replicate the \gls{ipc}-registered LAMA configuration.
 The official alias ensures that the planner internally activates the complete landmarks-based heuristic pipeline, including the landmark-cut heuristic and the preferred-operator mechanism.
 
 The \texttt{planner\_exec} wrapper measures wall-clock time using shell-level epoch timestamps, then extracts metrics from Fast Downward's structured output using pattern matching: \texttt{Plan cost:} for the plan cost, \texttt{Total time:} for the internal search time, and \texttt{Expanded/Generated/Evaluated ... state(s)} for state-space exploration statistics.
 Peak memory is extracted from Fast Downward's \texttt{Peak memory:} output line.
-\gls{lama} reports all seven metrics in the schema.
+LAMA reports all seven metrics in the schema.
 
 
 \subsection{BFWS (LAPKT-BFWS-Preference)}
@@ -416,7 +416,7 @@ pypy3 /planner/fast-downward.py \
 \end{lstlisting}
 
 The \texttt{--alias "seq-agl-decstar"} activates the planner's cascading portfolio strategy: it first attempts the interleaving fork decomposition (\texttt{ifork}), then the standard fork decomposition, then the LP-based general factoring, and finally falls back to classical greedy best-first search if no useful factoring is found~\cite{GnadHoffmann2018}.
-Because DecStar is built on Fast Downward, its output follows the same format as \gls{lama}, and the same parsing logic extracts all seven metrics.
+Because DecStar is built on Fast Downward, its output follows the same format as LAMA, and the same parsing logic extracts all seven metrics.
 
 
 \subsection{Madagascar}

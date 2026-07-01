@@ -57,7 +57,7 @@ It comprises the following components~\cite{McDermott1998}:
   \item \textbf{Requirements:} specify which PDDL features or extensions the domain uses (e.g., \texttt{:strips}, \texttt{:typing}).
   \item \textbf{Types:} define the classes of objects that can exist in the domain, enabling typed parameters in action schemas.
   \item \textbf{Predicates:} declare relations or properties that describe facts about objects; these are used to express states, preconditions, and effects.
-  \item \textbf{Actions:} define the operators available to the planner. Each action schema consists of a \emph{name}, a list of typed \emph{parameters}, a set of \emph{preconditions} (logical expressions that must hold for the action to be applicable), and a set of \emph{effects} (specifications of how the state changes, divided into add effects and delete effects).
+  \item \textbf{Actions:} define the operators available to the planner. Each action schema consists of a \emph{name}, a list of typed \emph{parameters}, a set of \emph{preconditions} (logical expressions that must hold for the action to be applicable), and a set of \emph{effects}. The effects specify how the state changes and are divided into add effects and delete effects.
 \end{itemize}
 
 \paragraph{Problem file:}

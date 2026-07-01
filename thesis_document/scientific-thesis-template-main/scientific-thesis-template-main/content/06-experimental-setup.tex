@@ -31,7 +31,7 @@ The four planners used in this study were selected from an initial pool of 35 cl
 
   \item[\textbf{Filter~4} (Distinct Architectures):]
     This was the most critical filter.
-    An analysis of the \gls{ipc}~2023 Agile leaderboard reveals that the vast majority of top-performing planners are variations of the same underlying engine (Fast Downward~\cite{Helmert2006}).
+    An analysis of the \gls{ipc}~2023 Agile leaderboard~\cite{IPC2023Classical} reveals that the vast majority of top-performing planners are variations of the same underlying engine (Fast Downward~\cite{Helmert2006}).
     Selecting the top four planners from such a list would effectively test the same architecture four times.
     To demonstrate differential architectural sensitivity, this study requires engines that process \gls{pddl} through fundamentally different pipelines.
     This filter also excludes hybrid planners (e.g., Scorpion Maidu) to ensure that pure architectures are tested.
@@ -50,18 +50,18 @@ The four planners used in this study were selected from an initial pool of 35 cl
     \toprule
     \textbf{Planner} & \textbf{Search Paradigm} & \textbf{Selection Rationale} \\
     \midrule
-    Fast Downward (\gls{lama}-first) & Heuristic forward search & Gold-standard baseline for heuristic forward search; the reference planner used by \gls{ipc}~2023 Agile track judges~\cite{RichterWestphal2010}. \\
+    LAMA-first (Fast Downward) & Heuristic forward search & Gold-standard baseline for heuristic forward search; one of the official baseline planners in the \gls{ipc}~2023 Agile track~\cite{RichterWestphal2010, IPC2023Classical}. \\
     \addlinespace
     Madagascar (MpC) & \gls{sat}-based planning & Represents the constraint-programming approach; translates the entire \gls{pddl} problem into Boolean formulae~\cite{Rintanen2012}. \\
     \addlinespace
-    LAPKT-\gls{bfws}-Preference & Width-based search & Winner of the \gls{ipc}~2018 Agile track; explores problems by seeking structurally novel states (novelty) rather than traditional goal-distance estimates~\cite{LipovetzkyGeffner2017}. \\
+    LAPKT-\gls{bfws}-Preference & Width-based search & Winner of the \gls{ipc}~2018 Agile track~\cite{IPC2018Classical}; explores problems by seeking structurally novel states (novelty) rather than traditional goal-distance estimates~\cite{LipovetzkyGeffner2017}. \\
     \addlinespace
-    DecStar & Decoupled search & Winner of the \gls{ipc}~2023 Agile track for the decoupled search paradigm; identifies independent subsystems via star-topology decomposition~\cite{GnadHoffmann2018}. \\
+    DecStar & Decoupled search & Winner of the \gls{ipc}~2023 Agile track~\cite{IPC2023Classical}; identifies independent subsystems via star-topology decomposition~\cite{GnadHoffmann2018}. \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Overall, this selection guarantees absolute codebase diversity: \gls{lama}-first uses the Fast Downward framework, Madagascar uses its own SAT-based infrastructure, \gls{bfws}-Preference uses the LAPKT toolkit, and DecStar extends Fast Downward with a fundamentally different search strategy (decoupled state-space search).
+Overall, this selection guarantees broad architectural and search-paradigm diversity: LAMA-first uses the Fast Downward framework, Madagascar uses its own SAT-based infrastructure, \gls{bfws}-Preference uses the LAPKT toolkit, and DecStar extends Fast Downward with a fundamentally different search strategy (decoupled state-space search).
 
 
 %% -----------------------------------------------------------------------
@@ -137,7 +137,7 @@ Each domain occupies a distinct niche in the structural spectrum:
   \item[VisitAll (IPC 2014) --- The Minimal Baseline:]
     A near-minimal domain with a single action, only three predicates, and a maximum arity of two, encoding a pure graph-reachability problem.
     Its minimal syntactic footprint ensures rapid, reliable telemetry generation for the LLM-Modulo loop without timing out.
-    It provides a pure graph-reachability test where width-based search (\gls{bfws}) should strongly contrast with heuristic forward search (\gls{lama}).
+    It provides a pure graph-reachability test where width-based search (\gls{bfws}) should strongly contrast with heuristic forward search (LAMA).
 
   \item[Snake (IPC 2018) --- The Untyped, Negative-Precondition Challenge:]
     Selected over Termes and Gripper to represent the untyped domain space ($\lvert O_t \rvert = 0$).
@@ -265,7 +265,7 @@ Stage~2 extends the planner-agnostic approach of Stage~1 with architecture-aware
 
 The key finding from \citeauthor{Georgievski2025}~\cite{Georgievski2025} is that configuration effectiveness is highly planner-dependent.
 Their experiments show that generic structural optimisation is insufficient---what helps one architecture can actively hurt another.
-Their discussion explicitly calls for ``planner-specific feedback'' and notes that ``without access to planner internals, \glspl{llm} can only apply general domain configuration principles that happen to align with some planner architectures but conflict with others.''
+Their discussion explicitly calls for ``planner-specific feedback''. It further notes that ``without access to planner internals, \glspl{llm} can only apply general domain configuration principles that happen to align with some planner architectures but conflict with others.''
 
 These observations motivate a fundamental shift from planner-agnostic prompting to architecture-aware prompting.
 Rather than relying on six generic domain-engineering rules derived from the literature~\cite{Vallati2021, Franco2019, FoxLong2003, Helmert2009, McCluskey2017}, the architecture-aware prompts encode rules that are traceable to specific internal components of each target planner.
@@ -309,7 +309,7 @@ The complete prompts are presented in Appendix~\ref{ch:appendix:prompts}.
     \toprule
     \textbf{Priority} & \textbf{First} & \textbf{Second} & \textbf{Architectural Rationale} \\
     \midrule
-    \gls{lama}-first & Fewer preconditions & Enabling actions & Better initial plans in greedy search sprint \\
+    LAMA-first & Fewer preconditions & Enabling actions & Better initial plans in greedy search sprint \\
     \addlinespace
     DecStar & Single-subsystem actions & Hub-and-spoke flow & Maximises leaf-only operator classification for star topology \\
     \addlinespace
@@ -329,7 +329,7 @@ The complete prompts are presented in Appendix~\ref{ch:appendix:prompts}.
     \toprule
     \textbf{Priority} & \textbf{First} & \textbf{Last} & \textbf{Architectural Rationale} \\
     \midrule
-    \gls{lama}-first & Goal-relevant predicates & Static predicates & Accelerates mutex discovery for landmark ordering \\
+    LAMA-first & Goal-relevant predicates & Static predicates & Accelerates mutex discovery for landmark ordering \\
     \addlinespace
     DecStar & Single-object-type predicates & Global/shared predicates & Enables cleaner \gls{scc} partition for star topology \\
     \addlinespace
@@ -341,7 +341,7 @@ The complete prompts are presented in Appendix~\ref{ch:appendix:prompts}.
 \end{table}
 
 Additionally, each planner has one unique architecture-specific rule that has no counterpart in the other three planners:
-\gls{lama}-first uses static precondition fronting for Knowledge Compilation short-circuiting;
+LAMA-first uses static precondition fronting for Knowledge Compilation short-circuiting;
 DecStar uses global predicate demotion to prevent \gls{scc} collapse of the star topology;
 \gls{bfws}-Preference requires declaration-usage order consistency for aligned internal ID patterns;
 and Madagascar uses mutual exclusion alignment to accelerate fixpoint invariant discovery.
