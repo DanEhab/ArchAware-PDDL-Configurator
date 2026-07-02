@@ -745,6 +745,7 @@ If a domain fails any stage, subsequent stages are skipped, and the domain is re
 
 \begin{figure}[htbp]
   \centering
+  \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
       node distance=0.6cm,
       stage/.style={draw, rounded corners=3pt, minimum width=2.4cm, minimum height=0.8cm,
@@ -786,7 +787,8 @@ If a domain fails any stage, subsequent stages are skipped, and the domain is re
     \draw[rarrow] (v3) -- (r3);
     \draw[rarrow] (v4) -- (r4);
 
-  \end{tikzpicture}
+  \end{tikzpicture}%
+  }
   \caption{The four-level validation pipeline. Each \gls{llm}-generated response passes through four sequential stages; failure at any stage rejects the domain with a diagnostic message.}
   \label{fig:validation_pipeline}
 \end{figure}

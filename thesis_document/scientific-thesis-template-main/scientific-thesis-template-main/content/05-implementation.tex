@@ -399,7 +399,7 @@ The planner was cloned from the \gls{ipc}~2023 Classical Track organisation's re
 The Docker build process replicates the official \texttt{Apptainer.decstar\_agl} definition and involves four stages:
 
 \begin{enumerate}
-  \item \textbf{CPLEX installation:} The IBM ILOG CPLEX Studio~22.1.2 academic installer (\texttt{cplex\_studio2212.linux\_x86\_64.bin}) is injected into the container and installed silently. CPLEX provides the linear programming solver required by DecStar's factoring component.
+  \item \textbf{CPLEX installation:} The IBM ILOG CPLEX Studio~22.1.2 academic installer (\nolinkurl{cplex_studio2212.linux_x86_64.bin}) is injected into the container and installed silently. CPLEX provides the linear programming solver required by DecStar's factoring component.
   \item \textbf{Bliss~0.73:} The graph automorphism library is compiled from DecStar's bundled \texttt{third-party/bliss-0.73/} sources.
   \item \textbf{Osi-0.108.6:} The Open Solver Interface is compiled and linked against the CPLEX headers, enabling DecStar's LP-based factoring algorithm.
   \item \textbf{DecStar core:} The main planner (a modified Fast Downward fork) is compiled in 64-bit release mode via \texttt{pypy3 build.py release64}.
@@ -494,9 +494,9 @@ This design decision was motivated by the need for precise control over error cl
 \subsection{Provider Abstraction Layer}
 \label{sec:impl:llm:providers}
 
-The provider layer is implemented as a class hierarchy rooted in an abstract base class \texttt{LLMProvider}, with one concrete subclass per provider.
-Three concrete subclasses---\texttt{OpenAIProvider}, \texttt{AnthropicProvider}, and \texttt{GeminiProvider}---each wrap one provider's SDK.
-A fourth subclass, \texttt{DeepSeekProvider}, inherits from \texttt{OpenAIProvider} rather than implementing a separate client, because DeepSeek's API is fully compatible with the OpenAI chat-completions format; only the base URL (\texttt{https://api.deepseek.com/v1}) and the API key source (\texttt{DEEPSEEK\_API\_KEY}) differ.
+The provider layer is implemented as a class hierarchy rooted in an abstract base class \texttt{LLM\allowbreak Provider}, with one concrete subclass per provider.
+Three concrete subclasses---\texttt{OpenAI\allowbreak Provider}, \texttt{Anthropic\allowbreak Provider}, and \texttt{Gemini\allowbreak Provider}---each wrap one provider's SDK.
+A fourth subclass, \texttt{DeepSeek\allowbreak Provider}, inherits from \texttt{OpenAI\allowbreak Provider} rather than implementing a separate client, because DeepSeek's API is fully compatible with the OpenAI chat-completions format; only the base URL (\url{https://api.deepseek.com/v1}) and the API key source (\nolinkurl{DEEPSEEK_API_KEY}) differ.
 \Cref{tab:llm_mapping} maps each \gls{llm} to its provider class and API endpoint.
 
 Each provider implements a single \texttt{generate(prompt)} method that returns a four-element tuple: the response text, the API call duration in seconds, the input token count, and the output token count.
