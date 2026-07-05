@@ -87,3 +87,17 @@ text.txt
 
 # Proprietary/Large Binaries
 planners/decstar/cplex_*.bin
+
+# Thesis Defense Presentations & Scripts
+Presentation Script - Thesis Defence.docx
+Results Explained (Slides 15-18).docx
+Thesis Defense Presentation (slide 18 updated).pptx
+Thesis Defense Presentation.pptx
+thesis_defense_template_full.pptx
+thesis_defense_template.pptx
+
+# Thesis Document Comments & Diffs
+thesis_document/chapters_4-6_changes.diff
+thesis_document/Ilche_26_Comments_Disposition.md
+thesis_document/M+ |lche_Comment_Review_Log.md
+thesis_document/Ilche_Comment_Review_Log.md
