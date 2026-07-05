@@ -3,10 +3,10 @@
 
 \chapter{Implementation}\label{ch:implementation}
 
-The experimental pipeline designed in \Cref{ch:design} was practically realised as a modular software system.
-\Cref{ch:design} specified \emph{what} the pipeline does at each stage; the present chapter explains \emph{how} each component was built.
+The experimental pipeline designed in \Cref{ch:design} is realised as a modular software system.
+\Cref{ch:design} specifies \emph{what} the pipeline does at each stage; the present chapter explains \emph{how} each component is built.
 Five aspects are covered: the codebase structure, the containerisation strategy that isolates legacy planners, the precise provenance and integration of each planner, the validation tool, and the \gls{llm} provider abstraction layer.
-All implementation decisions are motivated by the requirements of reproducibility, correctness, and cross-platform portability.
+All implementation decisions follow from the requirements of reproducibility, correctness, and cross-platform portability.
 
 %% -----------------------------------------------------------------------
 %%  5.1  SYSTEM ARCHITECTURE AND CODEBASE
@@ -157,7 +157,7 @@ The four stages share a common infrastructure layer located in \texttt{experimen
 \label{sec:impl:codebase:infra}
 
 \Cref{tab:shared_modules} lists the shared infrastructure modules and their responsibilities.
-These modules implement the cross-cutting concerns described in \Cref{sec:design:safeguards}: thread-safe data persistence, checkpoint-resume logic, structured error handling, periodic progress heartbeating, and terminal-output capture (mirrored to timestamped log files).
+These modules implement the pipeline's cross-cutting concerns: thread-safe data persistence, checkpoint-resume logic, structured error handling, periodic progress heartbeating, and terminal-output capture (mirrored to timestamped log files).
 
 \begin{table}[!htbp]
   \centering
@@ -249,7 +249,7 @@ This approach offers three key advantages:
 
   \item \textbf{Reproducibility:} The Dockerfiles serve as executable build specifications. Any researcher can reconstruct the exact planner binaries by running \texttt{docker build} with the provided Dockerfiles, eliminating ``works on my machine'' failures.
 
-  \item \textbf{Resource isolation:} Docker's \texttt{--cpus}, \texttt{--memory}, and \texttt{--memory-swap} flags enforce the computational safeguards described in \Cref{sec:design:safeguards} at the container level, guaranteeing that resource limits are enforced by the Linux kernel rather than relying on the planner's own enforcement.
+  \item \textbf{Resource isolation:} Docker's \texttt{--cpus}, \texttt{--memory}, and \texttt{--memory-swap} flags enforce the planner execution constraints described in \Cref{sec:setup:constraints} at the container level, guaranteeing that resource limits are enforced by the Linux kernel rather than relying on the planner's own enforcement.
 \end{enumerate}
 
 \subsection{Uniform Execution Interface}
@@ -291,7 +291,7 @@ docker run
   /pddl/<domain_path> /pddl/<problem_path>
 \end{lstlisting}
 
-Each container is assigned a unique name (planner name concatenated with a UUID fragment) to enable explicit cleanup: if the Python-side safety-net timeout expires (360 + 15~seconds; see \Cref{sec:design:safeguards}), the orchestrator issues a \texttt{docker kill} followed by a \texttt{docker rm} to release the container's resources.
+Each container is assigned a unique name (planner name concatenated with a UUID fragment) to enable explicit cleanup: if the Python-side safety-net timeout expires (360 + 15~seconds; see \Cref{sec:setup:constraints}), the orchestrator issues a \texttt{docker kill} followed by a \texttt{docker rm} to release the container's resources.
 The benchmark directory is mounted as a read-only volume at \texttt{/pddl}, and domain and problem file paths are expressed relative to this mount point.
 
 \Cref{tab:docker_images} summarises the five Docker images used in the pipeline, their base operating systems, and their key build dependencies.
@@ -321,7 +321,7 @@ The benchmark directory is mounted as a read-only volume at \texttt{/pddl}, and 
 \section{Planner Integration}
 \label{sec:impl:planners}
 
-While the rigorous scientific methodology for selecting these specific four planners is detailed in \Cref{sec:setup:planners}, this section describes how they were technically integrated into the pipeline.
+While the rigorous scientific methodology for selecting these specific four planners is detailed in \Cref{sec:setup:planners}, this section describes how we integrate them into the pipeline.
 Each planner represents a different search paradigm (introduced in \Cref{sec:bg:search_paradigms}) and poses unique integration challenges.
 For each planner, we document the exact provenance, the build process, the command-line invocation, and the output parsing strategy.
 
@@ -360,7 +360,7 @@ LAMA reports all seven metrics in the schema.
 Integrating \gls{bfws} presented the most complex engineering challenge due to its deeply legacy dependency chain.
 
 \paragraph{Provenance and build process.}
-The planner was sourced from Team~47's archived \gls{ipc}~2018 submission repository\footnote{\url{https://bitbucket.org/ipc2018-classical/team47.git} (accessed June 2026)}.
+We source the planner from Team~47's archived \gls{ipc}~2018 submission repository\footnote{\url{https://bitbucket.org/ipc2018-classical/team47.git} (accessed June 2026)}.
 The original submission used a Singularity container defined by a file named \texttt{Singularity\_AGL} (for the Agile track).
 We translated the Singularity \texttt{\%setup} and \texttt{\%post} directives line-by-line into a Docker-equivalent \texttt{Dockerfile}, preserving the exact same package versions and build sequence.
 
@@ -426,7 +426,7 @@ Madagascar~\cite{Rintanen2012} is a \gls{sat}-based planner that reduces plannin
 
 \paragraph{Provenance.}
 Unlike the other three planners, Madagascar is integrated via a pre-compiled Linux binary (\texttt{MpC}) rather than built from source.
-The binary was sourced directly from the predecessor thesis~\cite{Elis2025}, which in turn obtained it from Jussi Rintanen's distribution.
+We source the binary directly from the predecessor thesis~\cite{Elis2025}, which in turn obtained it from Jussi Rintanen's distribution.
 The Docker image copies this binary into an Ubuntu~22.04 container at \texttt{/usr/local/bin/madagascar} and requires no compilation step, resulting in the simplest Dockerfile in the pipeline.
 
 \paragraph{Invocation and metrics.}

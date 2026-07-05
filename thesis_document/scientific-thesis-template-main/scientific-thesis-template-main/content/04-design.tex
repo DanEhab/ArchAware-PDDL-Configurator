@@ -8,7 +8,6 @@ The pipeline implements a four-stage ablation study that progressively introduce
 \Cref{sec:design:overview} introduces the overall pipeline architecture and the rationale behind its staged design.
 \Cref{sec:design:stage0,sec:design:stage1,sec:design:stage2,sec:design:stage3} describe the four experimental stages in detail, including the improvement detection and cross-planner testing procedures that are integral to Stage~2.
 \Cref{sec:design:validation} presents the four-level validation pipeline that ensures semantic equivalence at every stage.
-Finally, \Cref{sec:design:safeguards} describes the computational safeguards that ensure scientific rigour and fair comparison.
 
 %% -----------------------------------------------------------------------
 %%  4.1  PIPELINE OVERVIEW AND ARCHITECTURE
@@ -128,17 +127,17 @@ The pipeline is designed around four key principles:
 
   \item \textbf{Full reproducibility.}
         All experimental parameters---domains, \glspl{llm}, planners, hyperparameters, instance selections, resource constraints, and random seeds---are centralised in a single configuration file (see \Cref{ch:experimental_setup}).
-        Every stage is designed to be \emph{idempotent}, so that an interrupted run can be resumed without duplicating or losing work; the underlying checkpointing mechanism is described in \Cref{sec:design:safeguards} and \Cref{ch:implementation}.
+        Every stage is designed to be \emph{idempotent}, so that an interrupted run can be resumed without duplicating or losing work; the underlying checkpointing mechanism is described in \Cref{ch:implementation}.
 
-  \item \textbf{Comprehensive data capture.}
-        Each stage produces structured telemetry, persisted to both stage-local and global CSV files, to enable stage-specific and cross-stage analysis.
+  \item \textbf{Structured data capture.}
+        Each stage produces telemetry, persisted to both stage-local and global CSV files, to enable stage-specific and cross-stage analysis.
         The two measurements central to the experiments are \emph{\gls{llm} generation metadata} (\gls{api} timing, token usage, raw responses, and validation verdicts) and \emph{planner execution metrics} (the measurement schema introduced in \Cref{sec:design:overview:data}); the operational logs that record progress and diagnostics support reproducibility and are described in \Cref{ch:implementation}.
 \end{itemize}
 
 \subsection{Global Data Architecture}
 \label{sec:design:overview:data}
 
-The experiment records two complementary kinds of structured data, each accumulated in a global file across all stages and mirrored by stage-local copies:
+The pipeline records two complementary kinds of structured data, each accumulated in a global file across all stages and mirrored by stage-local copies:
 
 \begin{enumerate}
   \item \textbf{Planner execution records:} one row per planner run, capturing the run's identity---domain, problem instance, planner, stage label (e.g., \texttt{Baseline}, \texttt{General}, \texttt{Arch\_Aware}, \texttt{Feedback\_Loop1}), and, for Stages~1--3, the generating \gls{llm} and prompt---together with the planner execution metrics defined in \Cref{tab:planner_csv_schema}.
@@ -196,19 +195,18 @@ It executes the original, unmodified \gls{pddl} domain models---as published in 
 The combinatorial scope of Stage~0 is defined by three dimensions:
 
 \begin{equation}\label{eq:stage0_runs}
-  \text{Stage~0 runs} = |\mathcal{D}| \times |\mathcal{P}| \times |\mathcal{I}| = 5 \times 4 \times 15 = 300,
+  \text{Stage~0 runs} = |\mathcal{D}| \times |\mathcal{P}| \times |\mathcal{I}|,
 \end{equation}
 
-\noindent where $\mathcal{D}$ is the set of benchmark domains, $\mathcal{P}$ is the set of planners, and $\mathcal{I}$ is the set of selected problem instances per domain (see \Cref{ch:experimental_setup} for the specific selections and their justifications).
+\noindent where $\mathcal{D}$ is the set of benchmark domains, $\mathcal{P}$ is the set of planners, and $\mathcal{I}$ is the set of selected problem instances per domain. The concrete cardinalities and the resulting run total are established in \Cref{ch:experimental_setup}, where the domains, planners, and instances are selected and justified.
 
-The orchestrator builds a fixed work queue of all 75 (domain, instance) pairs and processes it with four parallel planner workers---one per planner---each consuming the shared queue independently.
-This design ensures that faster planners do not block slower ones: a planner that completes each run in under one second finishes its full queue while a slower planner may still be processing its first domain.
-All workers write to the global planner execution CSV; the thread-safe persistence mechanism is described in \Cref{ch:implementation}.
+Because the runs are mutually independent, they are executed concurrently across the planners, so that faster planners do not block slower ones.
+The concrete execution mechanism---work scheduling, parallelism, and thread-safe persistence to the global planner execution CSV---is described in \Cref{ch:implementation}.
 
 \subsection{Per-Run Measurements}
 \label{sec:design:stage0:metrics}
 
-For each of the 300~runs, the pipeline captures the complete set of planner execution metrics listed in \Cref{tab:planner_csv_schema} (columns 9--16).
+For each run, the pipeline captures the complete set of planner execution metrics listed in \Cref{tab:planner_csv_schema} (columns 9--16).
 The output status is determined through a priority-based classification: memory exhaustion signals (\texttt{MEMOUT}) are checked first, followed by the planner's own status report, with a fallback to \texttt{FAILURE} for unclassifiable exits.
 These measurements constitute the \emph{baseline metrics} that serve as the reference for all subsequent comparative analyses---coverage deltas and IPC score gains are computed relative to this stage.
 
@@ -218,7 +216,7 @@ These measurements constitute the \emph{baseline metrics} that serve as the refe
 Stage~0 produces the following artefacts:
 
 \begin{itemize}
-  \item \textbf{Planner execution data:} a single CSV file containing 300~rows (one per run) with the schema defined in \Cref{tab:planner_csv_schema}.
+  \item \textbf{Planner execution data:} a single CSV file with one row per run, following the schema defined in \Cref{tab:planner_csv_schema}.
         The \texttt{Stage} column is set to \texttt{Baseline}, and the \texttt{LLM\_Used} and \texttt{PromptID} columns are empty.
         This file also serves as the seed for the global planner execution CSV that accumulates results across all stages.
   \item \textbf{Error register:} a CSV logging planner errors (predominantly timeouts), with each entry linking to a detailed dump file containing the full standard output and standard error of the failed run.
@@ -242,25 +240,25 @@ The Stage~1 pipeline is coordinated by a single master script that executes thre
 
 \begin{description}[style=nextline, leftmargin=1.5cm]
   \item[\textbf{Phase~A} (LLM Generation):]
-    Each of the four \glspl{llm} receives each of the five benchmark domains paired with a general reordering prompt.
-    Since the prompt is planner-agnostic, one configured domain is produced per (domain, \gls{llm}) pair, yielding $|\mathcal{L}| \times |\mathcal{D}| = 4 \times 5 = 20$ API calls.
-    The four \glspl{llm} operate in parallel threads, each processing its five domains sequentially.
+    Each \gls{llm} receives each benchmark domain paired with a general reordering prompt.
+    Since the prompt is planner-agnostic, one configured domain is produced per (domain, \gls{llm}) pair, yielding $|\mathcal{L}| \times |\mathcal{D}|$ API calls, where $\mathcal{L}$ is the set of \glspl{llm}.
+    The \glspl{llm} operate in parallel threads, each processing its domains sequentially.
 
   \item[\textbf{Phase~B} (Validation):]
-    All 20 raw \gls{llm} responses pass through the four-level validation pipeline (V1$\to$V2$\to$V3$\to$V4; see \Cref{sec:design:validation}).
-    Domains that pass all four stages are classified as \texttt{VALID}; those that fail are classified as \texttt{INVALID} or \texttt{REJECTED} and excluded from planner execution.
+    All raw \gls{llm} responses pass through the four-level validation pipeline (\Cref{sec:design:validation}).
+    Domains that pass all four levels are classified as \texttt{VALID}; those that fail are classified as \texttt{INVALID} or \texttt{REJECTED} and excluded from planner execution.
 
   \item[\textbf{Phase~C} (Planner Execution):]
-    Each valid configured domain is executed on \emph{all four} planners across all 15 problem instances.
+    Each valid configured domain is executed on \emph{all} planners across all selected problem instances.
     Since the prompt provided no architecture-specific guidance, all planners receive the same domain, yielding:
     \begin{equation}\label{eq:stage1_runs}
-      \text{Planner runs (max)} = |\mathcal{L}| \times |\mathcal{D}| \times |\mathcal{P}| \times |\mathcal{I}| = 4 \times 5 \times 4 \times 15 = 1{,}200.
+      \text{Planner runs (max)} = |\mathcal{L}| \times |\mathcal{D}| \times |\mathcal{P}| \times |\mathcal{I}|.
     \end{equation}
-    The actual count may be lower if some domains failed validation.
-    As in Stage~0, four planner threads execute concurrently, each processing its assigned domain--instance pairs.
+    The actual count may be lower if some domains fail validation.
+    As in Stage~0, the planner threads execute concurrently, each processing its assigned domain--instance pairs.
 \end{description}
 
-Each phase is idempotent: already-completed work---generations, validations, or planner runs---is detected and skipped on resume, so the pipeline can be safely interrupted and restarted (\Cref{sec:design:safeguards}).
+Each phase is idempotent: already-completed work---generations, validations, or planner runs---is detected and skipped on resume, so the pipeline can be safely interrupted and restarted (\Cref{ch:implementation}).
 
 \subsection{Prompt Design}
 \label{sec:design:stage1:prompt}
@@ -350,24 +348,24 @@ Unlike Stage~1, where a single generic prompt is used for all planners, Stage~2 
 \label{sec:design:stage2:orchestration}
 
 Stage~2 extends the three-phase architecture of Stage~1 with two additional phases for improvement detection and cross-planner testing.
-The master orchestrator chains all five phases sequentially, with each phase implementing checkpoint logic for interrupt-and-resume capability:
+The five phases are chained sequentially, each checkpointed for interrupt-and-resume capability:
 
 \begin{description}[style=nextline, leftmargin=1.5cm]
   \item[\textbf{Phase~A} (LLM Generation):]
     Because the prompt is planner-specific, each \gls{llm} produces a separate configured domain for every (domain, planner) pair:
     \begin{equation}\label{eq:stage2_llm_calls}
-      \text{LLM calls} = |\mathcal{L}| \times |\mathcal{D}| \times |\mathcal{P}| = 4 \times 5 \times 4 = 80.
+      \text{LLM calls} = |\mathcal{L}| \times |\mathcal{D}| \times |\mathcal{P}|.
     \end{equation}
-    Four \gls{llm} threads operate in parallel, each processing 20 (domain, planner) combinations sequentially.
+    The \glspl{llm} operate in parallel threads, each processing its (domain, planner) combinations sequentially.
 
   \item[\textbf{Phase~B} (Validation):]
-    All 80 raw \gls{llm} responses pass through the same V1$\to$V4 validation pipeline as Stage~1 (\Cref{sec:design:validation}).
+    All raw \gls{llm} responses pass through the same four-level validation pipeline as Stage~1 (\Cref{sec:design:validation}).
 
   \item[\textbf{Phase~C} (Target-Planner Execution):]
     A key design decision distinguishes Stage~2 from Stage~1: each valid configured domain is executed \emph{only on its target planner}---the planner whose architecture informed the prompt.
     The target planner is derived from the prompt~ID.
     This reflects the hypothesis that architecture-aware configurations are planner-specific and should be evaluated against the planner they were designed for.
-    Four planner threads execute concurrently, each processing all domains targeted to its planner.
+    The planner threads execute concurrently, each processing the domains targeted to it.
 
   \item[\textbf{Phase~D} (Improvement Detection):]
     For each (domain, \gls{llm}, target planner) triple, the pipeline evaluates whether the architecture-aware configuration represents a genuine improvement over the Stage~0 baseline, using the three-condition test described in \Cref{sec:design:stage2:improvement}.
@@ -409,13 +407,14 @@ DOMAIN TO REORDER:
 \end{lstlisting}
 
 Sections~1--4 are specific to the target planner and remain constant across domains; Section~5 is substituted with the input domain for each configuration request.
-Four distinct prompt files are maintained---one per planner---each instantiating this template with planner-specific content derived from the component-level architectural analysis conducted prior to the experimental stages (addressing \textbf{SQ1}).
+Four distinct prompt files are maintained, one per planner, each instantiating this template with planner-specific content.
+Deriving this content is itself a core methodological step of the proposed approach, and directly addresses research question~\textbf{SQ1}: the \emph{Architecture Context} and the \emph{Architecture-Aware Reordering Rules} are obtained through a systematic, component-level analysis of each target planner's internal architecture, rather than being hand-tuned during implementation.
 
 The \emph{Architecture Context} (Section~3) describes the internal processing pipeline of the target planner: how it parses the \gls{pddl} input, constructs its intermediate representation (e.g., multi-valued state variables, causal graph, SAT encoding), and how the ordering of domain elements propagates through these stages to influence the search behaviour.
 The \emph{Architecture-Aware Reordering Rules} (Section~4) translate this architectural understanding into concrete, actionable instructions.
 For example, a prompt targeting a heuristic forward-search planner instructs the \gls{llm} to place goal-relevant predicates and actions earlier in the domain file, as these predicates are evaluated first during heuristic computation and influence tie-breaking in the search queue.
 A prompt targeting a SAT-based planner instead instructs the \gls{llm} to group mutually exclusive predicates adjacently, as the SAT encoding assigns consecutive variable indices to adjacent predicates, which can improve unit-propagation efficiency in the solver.
-The exact contents of all four architecture-aware prompts, and the detailed methodology used to derive them from component-level analysis, are fully detailed in \Cref{sec:setup:arch_aware_prompt}.
+The analysis method used to derive these components, together with the exact contents of all the architecture-aware prompts, is presented in \Cref{sec:setup:arch_aware_prompt} and Appendix~\ref{ch:appendix:prompts}.
 
 \subsection{Improvement Detection}
 \label{sec:design:stage2:improvement}
@@ -476,7 +475,7 @@ For every triple where improvement is detected, the validated domain file is cop
 \label{sec:design:stage2:cross_test}
 
 For every triple where improvement is detected in Phase~D, Phase~E automatically executes the improved domain on the three \emph{non-target} planners (the planners whose architectures were \emph{not} used to design the prompt).
-Each cross-test run follows the same execution protocol as the target-planner runs (same resource constraints, same 15 problem instances).
+Each cross-test run follows the same execution protocol as the target-planner runs (same resource constraints, same selected problem instances).
 The results are recorded with a distinct stage label (\texttt{Cross\_Test}) in a separate local CSV, while also being appended to the global planner execution CSV.
 
 The cross-testing protocol serves two purposes:
@@ -514,16 +513,16 @@ Unlike Stages~1 and~2, where each \gls{llm} generates a single configuration in 
 \subsection{Overview and Scale}
 \label{sec:design:stage3:overview}
 
-Stage~3 processes all 80 (domain, \gls{llm}, target planner) triples from Stage~2.
+Stage~3 processes every (domain, \gls{llm}, target planner) triple from Stage~2.
 Each triple runs through up to $K{=}3$ feedback iterations.
-Each valid iteration involves executing the domain on the target planner across all 15 problem instances:
+Each valid iteration executes the domain on the target planner across all selected problem instances:
 
 \begin{equation}\label{eq:stage3_max_runs}
-  \text{Planner runs (max)} = 80 \times 3 \times 15 = 3{,}600.
+  \text{Planner runs (max)} = |\mathcal{L}| \times |\mathcal{D}| \times |\mathcal{P}| \times K \times |\mathcal{I}|.
 \end{equation}
 
 \noindent The actual number is lower because some iterations fail validation (skipping planner execution) and some triples terminate early.
-The four \glspl{llm} run as four parallel pipeline threads, each processing its 20 triples (5~domains $\times$ 4~planners) sequentially.
+The \glspl{llm} run as parallel pipeline threads, each processing its triples sequentially.
 
 \subsection{Seed Domain Routing}
 \label{sec:design:stage3:seed}
@@ -638,7 +637,7 @@ For each of the up to three iterations, the following steps are executed:
         If validation fails, the iteration is logged with the failure details, the failure is added to the history and telemetry for the next iteration, and the loop continues to the next iteration---\emph{no planner execution occurs}.
 
   \item \textbf{Run soft critics (planner execution):}
-        The validated domain is executed on the target planner across all 15 problem instances, using the same containerised execution as Stages~0--2.
+        The validated domain is executed on the target planner across all selected problem instances, using the same containerised execution as Stages~0--2.
         Each run is logged to both local and global planner execution CSVs.
 
   \item \textbf{Compute IPC score:}
@@ -659,7 +658,7 @@ For each of the up to three iterations, the following steps are executed:
         Set the current domain for the next iteration to the output of this iteration (regardless of whether it improved).
 
   \item \textbf{Check early termination:}
-        If both the baseline and current configuration time out on all 15 instances (\texttt{ALL\_TIMEOUT}), the loop terminates early as no reordering can make the domain solvable for this planner.
+        If both the baseline and current configuration time out on all selected instances (\texttt{ALL\_TIMEOUT}), the loop terminates early as no reordering can make the domain solvable for this planner.
 \end{enumerate}
 
 \subsection{Post-Loop Finalisation}
@@ -858,46 +857,3 @@ In addition to the binary semantic equivalence verdict, the V4 check records whi
 For each of the nine components in \Cref{tab:v4_components}, two boolean flags (\texttt{semantic\_change} and \texttt{reordered}) are written to the validation metrics CSV, yielding 18~flags per domain.
 This per-component reordering data enables fine-grained analysis of which structural dimensions each \gls{llm} chose to modify and forms the basis for the reordering pattern analysis in \Cref{ch:results}.
 Additionally, a JSON report for each domain provides the exact structural diff.
-
-
-%% -----------------------------------------------------------------------
-%%  4.7  COMPUTATIONAL SAFEGUARDS
-%% -----------------------------------------------------------------------
-\section{Computational Safeguards}
-\label{sec:design:safeguards}
-
-Scientific rigour requires that all planner executions occur under strictly controlled and reproducible conditions.
-We enforce the following computational safeguards, aligned with the \gls{ipc} Agile Track standards and the experimental protocols of \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025}:
-
-\paragraph{Containerised isolation:}
-Each planner executes inside an isolated container with fixed resource allocations, so that planners cannot access shared system resources; this prevents cross-contamination between concurrent runs and guarantees that timing measurements reflect only the planner's computation.
-The containerisation strategy and the exact \texttt{docker} invocation are detailed in \Cref{sec:impl:docker}.
-
-\paragraph{CPU isolation:}
-Each container is restricted to a single CPU core.
-This constraint ensures reproducible timing measurements: if multiple cores were available, operating system scheduling could introduce non-deterministic timing variations.
-Single-core allocation also reflects the \gls{ipc} evaluation protocol and ensures that reported runtimes are comparable across runs~\cite{Elis2025}.
-
-\paragraph{Memory limits:}
-A hard memory cap of 8~GB is enforced, with no swap space permitted.
-This prevents planners from spilling data structures to disk, which would corrupt timing measurements.
-When a planner exceeds the memory limit, the operating system's out-of-memory killer terminates the container immediately, and the run is recorded as \texttt{MEMOUT}.
-
-\paragraph{Time limits:}
-A planner-level time limit of 360~seconds is enforced, consistent with the \gls{ipc} Agile Track.
-An additional safety-net timeout of 375~seconds at the host level (360 + 15~second buffer) allows planners to finish their own timeout handling and print their \texttt{[RESULT]} and \texttt{[METRIC]} output lines before being forcefully terminated.
-Runs that exceed the time limit are recorded as \texttt{TIMEOUT}, with wall-clock time set to the timeout value for IPC score computation.
-
-\paragraph{Checkpoint and resume:}
-Every completed run is persisted immediately, and on restart the pipeline skips work that is already recorded.
-This guarantees \emph{idempotent execution}---re-running the pipeline after an interruption produces the same result as an uninterrupted run, without duplicate entries or lost progress---which is essential for experiments that span multiple days of continuous execution.
-The checkpointing implementation is detailed in \Cref{ch:implementation}.
-
-\paragraph{\gls{llm} hyperparameter control:}
-All \gls{llm} calls use a temperature of $T{=}0.0$ (deterministic decoding) and are stateless---no conversation history is carried between calls---so that any variation in output is attributable to the prompt content rather than to stochastic sampling or context carry-over.
-The provider-specific handling of these settings is described in \Cref{sec:impl:llm_integration}.
-
-\paragraph{Dedicated execution environment:}
-To eliminate the timing variance introduced by shared cloud infrastructure (``noisy-neighbour'' effects and hypervisor steal time), all planner executions are performed on dedicated local hardware.
-This decision is motivated by the sensitivity of the Wilcoxon signed-rank test to measurement noise: because the test detects potentially marginal architectural speedups, even small timing perturbations could produce spurious results.
-The specific hardware configuration is described in \Cref{ch:experimental_setup}.

@@ -13,14 +13,14 @@ All parameters are centralised in the configuration file \texttt{experiment\_con
 \label{sec:setup:planners}
 
 To test how different planning architectures respond to structural changes in domain models, this study requires planners that solve \gls{pddl} problems in fundamentally different ways.
-The four planners used in this study were selected from an initial pool of 35 classical planners through a strict four-step filtering process.
+We select the four planners from an initial pool of 35 classical planners through a strict four-step filtering process.
 
 \subsection{Filtering Methodology}
 
 \begin{description}[style=nextline, leftmargin=1.5cm]
   \item[\textbf{Filter~1} (Agile Planning, No Portfolios):]
-    Because the primary focus is on agile planning---finding a valid plan as fast as possible, regardless of cost---planners designed for the optimal track were excluded.
-    Following the methodology of \citeauthor{Elis2025}~\cite{Elis2025}, portfolio planners were also excluded.
+    Because the primary focus is on agile planning---finding a valid plan as fast as possible, regardless of cost---we exclude planners designed for the optimal track.
+    Following the methodology of \citeauthor{Elis2025}~\cite{Elis2025}, we also exclude portfolio planners.
     Portfolio planners combine multiple algorithms and switch between them during execution; if an \gls{llm} modification improved the speed of such a planner, it would be impossible to determine which specific underlying architecture actually benefited.
 
   \item[\textbf{Filter~2} (Proven Performance):]
@@ -70,11 +70,11 @@ Overall, this selection guarantees broad architectural and search-paradigm diver
 \section{Selection of Domains}
 \label{sec:setup:domains}
 
-The benchmark domains used in this study were selected through a multi-stage filtering process designed to maximise structural diversity while satisfying the practical constraints of the experimental pipeline.
+We select the benchmark domains through a multi-stage filtering process designed to maximise structural diversity while satisfying the practical constraints of the experimental pipeline.
 
 \subsection{Source Aggregation}
 
-The initial candidate pool was assembled from multiple authoritative repositories spanning over 25 years of \gls{ipc} history (IPC~1998 through IPC~2023).
+We assemble the initial candidate pool from multiple authoritative repositories spanning over 25 years of \gls{ipc} history (IPC~1998 through IPC~2023).
 Sources include the official IPC archives, the AutoPlanBench benchmark suite, and the domain sets used by \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025}.
 This temporal breadth ensures that the dataset captures both foundational benchmarks---enabling direct comparison with prior work---and contemporary domains reflecting modern design practices.
 
@@ -90,12 +90,12 @@ Candidate domains were subjected to three sequential filters:
 
   \item[\textbf{Filter~2} (Pipeline Compatibility):]
     The LLM-Modulo feedback loop (\Cref{sec:design:stage3}) requires a single, static \texttt{domain.pddl} file per domain.
-    Domains using a ``domain-per-problem'' compilation model (e.g., Quantum Circuit Layout Synthesis, where problem-specific constants are hardcoded into individual domain files) or requiring mandatory external normalisers that overwrite \gls{llm} modifications (e.g., Rubik's Cube) were excluded to preserve the integrity of the structural feedback loop.
+    We exclude domains using a ``domain-per-problem'' compilation model (e.g., Quantum Circuit Layout Synthesis, where problem-specific constants are hardcoded into individual domain files) or requiring mandatory external normalisers that overwrite \gls{llm} modifications (e.g., Rubik's Cube), to preserve the integrity of the structural feedback loop.
 
   \item[\textbf{Filter~3} (Structural Redundancy Reduction):]
     Among the surviving candidates, redundant overlaps were eliminated to maximise structural variance within a feasible scope.
     For instance, Blocksworld and Depots share significant block-stacking overlap; Gripper and Snake both occupy the untyped space; and Termes overlaps structurally with Snake in predicate count and maximum arity.
-    In each case, the domain with the richer structural profile was retained.
+    In each case, we retain the domain with the richer structural profile.
 \end{description}
 
 \subsection{Structural Quantification}
@@ -142,7 +142,7 @@ Each domain occupies a distinct niche in the structural spectrum:
   \item[Snake (IPC 2018) --- The Untyped, Negative-Precondition Challenge:]
     Selected over Termes and Gripper to represent the untyped domain space ($\lvert O_t \rvert = 0$).
     Snake introduces dead-end states and requires negative preconditions, creating severe structural stress that differentiates planners.
-    Gripper was excluded because its trivially small search space causes all four planners to solve instances near-instantly, producing flat, undifferentiated telemetry.
+    We exclude Gripper because its trivially small search space causes all four planners to solve instances near-instantly, producing flat, undifferentiated telemetry.
 
   \item[Ricochet Robots (IPC 2023) --- The State-of-the-Art Mid-Range:]
     The sole representative of the latest \gls{ipc}, ensuring the dataset includes a contemporary benchmark.
@@ -225,6 +225,7 @@ A multimodal reasoning engine accessed via a specialised coding-optimised previe
 \section{Selection of the General Prompt Strategy}
 \label{sec:setup:general_prompt}
 
+The general prompt is a design element of Stage~1 (\Cref{sec:design:stage1}); the present section documents the empirical justification for the specific prompt chosen, fixing this concrete Stage~1 parameter alongside the other experimental ingredients.
 To establish a robust and reproducible general prompt baseline for Stage~1, the selection process draws directly on the empirical findings of \citeauthor{Georgievski2025}~\cite{Georgievski2025} and \citeauthor{Elis2025}~\cite{Elis2025}.
 
 \subsection{Empirical Evidence from Prior Work}
@@ -259,6 +260,7 @@ The prompt encodes three constraints: (i)~strict semantic preservation; (ii)~raw
 \section{Selection of the Architecture-Aware Prompt Strategy}
 \label{sec:setup:arch_aware_prompt}
 
+The architecture-aware prompting strategy is the central design contribution developed in \Cref{sec:design:stage2}; the present section documents how each planner-specific prompt is derived and justified, fixing the concrete Stage~2 prompts used in the experiments.
 Stage~2 extends the planner-agnostic approach of Stage~1 with architecture-aware prompting: four distinct, planner-tailored prompt variants that inject synthesised knowledge of each target planner's internal architecture into the \gls{llm}'s guidance component.
 
 \subsection{The Research Gap}
@@ -353,7 +355,7 @@ and Madagascar uses mutual exclusion alignment to accelerate fixpoint invariant 
 \section{Hardware and Environment}
 \label{sec:setup:hardware}
 
-As motivated in \Cref{sec:design:safeguards}, all planner executions are performed on dedicated local hardware rather than on shared cloud infrastructure, so that the noise-sensitive improvement-detection tests are not confounded by external timing variance.
+All planner executions are performed on dedicated local hardware rather than on shared cloud infrastructure, so that the noise-sensitive improvement-detection tests (\Cref{sec:design:stage2:improvement}) are not confounded by external timing variance such as ``noisy-neighbour'' effects or hypervisor steal time.
 
 \Cref{tab:hardware} lists the hardware configuration.
 
@@ -409,14 +411,14 @@ The key hyperparameters and the reproducibility measures employed are documented
 \end{description}
 
 \subsection{Planner Execution Constraints}
+\label{sec:setup:constraints}
 
-Each planner container is subject to the following resource constraints, following the \gls{ipc} Agile Track conventions and enforced via the \texttt{docker run} flags detailed in \Cref{sec:impl:docker}:
+To guarantee reproducible and fair timing measurements, every planner runs inside an isolated Docker container (\Cref{sec:impl:docker}) under fixed resource constraints, following the \gls{ipc} Agile Track conventions and enforced by the \texttt{docker run} flags:
 
 \begin{itemize}
-  \item \textbf{Time limit:} 360 seconds (6 minutes) per problem instance.
-  \item \textbf{Memory limit:} 8~GB, with swap disabled.
-  \item \textbf{CPU allocation:} 1 core per container.
-  \item \textbf{OOM handling:} the container is terminated immediately if the memory limit is exceeded.
+  \item \textbf{Time limit:} 360 seconds (6 minutes) per problem instance. A host-level safety-net timeout of 375 seconds (a 15-second buffer) lets a planner print its own result and metric lines before being forcefully terminated. Runs that exceed the limit are recorded as \texttt{TIMEOUT}, with wall-clock time set to the limit for \gls{ipc} score computation.
+  \item \textbf{Memory limit:} 8~GB, with swap disabled so that planners cannot spill data structures to disk and distort timing. A run that exceeds the limit is terminated by the operating system's out-of-memory killer and recorded as \texttt{MEMOUT}.
+  \item \textbf{CPU allocation:} a single core per container. Single-core execution removes the non-deterministic timing variation that multi-core scheduling would introduce and matches the \gls{ipc} evaluation protocol, so that reported runtimes are comparable across runs~\cite{Elis2025}.
 \end{itemize}
 
 \subsection{Problem Instance Selection}
@@ -432,6 +434,28 @@ The selected instances are:
 \noindent The same 15 instances are used across all five domains, all four planners, all four \glspl{llm}, and all experimental stages, ensuring that pairwise comparisons between stages are perfectly paired.
 Only the selected instances are included in the repository's \texttt{instances/} directory, eliminating any ambiguity for future replication.
 
+\subsection{Resulting Experimental Scale}
+
+With the experimental ingredients fixed---five domains ($|\mathcal{D}| = 5$), four planners ($|\mathcal{P}| = 4$), four \glspl{llm} ($|\mathcal{L}| = 4$), and fifteen instances per domain ($|\mathcal{I}| = 15$)---the run-count expressions defined symbolically in \Cref{ch:design} evaluate to the totals in \Cref{tab:experiment_scale}.
+The actual counts are lower whenever a configuration fails validation or a feedback triple terminates early.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Maximum number of runs per stage, obtained by instantiating the symbolic run-count expressions of \Cref{ch:design} with the selected cardinalities.}
+  \label{tab:experiment_scale}
+  \small
+  \begin{tabular}{l l r}
+    \toprule
+    \textbf{Stage} & \textbf{Expression} & \textbf{Max.\ runs} \\
+    \midrule
+    Stage~0 (baseline)          & $|\mathcal{D}| \times |\mathcal{P}| \times |\mathcal{I}|$                               & 300 \\
+    Stage~1 (general prompt)    & $|\mathcal{L}| \times |\mathcal{D}| \times |\mathcal{P}| \times |\mathcal{I}|$           & 1{,}200 \\
+    Stage~2 (\gls{llm} calls)   & $|\mathcal{L}| \times |\mathcal{D}| \times |\mathcal{P}|$                               & 80 \\
+    Stage~3 (feedback, $K = 3$) & $|\mathcal{L}| \times |\mathcal{D}| \times |\mathcal{P}| \times K \times |\mathcal{I}|$   & 3{,}600 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{API Version Pinning}
 
 To ensure absolute longitudinal reproducibility, each \gls{llm} is accessed via its hardcoded API version string (see \Cref{tab:selected_llms}).
@@ -442,21 +466,18 @@ For providers that do not offer immutable snapshot endpoints (e.g., DeepSeek), r
 
 \Cref{lst:config_yaml} shows the key sections of the centralised configuration file.
 
-\begin{lstlisting}[language={}, caption={Key sections of \texttt{experiment\_config.yaml}. All experimental parameters are defined in this single file.}, label={lst:config_yaml}, basicstyle=\small\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
+\begin{lstlisting}[language={}, caption={Key sections of \texttt{experiment\_config.yaml}. All experimental parameters are defined in this single file.}, label={lst:config_yaml}, basicstyle=\footnotesize\ttfamily, numbers=none, frame=single, xleftmargin=0.5cm, xrightmargin=0.5cm, breaklines=true]
 random_seed: 42
 instances_per_domain: 15
-
 llm_hyperparameters:
   temperature: 0.0
   top_p: 1.0
   max_completion_tokens: 8192
   context_memory: "stateless"
-
 docker:
   cpus: 1.0
   memory: "8g"
   timeout_seconds: 360
-
 improvement_detection:
   alpha: 0.25
   min_mean_gain: 0.0
