@@ -9,8 +9,8 @@ The work reported here largely automates it: a domain's surface structure is a c
 
 The central outcome is affirmative but bounded.
 Guided by planner-specific structural knowledge and refined by quantitative execution feedback, \glspl{llm} restructure domain models so that a target planner solves the same tasks faster---and sometimes solves tasks that previously timed out---across four architecturally diverse planners, five \gls{ipc} benchmark domains, and four frontier models, without altering a single line of planner source code or a single symbol of domain semantics.
-The improvement is statistically decisive (Friedman $p \approx 10^{-57}$) and, for domain-independent planning, practically meaningful.
-Its magnitude is set by planner architecture: the methodology reaches order-sensitive planners deeply and barely moves those that abstract textual order away---a boundary that is itself among the study's clearest results.
+The improvement is highly statistically significant (Friedman $p \approx 10^{-57}$) and, for domain-independent planning, practically meaningful.
+Its magnitude is set by planner architecture: the methodology substantially improves order-sensitive planners and barely moves those that abstract textual order away---a boundary that is itself among the study's clearest results.
 
 \section{Answers to the Research Questions}
 \label{sec:concl:rq_answers}
@@ -23,7 +23,7 @@ The analysis yields four planner-specific rule sets that become the substance of
 
 \paragraph{SQ2 --- Architecture-aware prompting.}
 Supplied with planner-specific rules, \glspl{llm} apply the intended transformations reliably: predicate reordering rises from 22\% of domains under the generic prompt to 100\% under the architecture-aware prompt (\Cref{ch:appendix:prompts}), and the share of configurations that improve their target planner climbs from the inert level of Stage~1 to 56.0\%.
-The improvements are demonstrably target-biased---81.0\% of them carry a positive specialisation index (mean $+0.0313$)---confirming that the optimisation is directed at the named planner rather than being merely generic.
+The improvements are target-biased---81.0\% of them carry a positive specialisation index (mean $+0.0313$)---confirming that the optimisation is directed at the named planner rather than being merely generic.
 
 \paragraph{SQ3 --- Feedback loop.}
 The three-iteration \gls{llm}-Modulo loop raises the baseline-relative improvement rate from 44.1\% after the one-shot architecture-aware stage to 80.9\% once feedback is added, recovers every one of the five Stage~2 generation failures, and drives a monotonic rise in the population-level solve rate from 56.9\% to 69.0\% across iterations.
@@ -36,7 +36,7 @@ Pairing a generative model with an external verifier is therefore not merely adv
 
 \paragraph{SQ5 --- Cross-architecture patterns.}
 Responsiveness to structural configuration is ordered \gls{bfws}~$>$~LAMA~$>$~Madagascar~$>$~DecStar under every metric, and the pipeline widens rather than narrows this ranking: the planner effect on \gls{ipc} gain strengthens monotonically across stages ($H = 26.6 \rightarrow 39.9 \rightarrow 76.7$).
-Order-driven heuristic searchers reward reordering, whereas a planner that factors the ordering away (DecStar) or compiles it into \gls{sat} variables that its solver reorders anyway (Madagascar) resists it.
+Order-driven heuristic searchers reward reordering, whereas a planner that factors the ordering away (DecStar) or compiles it into \gls{sat} variables that its solver is expected to reorder (Madagascar) resists it.
 The resulting mapping is actionable: promote goal-relevant and static predicates to accelerate mutex and landmark discovery for forward search, and expect little from architectures that abstract textual order away.
 
 \paragraph{Main research question.}
@@ -64,7 +64,7 @@ Extended chain-of-thought reasoning, moreover, is no substitute for architectura
 \paragraph{Verifiable, iterative configuration is practical.}
 Coupling a generative model with an external verifier and quantitative telemetry converts an unreliable single-pass rewriter into a dependable optimiser.
 The feedback loop supplies the reliability---doubling the share of configurations that beat the baseline and recovering every one-shot failure---while the validation pipeline supplies the safety, admitting not one semantically altered domain across all 7{,}350 planner runs.
-The result is the first working instantiation of the \gls{llm}-Modulo paradigm for domain model configuration, and evidence that the paradigm's premise---creativity from the model, correctness from the verifier---holds in a demanding, execution-grounded setting.
+The result is, to our knowledge, the first working instantiation of the \gls{llm}-Modulo paradigm for domain model configuration, and evidence that the paradigm's premise---creativity from the model, correctness from the verifier---holds in a demanding, execution-grounded setting.
 
 \section{Limitations}
 \label{sec:concl:limitations}

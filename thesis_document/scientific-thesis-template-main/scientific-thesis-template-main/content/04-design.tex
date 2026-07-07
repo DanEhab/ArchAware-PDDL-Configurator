@@ -368,7 +368,7 @@ The five phases are chained sequentially, each checkpointed for interrupt-and-re
     The planner threads execute concurrently, each processing the domains targeted to it.
 
   \item[\textbf{Phase~D} (Improvement Detection):]
-    For each (domain, \gls{llm}, target planner) triple, the pipeline evaluates whether the architecture-aware configuration represents a genuine improvement over the Stage~0 baseline, using the three-condition test described in \Cref{sec:design:stage2:improvement}.
+    For each (domain, \gls{llm}, target planner) triple, the pipeline evaluates whether the architecture-aware configuration represents an improvement over the Stage~0 baseline, using the three-condition test described in \Cref{sec:design:stage2:improvement}.
 
   \item[\textbf{Phase~E} (Cross-Planner Testing):]
     For every triple where improvement is detected, the improved domain is executed on the three \emph{non-target} planners to determine architecture-specificity (\Cref{sec:design:stage2:cross_test}).
@@ -449,7 +449,7 @@ A configuration is declared as \emph{improved} if and only if all three of the f
         The one-sided Wilcoxon signed-rank test on the per-instance IPC score gains yields $p \leq \alpha$.
         It is important to stress that this test acts as an \emph{internal selection gate}---a screening criterion that decides which configurations are promising enough to carry forward to cross-planner testing (Phase~E)---rather than as a confirmatory test of the thesis's hypotheses.
         For this screening purpose the threshold is deliberately relaxed to $\alpha = 0.25$: at the conventional $\alpha = 0.05$, the small per-domain sample (15~instances) would discard many configurations whose target-planner gains, although not yet strongly significant, still merit cross-architecture investigation.
-        The relaxed gate therefore favours \emph{recall} of candidate improvements, while Conditions~B and~C guard against admitting configurations that are not genuinely beneficial.
+        The relaxed gate therefore favours \emph{recall} of candidate improvements, while Conditions~B and~C guard against admitting configurations that are not reliably beneficial.
         The confirmatory statistical analyses reported in \Cref{ch:results}---which substantiate the actual findings of the thesis---use the conventional $\alpha = 0.05$.
         The Wilcoxon test is chosen over the paired $t$-test because planner runtime distributions are inherently non-normal---some instances solve in milliseconds while others time out at the resource limit, creating extreme skew; both \citeauthor{Elis2025}~\cite{Elis2025} and \citeauthor{Georgievski2025}~\cite{Georgievski2025} confirmed non-normality via Shapiro--Wilk tests and accordingly adopted non-parametric tests.
         The test is one-sided (alternative hypothesis: the median gain is positive), reflecting the directional hypothesis that architecture-aware configuration should improve performance.

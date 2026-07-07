@@ -29,7 +29,7 @@ This risk is mitigated by the deterministic, stateless nature of all four select
 \paragraph{Feedback-loop information leakage.}
 In Stage~3, the \gls{llm} receives execution telemetry from the target planner as part of the critique prompt (\Cref{sec:design:stage3}).
 Because the telemetry reveals which instances timed out, the model could hypothetically ``overfit'' its reordering to the specific set of 15 selected instances rather than improving the domain in general.
-However, the initial instance selection was rigorously randomised using a fixed global seed (\texttt{seed=42}) prior to execution (\Cref{sec:setup:hyperparameters}), ensuring the sample itself is unbiased.
+However, the initial instance selection was randomised using a fixed global seed (\texttt{seed=42}) prior to execution (\Cref{sec:setup:hyperparameters}), ensuring the sample itself is unbiased.
 Furthermore, the model receives only aggregate per-instance solve/timeout verdicts and runtime, not the internal search trace, limiting its capacity for instance-level exploitation.
 
 \section{External Validity}

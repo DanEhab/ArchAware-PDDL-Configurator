@@ -86,7 +86,7 @@ Candidate domains were subjected to three sequential filters:
   \item[\textbf{Filter~1} (Syntactic Compatibility):]
     Domains were required to parse successfully under all four target planner architectures.
     For example, DecStar lacks support for axioms (derived predicates), immediately disqualifying domains such as PSR-Small.
-    Similarly, DecStar falls back to standard search if it encounters conditional effects, necessitating careful domain parsing checks to ensure the isolated architectural mechanics of each planner are genuinely evaluated.
+    Similarly, DecStar falls back to standard search if it encounters conditional effects, necessitating careful domain parsing checks to ensure the isolated architectural mechanics of each planner are evaluated as intended.
 
   \item[\textbf{Filter~2} (Pipeline Compatibility):]
     The LLM-Modulo feedback loop (\Cref{sec:design:stage3}) requires a single, static \texttt{domain.pddl} file per domain.
@@ -155,7 +155,7 @@ Each domain occupies a distinct niche in the structural spectrum:
 
   \item[Barman (IPC 2014) --- The Maximal Complexity Anchor:]
     The absolute upper bound of grounding stress, with the highest action count ($\lvert A \rvert = 12$), deepest type hierarchy ($\lvert O_t \rvert = 7$), and highest action arity (6).
-    Its dense, tightly coupled combinatorial space provides the strongest environment to test whether an \gls{llm} can isolate and optimise architecture-specific bottlenecks.
+    Its dense, tightly coupled combinatorial space provides a demanding environment to test whether an \gls{llm} can isolate and optimise architecture-specific bottlenecks.
 \end{description}
 
 The final selection also achieves strong temporal diversity, spanning from IPC~2002 (Depots) through IPC~2014 (VisitAll, Barman) and IPC~2018 (Snake) to IPC~2023 (Ricochet Robots).
@@ -237,7 +237,7 @@ The prior studies systematically evaluated five distinct prompting strategies ac
 (iv)~$\Pi_\text{FS-L}$ (few-shot-long): rules plus two annotated examples; and
 (v)~$\Pi_\text{CoT}$ (chain-of-thought): rules plus a multi-turn analysis-then-execution protocol.
 
-The analysis revealed a counter-intuitive but significant finding: the simplest strategy, $\Pi_\text{ZS-S}$, decisively outperformed the more complex, heavily engineered prompts.
+The analysis revealed a counter-intuitive but significant finding: the simplest strategy, $\Pi_\text{ZS-S}$, consistently outperformed the more complex, heavily engineered prompts.
 Of the 140 configurations generated per strategy, $\Pi_\text{ZS-S}$ produced:
 \begin{itemize}
   \item A syntactic validity rate of 79.29\% (domains that parsed correctly without errors).
@@ -431,7 +431,7 @@ The selected instances are:
 \texttt{[1, 2, 3, 4, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19]}
 \end{center}
 
-\noindent The same 15 instances are used across all five domains, all four planners, all four \glspl{llm}, and all experimental stages, ensuring that pairwise comparisons between stages are perfectly paired.
+\noindent The same 15 instances are used across all five domains, all four planners, all four \glspl{llm}, and all experimental stages, ensuring that pairwise comparisons between stages are fully paired.
 Only the selected instances are included in the repository's \texttt{instances/} directory, eliminating any ambiguity for future replication.
 
 \subsection{Resulting Experimental Scale}
