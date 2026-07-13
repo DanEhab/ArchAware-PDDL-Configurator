@@ -9,16 +9,16 @@
 
 <br/>
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Containerised%20Planners-2496ED?logo=docker&logoColor=white)
-![PDDL](https://img.shields.io/badge/PDDL-STRIPS-6E4AFF)
-![LaTeX](https://img.shields.io/badge/Thesis-LaTeX-008080?logo=latex&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Docker](https://img.shields.io/badge/Docker-Containerised%20Planners-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![PDDL](https://img.shields.io/badge/PDDL-STRIPS-6E4AFF)](https://planning.wiki/guide/whatis/pddl)
+[![LaTeX](https://img.shields.io/badge/Thesis-LaTeX-008080?logo=latex&logoColor=white)](https://github.com/latextemplates/scientific-thesis-template)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-![Planners](https://img.shields.io/badge/Planners-4-orange)
-![LLMs](https://img.shields.io/badge/LLMs-4-blueviolet)
-![Domains](https://img.shields.io/badge/IPC%20Domains-5-informational)
-![Runs](https://img.shields.io/badge/Planner%20Runs-7%2C350-lightgrey)
+[![Planners](https://img.shields.io/badge/Planners-4-orange)](docs/planners.md)
+[![LLMs](https://img.shields.io/badge/LLMs-4-blueviolet)](docs/llms.md)
+[![Domains](https://img.shields.io/badge/IPC%20Domains-5-informational)](docs/domains.md)
+[![Runs](https://img.shields.io/badge/Planner%20Runs-7%2C350-lightgrey)](docs/planner-runs.md)
 
 <br/>
 
