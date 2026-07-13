@@ -55,28 +55,12 @@ The repository holds the complete pipeline, the four containerised planners, the
 
 Every domain flows through four progressive stages. **Stage 0** is the baseline; **Stages 1–3** each add one ingredient, so the value of that ingredient can be isolated.
 
-```mermaid
-flowchart LR
-    D[("📄 Original<br/>domain.pddl")] --> S0["Stage 0<br/>Baseline"]
-    D --> GEN
-
-    subgraph GEN ["Stages 1–3 · LLM Generation"]
-        direction TB
-        S1["Stage 1 · General Prompt"]
-        S2["Stage 2 · Architecture-Aware Prompt"]
-        S3["Stage 3 · LLM-Modulo Feedback Loop"]
-    end
-
-    GEN --> V{{"🛡️ 4-Level Validation"}}
-    V -- "✅ semantics preserved" --> EXE["🐳 Planner Execution<br/>(Docker)"]
-    S0 --> EXE
-    EXE --> M[["📊 Metrics<br/>time · coverage · IPC score"]]
-    M -. "telemetry fed back" .-> S3
-
-    style S2 fill:#efe,stroke:#8a8
-    style S3 fill:#fee,stroke:#a88
-    style V fill:#ffd,stroke:#aa6
-```
+<div align="center">
+  <img src="docs/assets/pipeline.png" width="820"
+       alt="High-level architecture of the experimental pipeline: Stages 0-3, each with LLM Generation (Phase A), four-level V1-V4 Validation (Phase B) and Planner Execution (Phase C); Stage 2 adds Improvement Detection (Phase D) and Cross-Planner Testing (Phase E); Stage 3 adds a dashed feedback loop from execution back to LLM Generation.">
+  <br/>
+  <sub><i>High-level architecture of the experimental pipeline (Figure 4.1 of the thesis).</i></sub>
+</div>
 
 **The four configuration stages** *(each a folder under [`experiments/`](experiments/))*:
 
