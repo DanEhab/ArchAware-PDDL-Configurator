@@ -14,6 +14,8 @@
 [![PDDL](https://img.shields.io/badge/PDDL-STRIPS-6E4AFF)](https://planning.wiki/guide/whatis/pddl)
 [![LaTeX](https://img.shields.io/badge/Thesis-LaTeX-008080?logo=latex&logoColor=white)](https://github.com/latextemplates/scientific-thesis-template)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Thesis](https://img.shields.io/badge/Thesis-DOI%2010.18419%2Fopus--19779-0A66C2)](https://doi.org/10.18419/opus-19779)
+[![Grade](https://img.shields.io/badge/Grade-100%25%20(A%2B)-success)](#-thesis--citation)
 
 [![Planners](https://img.shields.io/badge/Planners-4-orange)](docs/planners.md)
 [![LLMs](https://img.shields.io/badge/LLMs-4-blueviolet)](docs/llms.md)
@@ -22,7 +24,7 @@
 
 <br/>
 
-<p><strong>Bachelor's Thesis</strong> &nbsp;·&nbsp; <a href="https://www.uni-stuttgart.de/en/">University of Stuttgart</a> &nbsp;·&nbsp; <a href="https://www.iaas.uni-stuttgart.de/en/department-service-computing/">IAAS — Service Computing</a></p>
+<p><strong>Bachelor's Thesis</strong> &nbsp;·&nbsp; <a href="https://www.uni-stuttgart.de/en/">University of Stuttgart</a> &nbsp;·&nbsp; <a href="https://www.iaas.uni-stuttgart.de/en/department-service-computing/">IAAS — Service Computing</a> &nbsp;·&nbsp; March – July 2026</p>
 
 <p><strong>Author:</strong> Daniel Ehab Rasmy Bendas</p>
 <p><strong>Supervisor &amp; Examiner:</strong> <a href="https://www.iaas.uni-stuttgart.de/en/institute/team/Georgievski/">Dr. Ilche Georgievski</a></p>
@@ -35,7 +37,7 @@
 > **TL;DR** — Modern planners are *structurally sensitive*: the order in which a `domain.pddl` lists its predicates, actions, preconditions, and effects can change solve time by orders of magnitude — **with zero change to the logic**. This project has four frontier LLMs reorder domains for a **specific target planner**, briefing each model on that planner's **internal architecture**. A four‑level validator guarantees the meaning is never altered, and an **LLM‑Modulo feedback loop** lets the model learn from real execution results.
 
 > [!TIP]
-> 📖 **The full thesis** — background, methodology, experiments, statistics, and results — will be linked here once it is published in the University of Stuttgart library. *(Link coming soon.)* The LaTeX source lives in [`thesis_document/`](thesis_document/).
+> 📖 **The full thesis** — background, methodology, experiments, statistics, and results — is published in the University of Stuttgart library: [**doi.org/10.18419/opus-19779**](https://doi.org/10.18419/opus-19779). It was graded **100% (A+)**. The LaTeX source lives in [`thesis_document/`](thesis_document/).
 
 ---
 
@@ -47,7 +49,7 @@ This project turns that quirk into an **automated optimization**. It asks four f
 
 The repository holds the complete pipeline, the four containerised planners, the five benchmark domains, and every result and log. It evaluates **4 planners** (BFWS · LAMA · DecStar · Madagascar) × **4 LLMs** (GPT‑5.4 · DeepSeek‑R1 · Claude Opus 4.6 · Gemini 3.1 Pro) × **5 IPC domains** × **15 instances**.
 
-> This README is a practical guide to the **code and how to run it**. The scientific side — methodology, experiments, and results — lives in the thesis (linked above).
+> This README is a practical guide to the **code and how to run it**. The scientific side — methodology, experiments, and results — lives in the [thesis](https://doi.org/10.18419/opus-19779).
 
 ---
 
@@ -79,6 +81,24 @@ Every domain flows through four progressive stages. **Stage 0** is the baseline;
 4. **V4 · Semantic** — prove the meaning is preserved via component set‑equality.
 
 > *Full methodology, prompt design, and experimental results are in the thesis.*
+
+---
+
+## 📈 Results at a Glance
+
+Across [7,350 planner runs](docs/planner-runs.md) (Chapter 7 of the thesis):
+
+| Finding | Result |
+|---|---|
+| Overall effect of the four stages | Statistically significant (Friedman test, *p* ≈ 10⁻⁵⁷) |
+| Architecture‑aware vs. generic prompt | The cumulative IPC gain is nearly **double** (+7.27 vs. +3.76) |
+| Configurations that beat the original domain | **44.1% → 80.9%** of the 68 contestable cases once the feedback loop is added; it recovers every Stage 2 failure |
+| Best configuration per benchmark cell | LLM‑generated in **180 of the 183** solvable cells |
+| Instances that timed out at baseline | **15 of 132** become solvable |
+| Semantic safety | No semantically altered domain ever reached a planner |
+| Choice of LLM | Not statistically significant once the prompt is architecture‑aware: **the method matters more than the model** |
+
+The gains depend on the planner's architecture: **LAMA** and **BFWS** respond strongly to restructuring, while **DecStar** and **Madagascar** are largely resistant.
 
 ---
 
@@ -174,7 +194,7 @@ Every parameter — seeds, domains, planners, model IDs, Docker limits — is ce
 
 ## 📖 Thesis & Citation
 
-The full LaTeX source is in [`thesis_document/`](thesis_document/); a public link to the published thesis will be added here once it is available in the University of Stuttgart library.
+The thesis is published in the University of Stuttgart library (OPUS): [doi.org/10.18419/opus-19779](https://doi.org/10.18419/opus-19779). It was defended at IAAS on 8 July 2026 and graded **100% (A+)**. The full LaTeX source is in [`thesis_document/`](thesis_document/).
 
 ```bibtex
 @thesis{Bendas2026ArchAware,
@@ -184,6 +204,8 @@ The full LaTeX source is in [`thesis_document/`](thesis_document/); a public lin
   school = {University of Stuttgart, Institute of Architecture of Application Systems (IAAS)},
   type   = {Bachelor's Thesis},
   year   = {2026},
+  doi    = {10.18419/opus-19779},
+  url    = {https://doi.org/10.18419/opus-19779},
   note   = {Supervisor \& Examiner: Dr.\ Ilche Georgievski}
 }
 ```
@@ -197,4 +219,5 @@ Released under the **MIT License** — code, prompts, domain configurations, and
 ## 🙏 Acknowledgements
 
 - [**Dr. Ilche Georgievski**](https://www.iaas.uni-stuttgart.de/en/institute/team/Georgievski/) (IAAS, University of Stuttgart) — supervision and examination.
+- **Prof. Dr. Marco Aiello** (Head of the Service Computing Department, IAAS) — for hosting the project, the workspace, and the iMac Pro that ran the experiments.
 - The maintainers of **Fast Downward**, **LAPKT / BFWS**, **DecStar**, **Madagascar**, and **VAL**, and the **International Planning Competition** community for the benchmark domains.
