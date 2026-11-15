@@ -1,0 +1,9 @@
+# GitHub language statistics: count the project's own code, not the benchmark data,
+# the generated results and logs, the thesis source or the bundled third-party planners.
+benchmarks/** linguist-vendored
+results/** linguist-generated
+logs/** linguist-generated
+thesis_document/** linguist-documentation
+planners/bfws/BFWS/** linguist-vendored
+planners/bfws/h2-fd-preprocessor/** linguist-vendored
+planners/madagascar/MpC/** linguist-vendored
